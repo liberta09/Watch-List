@@ -46,6 +46,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.kaan.watchlist.ui.components.tvFocusable
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.kaan.watchlist.data.repository.UpdateStatus
 import com.kaan.watchlist.navigation.BottomNavScreen
 import com.kaan.watchlist.navigation.Screen
 import com.kaan.watchlist.ui.theme.BlueAccent
@@ -57,7 +66,60 @@ import com.kaan.watchlist.viewmodel.MediaViewModel
 @Composable
 fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
     val bottomNavController = rememberNavController()
-    
+    val updateStatus by viewModel.updateStatus.collectAsState()
+    var showUpdateDialog by remember { mutableStateOf(true) }
+
+    if (showUpdateDialog && updateStatus is UpdateStatus.UpdateAvailable) {
+        val update = updateStatus as UpdateStatus.UpdateAvailable
+        val uriHandler = LocalUriHandler.current
+
+        AlertDialog(
+            onDismissRequest = { showUpdateDialog = false },
+            title = {
+                Text(
+                    text = "Yeni Güncelleme Mevcut",
+                    color = LightText,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            },
+            text = {
+                Text(
+                    text = "Watch List'in yeni sürümü (${update.version}) yayınlandı. Şimdi indirip güncelleyebilirsiniz.",
+                    color = LightText.copy(alpha = 0.8f),
+                    fontSize = 15.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        try {
+                            uriHandler.openUri(update.downloadUrl)
+                        } catch (e: Exception) {
+                            // Fallback
+                        }
+                        showUpdateDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp))
+                ) {
+                    Text("Güncellemeyi İndir", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showUpdateDialog = false },
+                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp))
+                ) {
+                    Text("Daha Sonra", color = Color.Gray)
+                }
+            },
+            containerColor = DarkSurface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     val items = listOf(
         BottomNavItem(BottomNavScreen.Discover, Icons.Default.Home),
         BottomNavItem(BottomNavScreen.Search, Icons.Default.Search),

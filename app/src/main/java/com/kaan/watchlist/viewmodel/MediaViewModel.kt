@@ -51,6 +51,7 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
     init {
         loadHomeData()
+        checkForUpdates()
     }
 
     fun loadHomeData() {
