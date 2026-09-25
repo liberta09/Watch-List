@@ -1,7 +1,6 @@
 package com.kaan.watchlist.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,8 +40,7 @@ fun MediaCard(
     Card(
         modifier = Modifier
             .width(120.dp)
-            .tvFocusable(shape = RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
+            .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onClick),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
@@ -84,8 +82,7 @@ fun MediaCard(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(4.dp))
                         .background(if (media.isWatched) DarkNavy else BlueAccent)
-                        .tvFocusable(shape = RoundedCornerShape(4.dp), scaleOnFocus = 1.02f)
-                        .clickable { onToggleWatched(media) }
+                        .tvFocusable(shape = RoundedCornerShape(4.dp), scaleOnFocus = 1.02f, onClick = { onToggleWatched(media) })
                         .padding(vertical = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {

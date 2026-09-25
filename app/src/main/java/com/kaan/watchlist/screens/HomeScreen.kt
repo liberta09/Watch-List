@@ -67,7 +67,50 @@ import com.kaan.watchlist.viewmodel.MediaViewModel
 fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
     val bottomNavController = rememberNavController()
     val updateStatus by viewModel.updateStatus.collectAsState()
+    val currentAnnouncement by viewModel.currentAnnouncement.collectAsState()
     var showUpdateDialog by remember { mutableStateOf(true) }
+
+    if (currentAnnouncement != null) {
+        val announcement = currentAnnouncement!!
+
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.dismissAnnouncement(announcement.id)
+            },
+            title = {
+                Text(
+                    text = announcement.title,
+                    color = LightText,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            },
+            text = {
+                Text(
+                    text = announcement.message,
+                    color = LightText.copy(alpha = 0.85f),
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dismissAnnouncement(announcement.id)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = {
+                        viewModel.dismissAnnouncement(announcement.id)
+                    })
+                ) {
+                    Text(text = announcement.buttonText, color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = DarkSurface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     if (showUpdateDialog && updateStatus is UpdateStatus.UpdateAvailable) {
         val update = updateStatus as UpdateStatus.UpdateAvailable
@@ -138,8 +181,22 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 items.forEach { item ->
+                    val onTabClick = {
+                        bottomNavController.navigate(item.screen.route) {
+                            popUpTo(bottomNavController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+
                     NavigationBarItem(
-                        modifier = Modifier.tvFocusable(shape = RoundedCornerShape(16.dp), scaleOnFocus = 1.08f),
+                        modifier = Modifier.tvFocusable(
+                            shape = RoundedCornerShape(16.dp),
+                            scaleOnFocus = 1.08f,
+                            onClick = onTabClick
+                        ),
                         icon = { Icon(item.icon, contentDescription = item.screen.title) },
                         label = { Text(item.screen.title) },
                         selected = currentRoute == item.screen.route,
@@ -150,15 +207,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                             unselectedIconColor = Color.Gray,
                             unselectedTextColor = Color.Gray
                         ),
-                        onClick = {
-                            bottomNavController.navigate(item.screen.route) {
-                                popUpTo(bottomNavController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
+                        onClick = onTabClick
                     )
                 }
             }
@@ -182,11 +231,17 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                 FavoritesTab(viewModel = viewModel, onMediaClick = { rootNavController.navigate(Screen.Detail.createRoute(it.id)) })
             }
             composable(BottomNavScreen.Settings.route) {
-                SettingsTab(viewModel = viewModel, onLogout = {
-                    rootNavController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+                SettingsTab(
+                    viewModel = viewModel,
+                    onLogout = {
+                        rootNavController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    },
+                    onOpenTelegramWeb = {
+                        rootNavController.navigate(Screen.TelegramWeb.route)
                     }
-                })
+                )
             }
         }
     }

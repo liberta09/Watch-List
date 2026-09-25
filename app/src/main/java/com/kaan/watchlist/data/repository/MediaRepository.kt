@@ -7,6 +7,8 @@ import com.google.gson.reflect.TypeToken
 import com.kaan.watchlist.BuildConfig
 import com.kaan.watchlist.data.api.MediaDto
 import com.kaan.watchlist.data.api.TmdbApi
+import com.kaan.watchlist.data.api.enableTlsChainFallback
+import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.domain.model.MediaItem
 import com.kaan.watchlist.domain.model.MediaType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +28,7 @@ class MediaRepository(private val context: Context) {
         }
         
         val okHttpClient = OkHttpClient.Builder()
+            .enableTlsChainFallback()
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -42,6 +45,7 @@ class MediaRepository(private val context: Context) {
     private val apiKey = BuildConfig.TMDB_API_KEY
     private val prefs: SharedPreferences = context.getSharedPreferences("watchlist_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
+    private val announcementRepository = AnnouncementRepository(context)
 
     private val _myList = MutableStateFlow<List<MediaItem>>(emptyList())
     val myList: StateFlow<List<MediaItem>> = _myList.asStateFlow()
@@ -103,6 +107,14 @@ class MediaRepository(private val context: Context) {
     fun toggleNotifications(enabled: Boolean) {
         _notificationsEnabled.value = enabled
         prefs.edit().putBoolean("notifications_enabled", enabled).apply()
+    }
+
+    suspend fun fetchAnnouncement(): Announcement? {
+        return announcementRepository.fetchAnnouncement()
+    }
+
+    fun dismissAnnouncement(id: String) {
+        announcementRepository.dismissAnnouncement(id)
     }
 
     suspend fun getPopularMovies(): List<MediaItem> {

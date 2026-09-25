@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kaan.watchlist.data.repository.MediaRepository
+import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.domain.model.MediaItem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,6 +21,9 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     private val updateRepository = UpdateRepository()
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus.asStateFlow()
+
+    private val _currentAnnouncement = MutableStateFlow<Announcement?>(null)
+    val currentAnnouncement: StateFlow<Announcement?> = _currentAnnouncement.asStateFlow()
 
     private var searchJob: Job? = null
 
@@ -52,6 +56,7 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     init {
         loadHomeData()
         checkForUpdates()
+        loadAnnouncement()
     }
 
     fun loadHomeData() {
@@ -131,6 +136,17 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
     fun setNotificationsEnabled(enabled: Boolean) {
         repository.toggleNotifications(enabled)
+    }
+
+    fun loadAnnouncement() {
+        viewModelScope.launch {
+            _currentAnnouncement.value = repository.fetchAnnouncement()
+        }
+    }
+
+    fun dismissAnnouncement(id: String) {
+        repository.dismissAnnouncement(id)
+        _currentAnnouncement.value = null
     }
 
     fun checkForUpdates() {

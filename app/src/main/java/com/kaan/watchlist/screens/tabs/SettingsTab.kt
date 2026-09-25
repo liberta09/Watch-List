@@ -1,7 +1,9 @@
 package com.kaan.watchlist.screens.tabs
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -55,7 +57,11 @@ import com.kaan.watchlist.util.NotificationHelper
 import com.kaan.watchlist.viewmodel.MediaViewModel
 
 @Composable
-fun SettingsTab(viewModel: MediaViewModel, onLogout: () -> Unit) {
+fun SettingsTab(
+    viewModel: MediaViewModel,
+    onLogout: () -> Unit,
+    onOpenTelegramWeb: (() -> Unit)? = null
+) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
@@ -112,20 +118,30 @@ fun SettingsTab(viewModel: MediaViewModel, onLogout: () -> Unit) {
                     color = LightText.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = {
+                val onTelegramClick = {
+                    if (onOpenTelegramWeb != null) {
+                        onOpenTelegramWeb()
+                    } else {
+                        val telegramUrl = "https://t.me/+o-RFlV4U3UY5NGU8"
                         try {
-                            uriHandler.openUri("https://t.me/+o-RFlV4U3UY5NGU8")
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(telegramUrl)).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
                         } catch (e: Exception) {
-                            // Fallback
+                            Toast.makeText(context, "Telegram bağlantısı açılamadı.", Toast.LENGTH_SHORT).show()
                         }
-                    },
+                    }
+                }
+
+                Button(
+                    onClick = { onTelegramClick() },
                     colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .tvFocusable(shape = RoundedCornerShape(12.dp))
+                        .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = { onTelegramClick() })
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,

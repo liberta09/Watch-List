@@ -16,13 +16,25 @@ android {
         localProperties.load(FileInputStream(localPropertiesFile))
     }
     val tmdbApiKey = localProperties.getProperty("TMDB_API_KEY") ?: ""
+    val keystorePassword = localProperties.getProperty("KEYSTORE_PASSWORD") ?: "WatchList2026"
+    val keyAlias = localProperties.getProperty("KEY_ALIAS") ?: "watchlist"
+    val keyPassword = localProperties.getProperty("KEY_PASSWORD") ?: "WatchList2026"
+
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("WatchList-release-key.jks")
+            storePassword = keystorePassword
+            this.keyAlias = keyAlias
+            this.keyPassword = keyPassword
+        }
+    }
 
     defaultConfig {
         applicationId = "com.kaan.watchlist"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.1.1"
         
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
 
@@ -31,6 +43,7 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             optimization {
                 enable = false
             }

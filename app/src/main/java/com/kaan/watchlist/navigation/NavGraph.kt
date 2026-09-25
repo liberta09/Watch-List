@@ -14,6 +14,7 @@ import com.kaan.watchlist.screens.DetailScreen
 import com.kaan.watchlist.screens.HomeScreen
 import com.kaan.watchlist.screens.LoginScreen
 import com.kaan.watchlist.screens.RegisterScreen
+import com.kaan.watchlist.screens.TelegramWebScreen
 import com.kaan.watchlist.viewmodel.MediaViewModel
 import com.kaan.watchlist.viewmodel.MediaViewModelFactory
 
@@ -38,6 +39,9 @@ fun SetupNavGraph(
         }
         composable(route = Screen.Home.route) {
             HomeScreen(rootNavController = navController, viewModel = sharedViewModel)
+        }
+        composable(route = Screen.TelegramWeb.route) {
+            TelegramWebScreen(navController = navController)
         }
         composable(
             route = Screen.Detail.route,
