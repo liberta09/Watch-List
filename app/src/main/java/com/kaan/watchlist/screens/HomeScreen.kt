@@ -34,7 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import com.kaan.watchlist.BuildConfig
+import com.kaan.watchlist.util.UpdateHelper
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,13 +117,23 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
 
     if (showUpdateDialog && updateStatus is UpdateStatus.UpdateAvailable) {
         val update = updateStatus as UpdateStatus.UpdateAvailable
-        val uriHandler = LocalUriHandler.current
+        val context = LocalContext.current
+        val currentVer = BuildConfig.VERSION_NAME
+
+        val onDoUpdate = {
+            showUpdateDialog = false
+            UpdateHelper.downloadAndInstallApk(context, update.downloadUrl)
+        }
+
+        val onDismissUpdate = {
+            showUpdateDialog = false
+        }
 
         AlertDialog(
-            onDismissRequest = { showUpdateDialog = false },
+            onDismissRequest = onDismissUpdate,
             title = {
                 Text(
-                    text = "Yeni Güncelleme Mevcut",
+                    text = "🔄 Güncelleme Mevcut",
                     color = LightText,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -128,32 +141,26 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
             },
             text = {
                 Text(
-                    text = "Watch List'in yeni sürümü (${update.version}) yayınlandı. Şimdi indirip güncelleyebilirsiniz.",
-                    color = LightText.copy(alpha = 0.8f),
-                    fontSize = 15.sp
+                    text = "Watch List için yeni bir güncelleme mevcut.\n\nMevcut sürüm: $currentVer\nYeni sürüm: ${update.version}",
+                    color = LightText.copy(alpha = 0.85f),
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp
                 )
             },
             confirmButton = {
                 Button(
-                    onClick = {
-                        try {
-                            uriHandler.openUri(update.downloadUrl)
-                        } catch (e: Exception) {
-                            // Fallback
-                        }
-                        showUpdateDialog = false
-                    },
+                    onClick = onDoUpdate,
                     colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp))
+                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onDoUpdate)
                 ) {
-                    Text("Güncellemeyi İndir", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Güncellemeyi Yap", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showUpdateDialog = false },
-                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp))
+                    onClick = onDismissUpdate,
+                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onDismissUpdate)
                 ) {
                     Text("Daha Sonra", color = Color.Gray)
                 }

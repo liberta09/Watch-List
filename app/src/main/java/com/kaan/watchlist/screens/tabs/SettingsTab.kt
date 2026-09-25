@@ -54,6 +54,7 @@ import com.kaan.watchlist.ui.theme.DarkNavy
 import com.kaan.watchlist.ui.theme.DarkSurface
 import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.util.NotificationHelper
+import com.kaan.watchlist.util.UpdateHelper
 import com.kaan.watchlist.viewmodel.MediaViewModel
 
 @Composable
@@ -63,7 +64,6 @@ fun SettingsTab(
     onOpenTelegramWeb: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val updateStatus by viewModel.updateStatus.collectAsState()
 
@@ -243,20 +243,17 @@ fun SettingsTab(
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+                        val onDownload = {
+                            UpdateHelper.downloadAndInstallApk(context, status.downloadUrl)
+                        }
                         Button(
-                            onClick = {
-                                try {
-                                    uriHandler.openUri(status.downloadUrl)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "İndirme adresi açılamadı.", Toast.LENGTH_SHORT).show()
-                                }
-                            },
+                            onClick = onDownload,
                             colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .tvFocusable(shape = RoundedCornerShape(12.dp))
+                                .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onDownload)
                         ) {
                             Text("Güncellemeyi İndir", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         }
