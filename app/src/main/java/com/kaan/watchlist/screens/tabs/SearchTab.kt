@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kaan.watchlist.domain.model.MediaItem
 import com.kaan.watchlist.ui.components.MediaCard
-import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.viewmodel.MediaViewModel
@@ -52,7 +51,6 @@ import com.kaan.watchlist.viewmodel.MediaViewModel
 @Composable
 fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
     var query by remember { mutableStateOf("") }
-    var isEditing by remember { mutableStateOf(false) }
 
     val searchResults by viewModel.searchResults.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
@@ -63,24 +61,8 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
     val searchFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        isEditing = false
         keyboardController?.hide()
         focusManager.clearFocus()
-    }
-
-    LaunchedEffect(isEditing) {
-        if (isEditing) {
-            try {
-                searchFocusRequester.requestFocus()
-            } catch (e: Exception) {
-                // Ignore focus request error
-            }
-            keyboardController?.show()
-        }
-    }
-
-    val onSearchClick = {
-        isEditing = true
     }
 
     Column(
@@ -95,14 +77,9 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 query = it 
                 viewModel.search(it)
             },
-            readOnly = !isEditing,
             modifier = Modifier
                 .fillMaxWidth()
-                .focusRequester(searchFocusRequester)
-                .tvFocusable(
-                    shape = RoundedCornerShape(12.dp),
-                    onClick = onSearchClick
-                ),
+                .focusRequester(searchFocusRequester),
             placeholder = { Text("Film veya dizi ara...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = LightText) },
             trailingIcon = {
@@ -111,11 +88,7 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                         onClick = { 
                             query = "" 
                             viewModel.clearSearch()
-                        },
-                        modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = {
-                            query = ""
-                            viewModel.clearSearch()
-                        })
+                        }
                     ) {
                         Icon(Icons.Default.Clear, contentDescription = "Temizle", tint = LightText)
                     }
@@ -123,7 +96,6 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = {
-                isEditing = false
                 keyboardController?.hide()
                 focusManager.clearFocus()
             }),
