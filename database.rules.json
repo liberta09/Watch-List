@@ -4,15 +4,15 @@
     ".write": false,
 
     "devices": {
-      ".read": "auth != null && auth.uid === 'ADMIN_UID'",
+      ".read": "auth != null && auth.uid === '85lwGSAWPRXay3oSu4AQAfw2hM73'",
       "$deviceId": {
         ".write": "auth != null"
       }
     },
 
     "history": {
-      ".read": "auth != null && auth.uid === 'ADMIN_UID'",
-      ".write": "auth != null && auth.uid === 'ADMIN_UID'",
+      ".read": "auth != null && auth.uid === '85lwGSAWPRXay3oSu4AQAfw2hM73'",
+      ".write": "auth != null && auth.uid === '85lwGSAWPRXay3oSu4AQAfw2hM73'",
       "$deviceId": {
         "$eventId": {
           ".write": "auth != null && !data.exists()",
@@ -24,7 +24,7 @@
     "commands": {
       "$deviceId": {
         ".read": "auth != null",
-        ".write": "auth != null && auth.uid === 'ADMIN_UID'",
+        ".write": "auth != null && auth.uid === '85lwGSAWPRXay3oSu4AQAfw2hM73'",
         "executed": {
           ".write": "auth != null && data.exists() && newData.val() === true"
         }
