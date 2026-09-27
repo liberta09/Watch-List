@@ -46,9 +46,10 @@ import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.DarkNavy
 import com.kaan.watchlist.ui.theme.DarkSurface
 import com.kaan.watchlist.ui.theme.LightText
+import com.kaan.watchlist.viewmodel.MediaViewModel
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val dummyFocusRequester = remember { FocusRequester() }
@@ -58,6 +59,7 @@ fun LoginScreen(navController: NavController) {
     }
 
     val onLogin = {
+        viewModel.setLoggedIn(true)
         navController.navigate(Screen.Home.route) {
             popUpTo(Screen.Login.route) { inclusive = true }
         }
@@ -68,6 +70,7 @@ fun LoginScreen(navController: NavController) {
     }
 
     val onGuestLogin = {
+        viewModel.setLoggedIn(true)
         navController.navigate(Screen.Home.route) {
             popUpTo(Screen.Login.route) { inclusive = true }
         }

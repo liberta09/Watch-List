@@ -87,7 +87,24 @@ fun MediaCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (media.isWatched) "İzlendi" else "İzlenecek",
+                        text = if (media.isWatched) "✓ İZLENDİ" else "🔖 İZLENECEK",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            } else if (media.isInList) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(if (media.isWatched) DarkNavy else BlueAccent)
+                        .padding(vertical = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (media.isWatched) "✓ İZLENDİ" else "🔖 İZLENECEK",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "394532471277",
+    "project_id": "neos-615e5",
+    "storage_bucket": "neos-615e5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394532471277:android:4af0e4bdab377061f267e4",
+        "android_client_info": {
+          "package_name": "com.kaan.watchlist"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqf_3TvytJsr23pPN77nBtKS0KF0NKRz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -49,6 +49,12 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     val favorites = repository.favorites
     val notes = repository.notes
     val notificationsEnabled = repository.notificationsEnabled
+
+    fun isLoggedIn(): Boolean = repository.isLoggedIn
+
+    fun setLoggedIn(loggedIn: Boolean) {
+        repository.isLoggedIn = loggedIn
+    }
     
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()

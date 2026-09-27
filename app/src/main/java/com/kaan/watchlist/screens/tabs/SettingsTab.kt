@@ -173,7 +173,7 @@ fun SettingsTab(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Mevcut Sürüm: Sürüm ${BuildConfig.VERSION_NAME}",
+                    text = "Mevcut Sürüm: Sürüm ${BuildConfig.VERSION_NAME} ✨",
                     fontSize = 14.sp,
                     color = LightText.copy(alpha = 0.7f)
                 )

@@ -241,6 +241,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                 SettingsTab(
                     viewModel = viewModel,
                     onLogout = {
+                        viewModel.setLoggedIn(false)
                         rootNavController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }

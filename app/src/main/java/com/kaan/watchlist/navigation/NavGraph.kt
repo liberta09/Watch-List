@@ -29,10 +29,10 @@ fun SetupNavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = if (sharedViewModel.isLoggedIn()) Screen.Home.route else Screen.Login.route
     ) {
         composable(route = Screen.Login.route) {
-            LoginScreen(navController = navController)
+            LoginScreen(navController = navController, viewModel = sharedViewModel)
         }
         composable(route = Screen.Register.route) {
             RegisterScreen(navController = navController)

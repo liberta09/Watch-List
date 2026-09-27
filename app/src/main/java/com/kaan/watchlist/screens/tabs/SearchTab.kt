@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -79,7 +80,12 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .focusRequester(searchFocusRequester),
+                .focusRequester(searchFocusRequester)
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        keyboardController?.show()
+                    }
+                },
             placeholder = { Text("Film veya dizi ara...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = LightText) },
             trailingIcon = {

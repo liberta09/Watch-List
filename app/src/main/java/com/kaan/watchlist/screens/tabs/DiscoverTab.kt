@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -41,6 +42,9 @@ import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.viewmodel.MediaViewModel
+import androidx.compose.material.icons.filled.Refresh
+import com.kaan.watchlist.data.repository.UpdateStatus
+import android.widget.Toast
 
 @Composable
 fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
@@ -85,6 +89,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         item {
             val context = LocalContext.current
             val activity = context as? ComponentActivity
+            val updateStatus by viewModel.updateStatus.collectAsState()
 
             Row(
                 modifier = Modifier
@@ -114,6 +119,40 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                     fontWeight = FontWeight.Bold,
                     color = BlueAccent
                 )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                if (updateStatus is UpdateStatus.Checking) {
+                    CircularProgressIndicator(
+                        color = BlueAccent,
+                        modifier = Modifier.padding(end = 8.dp).size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    IconButton(
+                        onClick = {
+                            viewModel.checkForUpdates()
+                            if (updateStatus is UpdateStatus.UpToDate) {
+                                Toast.makeText(context, "Uygulamanız güncel.", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier.tvFocusable(
+                            shape = CircleShape,
+                            onClick = {
+                                viewModel.checkForUpdates()
+                                if (updateStatus is UpdateStatus.UpToDate) {
+                                    Toast.makeText(context, "Uygulamanız güncel.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Güncellemeleri Kontrol Et",
+                            tint = LightText
+                        )
+                    }
+                }
             }
         }
         

@@ -59,6 +59,10 @@ class MediaRepository(private val context: Context) {
     private val _notificationsEnabled = MutableStateFlow(true)
     val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
 
+    var isLoggedIn: Boolean
+        get() = prefs.getBoolean("is_logged_in", false)
+        set(value) = prefs.edit().putBoolean("is_logged_in", value).apply()
+
     init {
         loadLocalData()
     }
