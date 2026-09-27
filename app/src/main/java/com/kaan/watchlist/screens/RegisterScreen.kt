@@ -1,5 +1,6 @@
 package com.kaan.watchlist.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,11 +42,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kaan.watchlist.data.repository.AuthRepository
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.LightText
@@ -56,6 +59,9 @@ fun RegisterScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val dummyFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -63,6 +69,29 @@ fun RegisterScreen(navController: NavController) {
     }
 
     val onBack = { navController.popBackStack() }
+
+    val onRegister: () -> Unit = onRegister@{
+        if (isLoading) return@onRegister
+        errorMessage = null
+        isLoading = true
+        AuthRepository.register(
+            email = email,
+            username = username,
+            password = password,
+            onSuccess = {
+                isLoading = false
+                // Kayıttan sonra oturumu kapatıp kullanıcıyı giriş ekranına döndürüyoruz,
+                // böylece şifresiyle bir kez giriş yaparak hesabını doğrulamış olur.
+                AuthRepository.logout()
+                Toast.makeText(context, "Hesap oluşturuldu, şimdi giriş yapabilirsin.", Toast.LENGTH_SHORT).show()
+                navController.popBackStack()
+            },
+            onError = { message ->
+                isLoading = false
+                errorMessage = message
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -106,7 +135,7 @@ fun RegisterScreen(navController: NavController) {
             ) {
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { email = it; errorMessage = null },
                     label = { Text("E-posta") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -127,7 +156,7 @@ fun RegisterScreen(navController: NavController) {
 
                 OutlinedTextField(
                     value = username,
-                    onValueChange = { username = it },
+                    onValueChange = { username = it; errorMessage = null },
                     label = { Text("Kullanıcı Adı") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -148,7 +177,7 @@ fun RegisterScreen(navController: NavController) {
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it; errorMessage = null },
                     label = { Text("Şifre") },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier
@@ -166,18 +195,23 @@ fun RegisterScreen(navController: NavController) {
                     shape = RoundedCornerShape(12.dp)
                 )
 
+                errorMessage?.let { msg ->
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = msg, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = { onBack() },
+                    onClick = onRegister,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = { onBack() }),
+                        .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onRegister),
                     colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = "Kayıt Ol", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(text = if (isLoading) "Kaydediliyor..." else "Kayıt Ol", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }

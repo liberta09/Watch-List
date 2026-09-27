@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kaan.watchlist.R
+import com.kaan.watchlist.data.repository.AuthRepository
 import com.kaan.watchlist.navigation.Screen
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
@@ -50,19 +51,35 @@ import com.kaan.watchlist.viewmodel.MediaViewModel
 
 @Composable
 fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
     val dummyFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         dummyFocusRequester.requestFocus()
     }
 
-    val onLogin = {
-        viewModel.setLoggedIn(true)
-        navController.navigate(Screen.Home.route) {
-            popUpTo(Screen.Login.route) { inclusive = true }
-        }
+    val onLogin: () -> Unit = onLogin@{
+        if (isLoading) return@onLogin
+        errorMessage = null
+        isLoading = true
+        AuthRepository.login(
+            email = email,
+            password = password,
+            onSuccess = {
+                isLoading = false
+                viewModel.setLoggedIn(true)
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Login.route) { inclusive = true }
+                }
+            },
+            onError = { message ->
+                isLoading = false
+                errorMessage = message
+            }
+        )
     }
 
     val onRegister = {
@@ -70,6 +87,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
     }
 
     val onGuestLogin = {
+        AuthRepository.logout()
         viewModel.setLoggedIn(true)
         navController.navigate(Screen.Home.route) {
             popUpTo(Screen.Login.route) { inclusive = true }
@@ -147,7 +165,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
                 colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(text = if (isLoading) "Giriş yapılıyor..." else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -169,9 +187,9 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
 
             // 4. Kullanıcı Adı
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Kullanıcı Adı") },
+                value = email,
+                onValueChange = { email = it; errorMessage = null },
+                label = { Text("E-posta") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .tvFocusable(shape = RoundedCornerShape(12.dp)),
@@ -192,7 +210,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             // 5. Şifre
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { password = it; errorMessage = null },
                 label = { Text("Şifre") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier
@@ -209,6 +227,11 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
+
+            errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = msg, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.kaan.watchlist.screens
 
+import com.kaan.watchlist.data.repository.AuthRepository
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -241,6 +242,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                 SettingsTab(
                     viewModel = viewModel,
                     onLogout = {
+                        AuthRepository.logout()
                         viewModel.setLoggedIn(false)
                         rootNavController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
