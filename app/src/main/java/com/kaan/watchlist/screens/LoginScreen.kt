@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kaan.watchlist.R
+import com.kaan.watchlist.data.repository.AuthRepository
 import com.kaan.watchlist.navigation.Screen
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
@@ -51,15 +53,24 @@ import com.kaan.watchlist.ui.theme.LightText
 fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val authRepository = remember { AuthRepository(context) }
     val dummyFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         dummyFocusRequester.requestFocus()
     }
 
-    val onLogin = {
-        navController.navigate(Screen.Home.route) {
-            popUpTo(Screen.Login.route) { inclusive = true }
+    val onLogin: () -> Unit = {
+        when (val result = authRepository.login(username, password)) {
+            is AuthRepository.Result.Success -> {
+                errorMessage = null
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Login.route) { inclusive = true }
+                }
+            }
+            is AuthRepository.Result.Error -> errorMessage = result.message
         }
     }
 
@@ -68,6 +79,7 @@ fun LoginScreen(navController: NavController) {
     }
 
     val onGuestLogin = {
+        authRepository.logout()
         navController.navigate(Screen.Home.route) {
             popUpTo(Screen.Login.route) { inclusive = true }
         }
@@ -167,7 +179,7 @@ fun LoginScreen(navController: NavController) {
             // 4. Kullanıcı Adı
             OutlinedTextField(
                 value = username,
-                onValueChange = { username = it },
+                onValueChange = { username = it; errorMessage = null },
                 label = { Text("Kullanıcı Adı") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,7 +201,7 @@ fun LoginScreen(navController: NavController) {
             // 5. Şifre
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { password = it; errorMessage = null },
                 label = { Text("Şifre") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier
@@ -206,6 +218,11 @@ fun LoginScreen(navController: NavController) {
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
+
+            errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = msg, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+            }
         }
     }
 }
