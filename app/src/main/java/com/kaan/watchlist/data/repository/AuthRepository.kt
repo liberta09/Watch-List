@@ -18,10 +18,34 @@ object AuthRepository {
 
     private val auth: FirebaseAuth get() = FirebaseAuth.getInstance()
 
-    val isSignedIn: Boolean get() = auth.currentUser != null
+    /** E-posta ile giriş yapmış gerçek bir kullanıcı var mı (anonim oturum sayılmaz). */
+    val isSignedIn: Boolean get() = auth.currentUser?.isAnonymous == false
+
+    private var backgroundListener: FirebaseAuth.AuthStateListener? = null
+
+    /**
+     * Veritabanı kuralları yazma için oturum istediğinden, e-postayla giriş yapılmamışken
+     * (misafir modu, giriş ekranı, çıkış sonrası) uygulama Firebase'e anonim olarak bağlanır.
+     * Her oturum hazır olduğunda [onReady] çağrılır.
+     */
+    fun startBackgroundSession(onReady: () -> Unit) {
+        if (backgroundListener != null) return
+        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            if (firebaseAuth.currentUser == null) {
+                firebaseAuth.signInAnonymously()
+                    .addOnFailureListener { e ->
+                        android.util.Log.e("AuthRepository", "Anonim oturum açılamadı", e)
+                    }
+            } else {
+                onReady()
+            }
+        }
+        backgroundListener = listener
+        auth.addAuthStateListener(listener)
+    }
 
     val currentUserName: String?
-        get() = auth.currentUser?.let { it.displayName ?: it.email }
+        get() = auth.currentUser?.takeIf { !it.isAnonymous }?.let { it.displayName ?: it.email }
 
     fun login(
         email: String,
@@ -78,7 +102,9 @@ object AuthRepository {
             .addOnFailureListener { e -> onError(toMessage(e)) }
     }
 
+    /** E-posta oturumunu kapatır; arka plan oturumu ardından otomatik olarak anonim açılır. */
     fun logout() {
+        if (auth.currentUser?.isAnonymous == true) return
         auth.signOut()
     }
 

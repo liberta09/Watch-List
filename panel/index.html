@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WatchList Kontrol Paneli</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card-border: #2a2e3a;
+    --text: #e6e8ec;
+    --text-dim: #9aa0ac;
+    --accent: #4f8cff;
+    --green: #3ddc84;
+    --red: #ff5c5c;
+    --yellow: #ffc857;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 24px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 15px;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #2a2e3a;
+    color: var(--text-dim);
+  }
+  .device-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 14px;
+  }
+  .device-row:last-child { border-bottom: none; }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    display: inline-block; margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.off { background: #555; }
+  .device-id { font-family: monospace; color: var(--text-dim); font-size: 12px; }
+  .time { color: var(--text-dim); font-size: 12px; }
+  .empty { color: var(--text-dim); font-size: 13px; padding: 8px 0; }
+
+  select, button, input[type=text] {
+    background: #22252f;
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  select { width: 100%; margin-bottom: 14px; }
+  .btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  button {
+    cursor: pointer;
+    transition: background .15s, transform .05s;
+    font-weight: 500;
+  }
+  button:hover { background: #2a2e3c; }
+  button:active { transform: scale(0.98); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: white; }
+  button.primary:hover { background: #3d7ae6; }
+  button.danger { background: transparent; border-color: var(--red); color: var(--red); }
+  button.danger:hover { background: rgba(255,92,92,0.1); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .msg-row { display: flex; gap: 8px; margin-top: 10px; }
+  .msg-row input { flex: 1; }
+
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 13px;
+  }
+  .history-row:last-child { border-bottom: none; }
+  .ev-login { color: var(--green); }
+  .ev-logout { color: var(--text-dim); }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #22252f; border: 1px solid var(--card-border);
+    padding: 10px 18px; border-radius: 8px; font-size: 13px;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .toast.show { opacity: 1; }
+
+  .status-line { display:flex; align-items:center; gap:8px; font-size: 12px; color: var(--text-dim); margin-bottom: 18px; }
+  .status-line .dot { width:7px; height:7px; }
+  .status-line .spacer { flex: 1; }
+  .login-card { max-width: 380px; margin: 40px auto; }
+  .login-card input { width: 100%; margin-bottom: 10px; }
+  .login-card button { width: 100%; }
+  .login-error { color: var(--red); font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📺 WatchList Kontrol Paneli</h1>
+  <div class="sub">Uzaktan cihaz izleme ve komut gönderme</div>
+
+  <div class="status-line">
+    <span class="dot off" id="connDot"></span>
+    <span id="connText">Firebase'e bağlanılıyor...</span>
+    <span class="spacer"></span>
+    <span id="adminEmail"></span>
+    <button id="logoutBtn" class="hidden" onclick="firebase.auth().signOut()">Çıkış</button>
+  </div>
+
+  <div class="card login-card" id="loginCard">
+    <h2>🔒 Yönetici Girişi</h2>
+    <input type="text" id="loginEmail" placeholder="E-posta" autocomplete="username" />
+    <input type="password" id="loginPassword" placeholder="Şifre" autocomplete="current-password" />
+    <div class="login-error" id="loginError"></div>
+    <button class="primary" onclick="adminLogin()">Giriş Yap</button>
+  </div>
+
+  <div id="panelContent" class="hidden">
+
+  <div class="card">
+    <h2>🟢 Cihazlar <span class="badge" id="deviceCount">0</span></h2>
+    <div id="deviceList"><div class="empty">Cihaz bekleniyor...</div></div>
+  </div>
+
+  <div class="card">
+    <h2>🎛️ Uzaktan Komut Gönder</h2>
+    <select id="targetDevice"><option value="">Cihaz seç...</option></select>
+    <div class="btn-grid">
+      <button class="primary" disabled title="Uygulamada henüz desteklenmiyor" onclick="sendCommand('force_update_check')">🔄 Güncelleme Kontrol Et</button>
+      <button class="primary" disabled title="Uygulamada henüz desteklenmiyor" onclick="sendCommand('force_install')">📥 Kurulumu Başlat</button>
+      <button onclick="sendCommand('restart_app')">♻️ Uygulamayı Yeniden Başlat</button>
+      <button class="danger" onclick="clearHistory()">🗑️ Geçmişi Temizle</button>
+    </div>
+    <div class="msg-row">
+      <input type="text" id="msgInput" placeholder="Ekrana gösterilecek mesaj..." />
+      <button class="primary" onclick="sendMessage()">Gönder</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Giriş / Çıkış Geçmişi</h2>
+    <div id="historyList"><div class="empty">Kayıt yok.</div></div>
+  </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBtQI5M84c5mFu6siYpA2pEl8jD3fEraVQ",
+  authDomain: "neos-615e5.firebaseapp.com",
+  databaseURL: "https://neos-615e5-default-rtdb.firebaseio.com",
+  projectId: "neos-615e5",
+  storageBucket: "neos-615e5.firebasestorage.app",
+  messagingSenderId: "394532471277",
+  appId: "1:394532471277:web:b578ce3c9ab2ea7bf267e4"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+// Veritabanından gelen metinleri HTML olarak değil düz metin olarak basmak için.
+function esc(v) {
+  return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function timeAgo(ts) {
+  if (!ts) return '-';
+  const diff = Date.now() - ts;
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return s + ' sn önce';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + ' dk önce';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + ' sa önce';
+  const d = new Date(ts);
+  return d.toLocaleString('tr-TR');
+}
+
+// Connection status
+db.ref('.info/connected').on('value', (snap) => {
+  const dot = document.getElementById('connDot');
+  const text = document.getElementById('connText');
+  if (snap.val() === true) {
+    dot.className = 'dot on';
+    text.textContent = 'Firebase\'e bağlı';
+  } else {
+    dot.className = 'dot off';
+    text.textContent = 'Bağlantı bekleniyor...';
+  }
+});
+
+// Devices (uygulama cihazları devices/{deviceId} altına yazar)
+let currentUsers = {};
+let activeRefs = [];
+
+function startListeners() {
+  stopListeners();
+  const devicesRef = db.ref('devices');
+  devicesRef.on('value', (snap) => {
+    currentUsers = snap.val() || {};
+    renderDevices();
+    renderDeviceSelect();
+  }, onDenied);
+
+  const historyRef = db.ref('history').limitToLast(50);
+  historyRef.on('value', renderHistory, onDenied);
+
+  activeRefs = [devicesRef, historyRef];
+}
+
+function stopListeners() {
+  activeRefs.forEach(r => r.off());
+  activeRefs = [];
+}
+
+function onDenied(err) {
+  console.error(err);
+  showToast('Bu hesabın panel yetkisi yok.');
+  auth.signOut();
+}
+
+function adminLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errBox = document.getElementById('loginError');
+  errBox.textContent = '';
+  if (!email || !password) { errBox.textContent = 'E-posta ve şifre gerekli.'; return; }
+  auth.signInWithEmailAndPassword(email, password)
+    .catch(() => { errBox.textContent = 'E-posta veya şifre hatalı.'; });
+}
+
+document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') adminLogin();
+});
+
+auth.onAuthStateChanged((user) => {
+  const loggedIn = !!user && !user.isAnonymous;
+  document.getElementById('loginCard').classList.toggle('hidden', loggedIn);
+  document.getElementById('panelContent').classList.toggle('hidden', !loggedIn);
+  document.getElementById('logoutBtn').classList.toggle('hidden', !loggedIn);
+  document.getElementById('adminEmail').textContent = loggedIn ? user.email : '';
+  if (loggedIn) {
+    startListeners();
+  } else {
+    stopListeners();
+    currentUsers = {};
+  }
+});
+
+function renderDevices() {
+  const list = document.getElementById('deviceList');
+  const ids = Object.keys(currentUsers);
+  document.getElementById('deviceCount').textContent =
+    ids.filter(id => currentUsers[id].online).length + ' online / ' + ids.length + ' toplam';
+
+  if (ids.length === 0) {
+    list.innerHTML = '<div class="empty">Henüz kayıtlı cihaz yok.</div>';
+    return;
+  }
+
+  list.innerHTML = ids.map(id => {
+    const u = currentUsers[id];
+    const isOn = !!u.online;
+    return `<div class="device-row">
+      <div><span class="dot ${isOn ? 'on' : 'off'}"></span>
+        <span class="device-id">${esc(id)}</span>
+      </div>
+      <div class="time">${isOn ? 'Şu an online' : timeAgo(u.lastSeen)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderDeviceSelect() {
+  const sel = document.getElementById('targetDevice');
+  const prev = sel.value;
+  const ids = Object.keys(currentUsers);
+  sel.innerHTML = '<option value="">Cihaz seç...</option>' +
+    ids.map(id => `<option value="${esc(id)}">${esc(id)} ${currentUsers[id].online ? '🟢' : '⚪'}</option>`).join('');
+  if (ids.includes(prev)) sel.value = prev;
+}
+
+// History
+function renderHistory(snap) {
+  const list = document.getElementById('historyList');
+  const val = snap.val() || {};
+  let rows = [];
+  Object.keys(val).forEach(deviceId => {
+    const events = val[deviceId] || {};
+    Object.keys(events).forEach(eventId => {
+      const ev = events[eventId];
+      rows.push({ deviceId, ...ev });
+    });
+  });
+  rows.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  rows = rows.slice(0, 30);
+
+  if (rows.length === 0) {
+    list.innerHTML = '<div class="empty">Kayıt yok.</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(r => {
+    const isLogin = r.event === 'login';
+    return `<div class="history-row">
+      <span class="${isLogin ? 'ev-login' : 'ev-logout'}">
+        ${isLogin ? '🟢 Giriş' : '⚪ Çıkış'} — <span class="device-id">${esc(r.deviceId)}</span>
+      </span>
+      <span class="time">${timeAgo(r.timestamp)}</span>
+    </div>`;
+  }).join('');
+}
+
+function sendCommand(action) {
+  const deviceId = document.getElementById('targetDevice').value;
+  if (!deviceId) { showToast('Önce bir cihaz seç'); return; }
+  db.ref('commands/' + deviceId).set({
+    action: action,
+    executed: false,
+    timestamp: Date.now()
+  }).then(() => showToast('Komut gönderildi: ' + action))
+    .catch(err => showToast('Hata: ' + err.message));
+}
+
+function sendMessage() {
+  const deviceId = document.getElementById('targetDevice').value;
+  const input = document.getElementById('msgInput');
+  const message = input.value.trim();
+  if (!deviceId) { showToast('Önce bir cihaz seç'); return; }
+  if (!message) { showToast('Mesaj boş olamaz'); return; }
+  db.ref('commands/' + deviceId).set({
+    action: 'show_message',
+    message: message,
+    executed: false,
+    timestamp: Date.now()
+  }).then(() => { showToast('Mesaj gönderildi'); input.value = ''; })
+    .catch(err => showToast('Hata: ' + err.message));
+}
+
+function clearHistory() {
+  if (!confirm('Tüm geçmiş silinsin mi? Bu işlem geri alınamaz.')) return;
+  db.ref('history').remove()
+    .then(() => showToast('Geçmiş temizlendi'))
+    .catch(err => showToast('Hata: ' + err.message));
+}
+</script>
+</body>
+</html>

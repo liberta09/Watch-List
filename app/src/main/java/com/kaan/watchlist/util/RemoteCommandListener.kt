@@ -2,6 +2,7 @@ package com.kaan.watchlist.util
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -10,6 +11,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
+/**
+ * Kontrol panelinden gelen komutları dinler.
+ * Panel her cihaz için tek bir komut yazar: commands/{deviceId} = { action, message?, executed, timestamp }
+ * Uygulama komutu çalıştırdıktan sonra yalnızca "executed" alanını true yapar.
+ */
 object RemoteCommandListener {
 
     private var isListening = false
@@ -19,47 +25,58 @@ object RemoteCommandListener {
         if (isListening) return
         isListening = true
 
-        val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val appContext = context.applicationContext
+        val deviceId = Settings.Secure.getString(appContext.contentResolver, Settings.Secure.ANDROID_ID)
             ?: "unknown_device"
 
-        val database = FirebaseDatabase.getInstance()
-        val commandsRef = database.getReference("commands/$deviceId")
+        val commandRef = FirebaseDatabase.getInstance().getReference("commands/$deviceId")
 
         Log.d("FirebaseCommand", "Komut dinleyicisi başlatıldı. Cihaz ID: $deviceId")
 
-        commandsRef.addValueEventListener(object : ValueEventListener {
+        commandRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // If there are new commands
-                for (commandSnapshot in snapshot.children) {
-                    val commandData = commandSnapshot.value as? Map<*, *> ?: continue
-                    val action = commandData["action"] as? String
-                    val executed = commandData["executed"] as? Boolean ?: false
+                if (!snapshot.exists()) return
+                val action = snapshot.child("action").getValue(String::class.java) ?: return
+                val executed = snapshot.child("executed").getValue(Boolean::class.java) ?: false
+                if (executed) return
 
-                    if (!executed && action != null) {
-                        Log.d("FirebaseCommand", "Yeni komut alındı: $action (ID: ${commandSnapshot.key})")
-                        handleCommand(context, action, commandData)
-                        // Mark as executed
-                        commandSnapshot.ref.child("executed").setValue(true)
+                Log.d("FirebaseCommand", "Yeni komut alındı: $action")
+                // Komutu, "executed" işareti sunucuya yazıldıktan sonra çalıştırıyoruz;
+                // aksi halde yeniden başlatma komutu açılışta tekrar tekrar çalışabilir.
+                snapshot.ref.child("executed").setValue(true)
+                    .addOnSuccessListener { handleCommand(appContext, action, snapshot) }
+                    .addOnFailureListener { e ->
+                        Log.e("FirebaseCommand", "Komut işaretlenemedi, çalıştırılmadı: ${e.message}")
                     }
-                }
             }
 
             override fun onCancelled(error: DatabaseError) {
+                // Oturum değişiminde (ör. çıkış yapınca) dinleyici iptal olabilir;
+                // yeni oturum hazır olduğunda startListening tekrar çağrılır.
                 Log.e("FirebaseCommand", "Komut dinleme hatası: ${error.message}")
+                isListening = false
             }
         })
     }
 
-    private fun handleCommand(context: Context, action: String, payload: Map<*, *>) {
+    private fun handleCommand(context: Context, action: String, command: DataSnapshot) {
         Log.d("FirebaseCommand", "Komut işleniyor: $action")
         when (action) {
-            "show_toast" -> {
-                val message = payload["message"] as? String ?: "Remote command executed"
+            "show_message", "show_toast" -> {
+                val message = command.child("message").getValue(String::class.java)
+                    ?: "Uzaktan komut çalıştırıldı"
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
-            // Add more remote commands here
+            "restart_app" -> {
+                val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                if (intent != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    context.startActivity(intent)
+                    Runtime.getRuntime().exit(0)
+                }
+            }
             else -> {
-                Log.w("FirebaseCommand", "Bilinmeyen komut: $action")
+                Log.w("FirebaseCommand", "Bu sürümde desteklenmeyen komut: $action")
             }
         }
     }

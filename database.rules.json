@@ -1,0 +1,34 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "devices": {
+      ".read": "auth != null && auth.uid === 'ADMIN_UID'",
+      "$deviceId": {
+        ".write": "auth != null"
+      }
+    },
+
+    "history": {
+      ".read": "auth != null && auth.uid === 'ADMIN_UID'",
+      ".write": "auth != null && auth.uid === 'ADMIN_UID'",
+      "$deviceId": {
+        "$eventId": {
+          ".write": "auth != null && !data.exists()",
+          ".validate": "newData.hasChildren(['event', 'timestamp'])"
+        }
+      }
+    },
+
+    "commands": {
+      "$deviceId": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === 'ADMIN_UID'",
+        "executed": {
+          ".write": "auth != null && data.exists() && newData.val() === true"
+        }
+      }
+    }
+  }
+}

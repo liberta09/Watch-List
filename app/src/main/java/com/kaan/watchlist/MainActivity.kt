@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
+import com.kaan.watchlist.data.repository.AuthRepository
 import com.kaan.watchlist.navigation.SetupNavGraph
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
@@ -39,10 +40,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
-            PresenceManager.initPresence(this)
-            RemoteCommandListener.startListening(this)
+            val appContext = applicationContext
+            // Veritabanı kuralları oturum istediği için servisleri oturum hazır olunca başlatıyoruz.
+            AuthRepository.startBackgroundSession {
+                try {
+                    PresenceManager.initPresence(appContext)
+                    RemoteCommandListener.startListening(appContext)
+                } catch (e: Exception) {
+                    Log.e("Firebase", "Failed to initialize Firebase services", e)
+                }
+            }
         } catch (e: Exception) {
-            Log.e("Firebase", "Failed to initialize Firebase services", e)
+            Log.e("Firebase", "Failed to start Firebase session", e)
         }
         
         enableEdgeToEdge()
