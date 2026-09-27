@@ -11,27 +11,66 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
+      # Anahtarlar eksikse bozuk (debug imzalı / TMDB anahtarsız) APK yayınlamak yerine dur.
+      - name: Check secrets
+        run: |
+          missing=""
+          for s in TMDB_API_KEY KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!s}" ]; then missing="$missing $s"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::GitHub Secrets eksik:$missing (Settings > Secrets and variables > Actions)"
+            exit 1
+          fi
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::v$VERSION zaten yayınlanmış; yeni sürüm için versionName'i artırın."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up JDK
+        if: steps.version.outputs.exists == 'false'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Restore keystore
+        if: steps.version.outputs.exists == 'false'
+        run: echo "$KEYSTORE_BASE64" | base64 -d > WatchList-release-key.jks
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Build signed release APK
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk WatchList.apk
 
-      - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk WatchList.apk
+      - name: Remove keystore
+        if: always()
+        run: rm -f WatchList-release-key.jks
 
       - name: Create Release
+        if: steps.version.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: "Build ${{ github.run_number }}"
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Watch List v${{ steps.version.outputs.version }}
           files: WatchList.apk
+          make_latest: true

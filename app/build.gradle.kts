@@ -16,10 +16,15 @@ android {
     if (localPropertiesFile.exists()) {
         localProperties.load(FileInputStream(localPropertiesFile))
     }
-    val tmdbApiKey = localProperties.getProperty("TMDB_API_KEY") ?: ""
-    val keystorePassword = localProperties.getProperty("KEYSTORE_PASSWORD") ?: "WatchList2026"
-    val keyAlias = localProperties.getProperty("KEY_ALIAS") ?: "watchlist"
-    val keyPassword = localProperties.getProperty("KEY_PASSWORD") ?: "WatchList2026"
+    // Önce local.properties (bilgisayarında), yoksa ortam değişkeni (GitHub Actions gizli değerleri).
+    fun secret(name: String): String? =
+        localProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+            ?: System.getenv(name)?.takeIf { it.isNotBlank() }
+
+    val tmdbApiKey = secret("TMDB_API_KEY") ?: ""
+    val keystorePassword = secret("KEYSTORE_PASSWORD") ?: "WatchList2026"
+    val keyAlias = secret("KEY_ALIAS") ?: "watchlist"
+    val keyPassword = secret("KEY_PASSWORD") ?: "WatchList2026"
 
     signingConfigs {
         create("release") {
