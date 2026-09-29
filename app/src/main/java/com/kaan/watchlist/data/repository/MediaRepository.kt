@@ -2,6 +2,12 @@ package com.kaan.watchlist.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.kaan.watchlist.BuildConfig
@@ -11,11 +17,6 @@ import com.kaan.watchlist.data.api.enableTlsChainFallback
 import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.domain.model.MediaItem
 import com.kaan.watchlist.domain.model.MediaType
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,76 +72,158 @@ class MediaRepository(private val context: Context) {
     private val db get() = FirebaseDatabase.getInstance()
     private val auth get() = FirebaseAuth.getInstance()
 
+    private var authListener: FirebaseAuth.AuthStateListener? = null
+    private var activeUid: String? = null
+
+    private var myListListener: ValueEventListener? = null
+    private var favsListener: ValueEventListener? = null
+    private var notesListener: ValueEventListener? = null
+
     init {
         loadLocalData()
-        setupFirebaseListeners()
+        setupAuthStateListener()
     }
 
-    private fun setupFirebaseListeners() {
-        val user = auth.currentUser
-        if (user != null && !user.isAnonymous) {
-            val uid = user.uid
-            
-            // Listen to My List
-            db.getReference("users/$uid/myList").addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val type = object : TypeToken<List<MediaItem>>() {}.type
-                    val listStr = gson.toJson(snapshot.value)
-                    if (listStr != "null") {
-                        val list: List<MediaItem>? = gson.fromJson(listStr, type)
-                        if (list != null) {
-                            _myList.value = list
-                            saveLocalData()
-                        }
-                    }
-                }
-                override fun onCancelled(error: DatabaseError) {}
-            })
+    private fun setupAuthStateListener() {
+        authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            val newUid = if (user != null && !user.isAnonymous) user.uid else null
 
-            // Listen to Favorites
-            db.getReference("users/$uid/favorites").addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val type = object : TypeToken<List<MediaItem>>() {}.type
-                    val listStr = gson.toJson(snapshot.value)
-                    if (listStr != "null") {
-                        val list: List<MediaItem>? = gson.fromJson(listStr, type)
-                        if (list != null) {
-                            _favorites.value = list
-                            saveLocalData()
-                        }
-                    }
-                }
-                override fun onCancelled(error: DatabaseError) {}
-            })
+            Log.d("FirebaseSync", "AUTH STATE CHANGED: signedIn=${user != null}, anonymous=${user?.isAnonymous}, uid=$newUid")
 
-            // Listen to Notes
-            db.getReference("users/$uid/notes").addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val type = object : TypeToken<Map<String, String>>() {}.type
-                    val listStr = gson.toJson(snapshot.value)
-                    if (listStr != "null") {
-                        val map: Map<String, String>? = gson.fromJson(listStr, type)
-                        if (map != null) {
-                            val intMap = map.mapKeys { it.key.toIntOrNull() ?: -1 }.filterKeys { it != -1 }
-                            _notes.value = intMap
-                            saveLocalData()
-                        }
-                    }
+            if (newUid != activeUid) {
+                detachFirebaseListeners()
+                activeUid = newUid
+
+                if (newUid != null) {
+                    attachFirebaseListeners(newUid)
+                } else {
+                    // Logged out or anonymous
+                    loadLocalData()
                 }
-                override fun onCancelled(error: DatabaseError) {}
-            })
+            }
         }
+        auth.addAuthStateListener(authListener!!)
+    }
+
+    private fun detachFirebaseListeners() {
+        val oldUid = activeUid ?: return
+        myListListener?.let { db.getReference("users/$oldUid/myList").removeEventListener(it) }
+        favsListener?.let { db.getReference("users/$oldUid/favorites").removeEventListener(it) }
+        notesListener?.let { db.getReference("users/$oldUid/notes").removeEventListener(it) }
+
+        myListListener = null
+        favsListener = null
+        notesListener = null
+        activeUid = null
+        Log.d("FirebaseSync", "DETACH LISTENERS for old uid=$oldUid")
+    }
+
+    private fun attachFirebaseListeners(uid: String) {
+        Log.d("FirebaseSync", "ATTACH LISTENERS for uid=$uid")
+
+        // 1. My List Listener
+        myListListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d("FirebaseSync", "READ myList: exists=${snapshot.exists()}, count=${snapshot.childrenCount}")
+                if (snapshot.exists() && snapshot.value != null) {
+                    val type = object : TypeToken<List<MediaItem>>() {}.type
+                    val jsonStr = gson.toJson(snapshot.value)
+                    val list: List<MediaItem>? = gson.fromJson(jsonStr, type)
+                    if (list != null) {
+                        _myList.value = list
+                        saveLocalData()
+                    }
+                } else {
+                    // If Firebase is empty but local has data, upload local data for first sync
+                    if (_myList.value.isNotEmpty()) {
+                        Log.d("FirebaseSync", "Firebase myList empty, uploading local myList count=${_myList.value.size}")
+                        db.getReference("users/$uid/myList").setValue(_myList.value)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseSync", "READ ERROR myList: ${error.message}", error.toException())
+            }
+        }
+        db.getReference("users/$uid/myList").addValueEventListener(myListListener!!)
+
+        // 2. Favorites Listener
+        favsListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d("FirebaseSync", "READ favorites: exists=${snapshot.exists()}, count=${snapshot.childrenCount}")
+                if (snapshot.exists() && snapshot.value != null) {
+                    val type = object : TypeToken<List<MediaItem>>() {}.type
+                    val jsonStr = gson.toJson(snapshot.value)
+                    val list: List<MediaItem>? = gson.fromJson(jsonStr, type)
+                    if (list != null) {
+                        _favorites.value = list
+                        saveLocalData()
+                    }
+                } else {
+                    if (_favorites.value.isNotEmpty()) {
+                        Log.d("FirebaseSync", "Firebase favorites empty, uploading local favorites count=${_favorites.value.size}")
+                        db.getReference("users/$uid/favorites").setValue(_favorites.value)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseSync", "READ ERROR favorites: ${error.message}", error.toException())
+            }
+        }
+        db.getReference("users/$uid/favorites").addValueEventListener(favsListener!!)
+
+        // 3. Notes Listener
+        notesListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d("FirebaseSync", "READ notes: exists=${snapshot.exists()}, count=${snapshot.childrenCount}")
+                if (snapshot.exists() && snapshot.value != null) {
+                    val type = object : TypeToken<Map<String, String>>() {}.type
+                    val jsonStr = gson.toJson(snapshot.value)
+                    val map: Map<String, String>? = gson.fromJson(jsonStr, type)
+                    if (map != null) {
+                        val intMap = map.mapKeys { it.key.toIntOrNull() ?: -1 }.filterKeys { it != -1 }
+                        _notes.value = intMap
+                        saveLocalData()
+                    }
+                } else {
+                    if (_notes.value.isNotEmpty()) {
+                        Log.d("FirebaseSync", "Firebase notes empty, uploading local notes count=${_notes.value.size}")
+                        val stringNotes = _notes.value.mapKeys { it.key.toString() }
+                        db.getReference("users/$uid/notes").setValue(stringNotes)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseSync", "READ ERROR notes: ${error.message}", error.toException())
+            }
+        }
+        db.getReference("users/$uid/notes").addValueEventListener(notesListener!!)
     }
 
     private fun updateFirebase() {
         val user = auth.currentUser
         if (user != null && !user.isAnonymous) {
             val uid = user.uid
+            Log.d("FirebaseSync", "WRITE REQUEST: uid=$uid, myListCount=${_myList.value.size}, favsCount=${_favorites.value.size}, notesCount=${_notes.value.size}")
+
             db.getReference("users/$uid/myList").setValue(_myList.value)
+                .addOnSuccessListener { Log.d("FirebaseSync", "WRITE SUCCESS: users/$uid/myList") }
+                .addOnFailureListener { e -> Log.e("FirebaseSync", "WRITE FAILURE: users/$uid/myList", e) }
+
             db.getReference("users/$uid/favorites").setValue(_favorites.value)
-            
+                .addOnSuccessListener { Log.d("FirebaseSync", "WRITE SUCCESS: users/$uid/favorites") }
+                .addOnFailureListener { e -> Log.e("FirebaseSync", "WRITE FAILURE: users/$uid/favorites", e) }
+
             val stringNotes = _notes.value.mapKeys { it.key.toString() }
             db.getReference("users/$uid/notes").setValue(stringNotes)
+                .addOnSuccessListener { Log.d("FirebaseSync", "WRITE SUCCESS: users/$uid/notes") }
+                .addOnFailureListener { e -> Log.e("FirebaseSync", "WRITE FAILURE: users/$uid/notes", e) }
+        } else {
+            Log.d("FirebaseSync", "WRITE SKIPPED: User is guest or anonymous")
         }
     }
 
