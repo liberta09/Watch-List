@@ -1,5 +1,6 @@
 package com.kaan.watchlist.screens
 
+import androidx.activity.compose.BackHandler
 import com.kaan.watchlist.data.repository.AuthRepository
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,6 +74,27 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
     val updateStatus by viewModel.updateStatus.collectAsState()
     val currentAnnouncement by viewModel.currentAnnouncement.collectAsState()
     var showUpdateDialog by remember { mutableStateOf(true) }
+
+    val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val isGuest = !AuthRepository.isSignedIn
+
+    BackHandler(enabled = isGuest) {
+        if (currentRoute != BottomNavScreen.Discover.route) {
+            bottomNavController.navigate(BottomNavScreen.Discover.route) {
+                popUpTo(bottomNavController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        } else {
+            viewModel.setLoggedIn(false)
+            rootNavController.navigate(Screen.Login.route) {
+                popUpTo(Screen.Home.route) { inclusive = true }
+            }
+        }
+    }
 
     if (currentAnnouncement != null) {
         val announcement = currentAnnouncement!!
