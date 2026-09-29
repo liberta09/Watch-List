@@ -11,6 +11,11 @@ import com.kaan.watchlist.data.api.enableTlsChainFallback
 import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.domain.model.MediaItem
 import com.kaan.watchlist.domain.model.MediaType
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,8 +68,80 @@ class MediaRepository(private val context: Context) {
         get() = prefs.getBoolean("is_logged_in", false)
         set(value) = prefs.edit().putBoolean("is_logged_in", value).apply()
 
+    private val db get() = FirebaseDatabase.getInstance()
+    private val auth get() = FirebaseAuth.getInstance()
+
     init {
         loadLocalData()
+        setupFirebaseListeners()
+    }
+
+    private fun setupFirebaseListeners() {
+        val user = auth.currentUser
+        if (user != null && !user.isAnonymous) {
+            val uid = user.uid
+            
+            // Listen to My List
+            db.getReference("users/$uid/myList").addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val type = object : TypeToken<List<MediaItem>>() {}.type
+                    val listStr = gson.toJson(snapshot.value)
+                    if (listStr != "null") {
+                        val list: List<MediaItem>? = gson.fromJson(listStr, type)
+                        if (list != null) {
+                            _myList.value = list
+                            saveLocalData()
+                        }
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+
+            // Listen to Favorites
+            db.getReference("users/$uid/favorites").addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val type = object : TypeToken<List<MediaItem>>() {}.type
+                    val listStr = gson.toJson(snapshot.value)
+                    if (listStr != "null") {
+                        val list: List<MediaItem>? = gson.fromJson(listStr, type)
+                        if (list != null) {
+                            _favorites.value = list
+                            saveLocalData()
+                        }
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+
+            // Listen to Notes
+            db.getReference("users/$uid/notes").addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val type = object : TypeToken<Map<String, String>>() {}.type
+                    val listStr = gson.toJson(snapshot.value)
+                    if (listStr != "null") {
+                        val map: Map<String, String>? = gson.fromJson(listStr, type)
+                        if (map != null) {
+                            val intMap = map.mapKeys { it.key.toIntOrNull() ?: -1 }.filterKeys { it != -1 }
+                            _notes.value = intMap
+                            saveLocalData()
+                        }
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+        }
+    }
+
+    private fun updateFirebase() {
+        val user = auth.currentUser
+        if (user != null && !user.isAnonymous) {
+            val uid = user.uid
+            db.getReference("users/$uid/myList").setValue(_myList.value)
+            db.getReference("users/$uid/favorites").setValue(_favorites.value)
+            
+            val stringNotes = _notes.value.mapKeys { it.key.toString() }
+            db.getReference("users/$uid/notes").setValue(stringNotes)
+        }
     }
 
     private fun loadLocalData() {
@@ -99,6 +176,7 @@ class MediaRepository(private val context: Context) {
         currentNotes[mediaId] = note
         _notes.value = currentNotes
         saveLocalData()
+        updateFirebase()
     }
 
     fun removeNote(mediaId: Int) {
@@ -106,6 +184,7 @@ class MediaRepository(private val context: Context) {
         currentNotes.remove(mediaId)
         _notes.value = currentNotes
         saveLocalData()
+        updateFirebase()
     }
 
     fun toggleNotifications(enabled: Boolean) {
@@ -187,6 +266,7 @@ class MediaRepository(private val context: Context) {
         _favorites.value = currentFavs
         saveLocalData()
         updateListIfNecessary(item.id, isFavorite = exists == null)
+        updateFirebase()
     }
 
     fun toggleList(item: MediaItem) {
@@ -204,6 +284,7 @@ class MediaRepository(private val context: Context) {
         _myList.value = currentList
         saveLocalData()
         updateFavIfNecessary(item.id, isInList = exists == null)
+        updateFirebase()
     }
     
     fun toggleWatchedStatus(item: MediaItem) {
@@ -224,6 +305,7 @@ class MediaRepository(private val context: Context) {
         }
 
         saveLocalData()
+        updateFirebase()
     }
     
     private fun updateListIfNecessary(id: Int, isFavorite: Boolean) {
