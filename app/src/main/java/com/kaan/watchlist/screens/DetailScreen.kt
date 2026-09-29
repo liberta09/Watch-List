@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -56,7 +57,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.CheckCircle
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.DarkNavy
@@ -88,8 +98,16 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
     val currentNote = notes[media.id]
     var isEditingNote by remember { mutableStateOf(false) }
     var noteText by remember { mutableStateOf(currentNote ?: "") }
+    var showSuccessOverlay by remember { mutableStateOf(false) }
     
     val initialFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(showSuccessOverlay) {
+        if (showSuccessOverlay) {
+            delay(1500)
+            showSuccessOverlay = false
+        }
+    }
 
     LaunchedEffect(currentNote) {
         if (!isEditingNote) {
@@ -124,13 +142,14 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(bottom = innerPadding.calculateBottomPadding())
-                .verticalScroll(rememberScrollState())
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(bottom = innerPadding.calculateBottomPadding())
+                    .verticalScroll(rememberScrollState())
+            ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -192,14 +211,22 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
 
                 // Action Buttons
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    val onToggleList = {
+                        val wasInList = media.isInList
+                        viewModel.toggleList(media)
+                        if (!wasInList) {
+                            showSuccessOverlay = true
+                        }
+                    }
+
                     Button(
-                        onClick = { viewModel.toggleList(media) },
+                        onClick = onToggleList,
                         modifier = Modifier
                             .weight(1f)
                             .tvFocusable(
                                 shape = RoundedCornerShape(8.dp),
                                 focusRequester = initialFocusRequester,
-                                onClick = { viewModel.toggleList(media) }
+                                onClick = onToggleList
                             ),
                         colors = ButtonDefaults.buttonColors(containerColor = if (media.isInList) DarkNavy else BlueAccent),
                         shape = RoundedCornerShape(8.dp)
@@ -209,7 +236,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (media.isInList) "Listemde" else "Listeme Ekle")
+                        Text(if (media.isInList) "✓ LİSTEYE EKLENDİ" else "LİSTEYE EKLE")
                     }
 
                     Button(
@@ -372,6 +399,46 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 
                 Spacer(modifier = Modifier.height(48.dp))
             }
+            
+            AnimatedVisibility(
+                visible = showSuccessOverlay,
+                enter = fadeIn(tween(300)) + scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
+                exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .widthIn(min = 260.dp, max = 340.dp)
+                        .background(DarkSurface, RoundedCornerShape(16.dp))
+                        .border(2.dp, BlueAccent.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Success",
+                            tint = BlueAccent,
+                            modifier = Modifier.size(72.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "LİSTEYE EKLENDİ",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LightText,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Film listenize eklendi.",
+                            fontSize = 16.sp,
+                            color = LightText.copy(alpha = 0.8f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
         }
     }
+}
 }
