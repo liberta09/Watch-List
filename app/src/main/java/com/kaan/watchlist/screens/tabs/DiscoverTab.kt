@@ -1,5 +1,8 @@
 package com.kaan.watchlist.screens.tabs
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,8 +21,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,18 +42,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kaan.watchlist.data.repository.UpdateStatus
 import com.kaan.watchlist.domain.model.MediaItem
 import com.kaan.watchlist.ui.components.MediaCard
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.viewmodel.MediaViewModel
-import androidx.compose.material.icons.filled.Refresh
-import com.kaan.watchlist.data.repository.UpdateStatus
-import android.widget.Toast
 
 @Composable
 fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
+    val context = LocalContext.current
     val popMovies by viewModel.popularMovies.collectAsState()
     val popTvShows by viewModel.popularTvShows.collectAsState()
     val myList by viewModel.myList.collectAsState()
@@ -80,6 +85,22 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         return
     }
 
+    val onTelegramClick = {
+        val telegramUrl = "https://t.me/+o-RFlV4U3UY5NGU8"
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(telegramUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            } else {
+                Toast.makeText(context, "Telegram'ı veya tarayıcıyı açacak bir uygulama bulunamadı.", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Telegram'ı veya tarayıcıyı açacak bir uygulama bulunamadı.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -87,7 +108,6 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         item {
-            val context = LocalContext.current
             val activity = context as? ComponentActivity
             val updateStatus by viewModel.updateStatus.collectAsState()
 
@@ -122,6 +142,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                // Refresh Update Status
                 if (updateStatus is UpdateStatus.Checking) {
                     CircularProgressIndicator(
                         color = BlueAccent,
@@ -172,7 +193,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         }
 
         item {
-            SectionTitle("Popüler Filmler")
+            SectionTitle("Son Eklenenler", onTelegramClick = onTelegramClick)
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -199,14 +220,48 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 }
 
 @Composable
-fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        fontSize = 20.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = LightText,
+fun SectionTitle(
+    title: String,
+    onTelegramClick: (() -> Unit)? = null
+) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = LightText
+        )
+
+        if (onTelegramClick != null) {
+            Row(
+                modifier = Modifier
+                    .tvFocusable(
+                        shape = RoundedCornerShape(8.dp),
+                        onClick = onTelegramClick
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Telegram",
+                    tint = BlueAccent,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "t.me/WatchList",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = BlueAccent
+                )
+            }
+        }
+    }
 }

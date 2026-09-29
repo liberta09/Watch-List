@@ -97,66 +97,6 @@ fun SettingsTab(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Telegram Section Card
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(16.dp)
-        ) {
-            Column {
-                Text(
-                    text = "Telegram Kanalımız",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LightText
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Geliştirmeler, duyurular ve güncellemeler için kanalımıza katıl.",
-                    fontSize = 14.sp,
-                    color = LightText.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                val onTelegramClick = {
-                    if (onOpenTelegramWeb != null) {
-                        onOpenTelegramWeb()
-                    } else {
-                        val telegramUrl = "https://t.me/+o-RFlV4U3UY5NGU8"
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(telegramUrl)).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Telegram bağlantısı açılamadı.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-
-                Button(
-                    onClick = { onTelegramClick() },
-                    colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = { onTelegramClick() })
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Telegram",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Telegram Kanalımıza Katıl", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // App Update Section Card
         Box(
             modifier = Modifier
