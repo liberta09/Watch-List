@@ -352,6 +352,27 @@ class MediaRepository(private val context: Context) {
         updateFirebase()
     }
 
+    fun addToList(item: MediaItem, watched: Boolean) {
+        val currentList = _myList.value.toMutableList()
+        val exists = currentList.find { it.id == item.id }
+        if (exists != null) {
+            return // Zaten listedeyse hiçbir şey yapma
+        }
+
+        currentList.add(item.copy(isInList = true, isWatched = watched))
+        _myList.value = currentList
+
+        val currentFavs = _favorites.value.toMutableList()
+        val favIndex = currentFavs.indexOfFirst { it.id == item.id }
+        if (favIndex != -1) {
+            currentFavs[favIndex] = currentFavs[favIndex].copy(isInList = true, isWatched = watched)
+            _favorites.value = currentFavs
+        }
+
+        saveLocalData()
+        updateFirebase()
+    }
+
     fun toggleList(item: MediaItem) {
         val currentList = _myList.value.toMutableList()
         val exists = currentList.find { it.id == item.id }

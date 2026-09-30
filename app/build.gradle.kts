@@ -39,8 +39,8 @@ android {
         applicationId = "com.kaan.watchlist"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.1.12"
+        versionCode = 11
+        versionName = "1.1.13"
         
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
 

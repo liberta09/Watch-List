@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -99,6 +100,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
     var isEditingNote by remember { mutableStateOf(false) }
     var noteText by remember { mutableStateOf(currentNote ?: "") }
     var showSuccessOverlay by remember { mutableStateOf(false) }
+    var showAddToListDialog by remember { mutableStateOf(false) }
     
     val initialFocusRequester = remember { FocusRequester() }
 
@@ -213,9 +215,10 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     val onToggleList = {
                         val wasInList = media.isInList
-                        viewModel.toggleList(media)
                         if (!wasInList) {
-                            showSuccessOverlay = true
+                            showAddToListDialog = true
+                        } else {
+                            viewModel.toggleList(media)
                         }
                     }
 
@@ -311,7 +314,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             onClick = {
                                 if (noteText.isNotBlank()) {
                                     if (!media.isInList && !media.isFavorite) {
-                                        viewModel.toggleList(media)
+                                        viewModel.addToList(media, watched = false)
                                     }
                                     viewModel.saveNote(media.id, noteText)
                                     isEditingNote = false
@@ -322,7 +325,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = {
                                 if (noteText.isNotBlank()) {
                                     if (!media.isInList && !media.isFavorite) {
-                                        viewModel.toggleList(media)
+                                        viewModel.addToList(media, watched = false)
                                     }
                                     viewModel.saveNote(media.id, noteText)
                                     isEditingNote = false
@@ -438,6 +441,67 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                     }
                 }
             }
+        }
+        if (showAddToListDialog) {
+            val watchLaterFocusRequester = remember { FocusRequester() }
+            LaunchedEffect(Unit) {
+                try { watchLaterFocusRequester.requestFocus() } catch (e: Exception) {}
+            }
+            AlertDialog(
+                onDismissRequest = { showAddToListDialog = false },
+                title = { Text("Listeye Ekle", color = LightText, fontWeight = FontWeight.Bold) },
+                text = { Text("Bu içeriği nasıl eklemek istersin?", color = LightText.copy(alpha = 0.85f)) },
+                confirmButton = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                viewModel.addToList(media, watched = false)
+                                showAddToListDialog = false
+                                showSuccessOverlay = true
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                            modifier = Modifier
+                                .weight(1f)
+                                .tvFocusable(shape = RoundedCornerShape(8.dp), focusRequester = watchLaterFocusRequester, onClick = {
+                                    viewModel.addToList(media, watched = false)
+                                    showAddToListDialog = false
+                                    showSuccessOverlay = true
+                                })
+                        ) {
+                            Text("🔖 İzlenecek", color = Color.White)
+                        }
+                        Button(
+                            onClick = {
+                                viewModel.addToList(media, watched = true)
+                                showAddToListDialog = false
+                                showSuccessOverlay = true
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+                            modifier = Modifier
+                                .weight(1f)
+                                .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = {
+                                    viewModel.addToList(media, watched = true)
+                                    showAddToListDialog = false
+                                    showSuccessOverlay = true
+                                })
+                        ) {
+                            Text("✓ İzlendi", color = Color.White)
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showAddToListDialog = false },
+                        modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = { showAddToListDialog = false })
+                    ) {
+                        Text("İptal", color = Color.Gray)
+                    }
+                },
+                containerColor = DarkSurface
+            )
         }
     }
 }

@@ -124,6 +124,10 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
         repository.toggleFavorite(item)
     }
 
+    fun addToList(item: MediaItem, watched: Boolean) {
+        repository.addToList(item, watched)
+    }
+
     fun toggleList(item: MediaItem) {
         repository.toggleList(item)
     }
