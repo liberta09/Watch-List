@@ -9,6 +9,7 @@ object DateUtils {
     private val trLocale = Locale("tr")
     private val formatter = SimpleDateFormat("yyyy-MM-dd", trLocale)
     private val displayFormatter = SimpleDateFormat("d MMMM yyyy", trLocale)
+    private val shortFormatter = SimpleDateFormat("d MMM", trLocale)
 
     fun getDaysUntil(dateStr: String?): Int? {
         if (dateStr.isNullOrBlank()) return null
@@ -33,6 +34,16 @@ object DateUtils {
         return try {
             val date = formatter.parse(dateStr) ?: return dateStr
             displayFormatter.format(date)
+        } catch (e: Exception) {
+            dateStr
+        }
+    }
+
+    fun formatShortDate(dateStr: String?): String {
+        if (dateStr.isNullOrBlank()) return ""
+        return try {
+            val date = formatter.parse(dateStr) ?: return dateStr
+            shortFormatter.format(date)
         } catch (e: Exception) {
             dateStr
         }

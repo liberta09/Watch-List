@@ -697,7 +697,31 @@ class MediaRepository(private val context: Context) {
         }
     }
 
-    suspend fun fetchMediaDetails(item: MediaItem): MediaItem {
+    private fun mergeTmdbFields(current: MediaItem, fresh: MediaItem): MediaItem {
+        return current.copy(
+            originalTitle = fresh.originalTitle,
+            voteAverage = fresh.voteAverage,
+            runtime = fresh.runtime,
+            episodeRuntime = fresh.episodeRuntime,
+            genres = fresh.genres,
+            productionCountries = fresh.productionCountries,
+            director = fresh.director,
+            cast = fresh.cast,
+            videoKey = fresh.videoKey,
+            totalSeasons = fresh.totalSeasons,
+            totalEpisodes = fresh.totalEpisodes,
+            showStatus = fresh.showStatus,
+            nextEpisodeAirDate = fresh.nextEpisodeAirDate,
+            nextEpisodeSeason = fresh.nextEpisodeSeason,
+            nextEpisodeNumber = fresh.nextEpisodeNumber,
+            nextEpisodeName = fresh.nextEpisodeName,
+            lastAiredSeason = fresh.lastAiredSeason,
+            lastAiredEpisode = fresh.lastAiredEpisode,
+            releaseDate = fresh.releaseDate
+        )
+    }
+
+    suspend fun fetchMediaDetails(item: MediaItem, persist: Boolean = true): MediaItem {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return item
         return try {
             val dto = if (item.type == MediaType.MOVIE) {
@@ -722,7 +746,7 @@ class MediaRepository(private val context: Context) {
             val newVideoKey = officialTrailer ?: getTrailerKey(item.id, item.type) ?: item.videoKey
             Log.d("TRAILER", "fetchMediaDetails for mediaId=${item.id}, type=${item.type}, resolvedVideoKey=$newVideoKey")
             
-            val updatedItem = item.copy(
+            val freshItem = item.copy(
                 originalTitle = dto.originalTitle ?: dto.originalName ?: item.originalTitle,
                 voteAverage = newVoteAverage,
                 runtime = newRuntime,
@@ -744,16 +768,22 @@ class MediaRepository(private val context: Context) {
                 releaseDate = if (item.type == MediaType.MOVIE) dto.releaseDate else item.releaseDate
             )
             
+            var finalItem = freshItem
             val inList = _myList.value.any { it.id == item.id }
             val inFav = _favorites.value.any { it.id == item.id }
             if (inList || inFav) {
-                updateListIfNecessary(item.id, updatedItem = updatedItem)
-                updateFavIfNecessary(item.id, updatedItem = updatedItem)
-                saveLocalData()
-                updateFirebase()
+                val latest = _myList.value.find { it.id == item.id } ?: _favorites.value.find { it.id == item.id } ?: item
+                finalItem = mergeTmdbFields(latest, freshItem)
+                
+                updateListIfNecessary(item.id, updatedItem = finalItem)
+                updateFavIfNecessary(item.id, updatedItem = finalItem)
+                if (persist) {
+                    saveLocalData()
+                    updateFirebase()
+                }
             }
             
-            updatedItem
+            finalItem
         } catch (e: Exception) {
             Log.e("MediaRepository", "Error fetching details for id=${item.id}: ${e.message}")
             item
@@ -778,10 +808,13 @@ class MediaRepository(private val context: Context) {
         val updatedList = mutableListOf<MediaItem>()
         for (chunk in allItems.chunked(5)) {
             val jobs = chunk.map { item ->
-                async { fetchMediaDetails(item) }
+                async { fetchMediaDetails(item, persist = false) }
             }
             updatedList.addAll(jobs.awaitAll())
         }
+
+        saveLocalData()
+        updateFirebase()
 
         prefs.edit().putLong("upcoming_last_refresh", now).apply()
         return@coroutineScope getUpcomingFromLocal(updatedList)

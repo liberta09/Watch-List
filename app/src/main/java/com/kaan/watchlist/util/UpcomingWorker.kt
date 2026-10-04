@@ -19,6 +19,7 @@ import com.kaan.watchlist.BuildConfig
 import com.kaan.watchlist.MainActivity
 import com.kaan.watchlist.R
 import com.kaan.watchlist.data.api.TmdbApi
+import com.kaan.watchlist.data.api.MediaDetailsDto
 import com.kaan.watchlist.domain.model.MediaItem
 import com.kaan.watchlist.domain.model.MediaType
 import kotlinx.coroutines.async
@@ -77,6 +78,7 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
         cal.set(Calendar.SECOND, 0)
         cal.set(Calendar.MILLISECOND, 0)
         val todayMs = cal.timeInMillis
+        val yesterdayMs = todayMs - 24L * 60 * 60 * 1000L
         val sevenDaysMs = todayMs + 7L * 24 * 60 * 60 * 1000L
         val sixtyDaysAgoMs = todayMs - 60L * 24 * 60 * 60 * 1000L
 
@@ -97,6 +99,8 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
         }
         notifiedKeys.removeAll(keysToRemove)
 
+        val fetchedResults = mutableListOf<Pair<MediaItem, MediaDetailsDto>>()
+
         for (chunk in allItems.chunked(5)) {
             val jobs = chunk.map { item ->
                 async {
@@ -106,61 +110,69 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
                         } else {
                             tmdbApi.getTvDetails(item.id, apiKey)
                         }
-                        
-                        var notifyTitle: String? = null
-                        var notifyBody: String? = null
-                        var notifyKey: String? = null
-
-                        if (item.type == MediaType.TV && dto.nextEpisodeToAir != null) {
-                            val airDateStr = dto.nextEpisodeToAir.airDate
-                            val s = dto.nextEpisodeToAir.seasonNumber ?: 1
-                            val e = dto.nextEpisodeToAir.episodeNumber ?: 1
-                            val name = dto.title ?: dto.name ?: item.title
-                            
-                            if (!airDateStr.isNullOrBlank()) {
-                                val airDate = formatter.parse(airDateStr)
-                                if (airDate != null) {
-                                    if (airDate.time == todayMs) {
-                                        notifyKey = "${item.id}_${airDateStr}_tv_today"
-                                        if (e == 1) {
-                                            notifyTitle = "🎉 Yeni sezon bugün başlıyor"
-                                            notifyBody = "$name · $s. Sezon"
-                                        } else {
-                                            notifyTitle = "📺 Bugün yeni bölüm"
-                                            notifyBody = "$name · S$s B$e"
-                                        }
-                                    } else if (airDate.time == sevenDaysMs && e == 1) {
-                                        notifyKey = "${item.id}_${airDateStr}_tv_7days"
-                                        val d = displayFormatter.format(airDate)
-                                        notifyTitle = "📅 Yeni sezon 1 hafta sonra"
-                                        notifyBody = "$name · $s. Sezon · $d"
-                                    }
-                                }
-                            }
-                        } else if (item.type == MediaType.MOVIE) {
-                            val releaseDateStr = dto.releaseDate
-                            val name = dto.title ?: dto.originalTitle ?: item.title
-                            
-                            if (!releaseDateStr.isNullOrBlank()) {
-                                val relDate = formatter.parse(releaseDateStr)
-                                if (relDate != null && relDate.time == todayMs) {
-                                    notifyKey = "${item.id}_${releaseDateStr}_movie_today"
-                                    notifyTitle = "🎬 Bugün vizyonda"
-                                    notifyBody = name
-                                }
-                            }
-                        }
-
-                        if (notifyKey != null && notifyTitle != null && notifyBody != null && !notifiedKeys.contains(notifyKey)) {
-                            sendNotification(item.id, notifyTitle, notifyBody)
-                            notifiedKeys.add(notifyKey)
-                        }
+                        Pair(item, dto)
                     } catch (e: Exception) {
                         Log.e("UpcomingWorker", "Hata: ${e.message}")
+                        null
                     }
                 }
             }
-            jobs.awaitAll()
+            jobs.awaitAll().filterNotNull().forEach { fetchedResults.add(it) }
+        }
+
+        for ((item, dto) in fetchedResults) {
+            var notifyTitle: String? = null
+            var notifyBody: String? = null
+            var notifyKey: String? = null
+
+            if (item.type == MediaType.TV && dto.nextEpisodeToAir != null) {
+                val airDateStr = dto.nextEpisodeToAir.airDate
+                val s = dto.nextEpisodeToAir.seasonNumber ?: 1
+                val e = dto.nextEpisodeToAir.episodeNumber ?: 1
+                val name = dto.title ?: dto.name ?: item.title
+                
+                val isDaily = dto.genres?.any { it.name == "Talk" || it.name == "News" } == true ||
+                              item.genres.any { it == "Talk Show" || it == "Haber" }
+
+                if (!airDateStr.isNullOrBlank()) {
+                    val airDate = formatter.parse(airDateStr)
+                    if (airDate != null) {
+                        if (airDate.time == todayMs || airDate.time == yesterdayMs) {
+                            notifyKey = "${item.id}_${airDateStr}_tv_today"
+                            
+                            if (e == 1) {
+                                notifyTitle = if (airDate.time == todayMs) "🎉 Yeni sezon bugün başlıyor" else "🎉 Yeni sezon başladı"
+                                notifyBody = "$name · $s. Sezon"
+                            } else if (!isDaily) {
+                                notifyTitle = if (airDate.time == todayMs) "📺 Bugün yeni bölüm" else "📺 Yeni bölüm çıktı"
+                                notifyBody = "$name · S$s B$e"
+                            }
+                        } else if (airDate.time == sevenDaysMs && e == 1) {
+                            notifyKey = "${item.id}_${airDateStr}_tv_7days"
+                            val d = displayFormatter.format(airDate)
+                            notifyTitle = "📅 Yeni sezon 1 hafta sonra"
+                            notifyBody = "$name · $s. Sezon · $d"
+                        }
+                    }
+                }
+            } else if (item.type == MediaType.MOVIE) {
+                val releaseDateStr = dto.releaseDate
+                val name = dto.title ?: dto.originalTitle ?: item.title
+                
+                if (!releaseDateStr.isNullOrBlank()) {
+                    val relDate = formatter.parse(releaseDateStr)
+                    if (relDate != null && relDate.time == todayMs) {
+                        notifyKey = "${item.id}_${releaseDateStr}_movie_today"
+                        notifyTitle = "🎬 Bugün vizyonda"
+                        notifyBody = name
+                    }
+                }
+            }
+
+            if (notifyKey != null && notifyTitle != null && notifyBody != null && !notifiedKeys.contains(notifyKey)) {
+                sendNotification(item.id, notifyTitle!!, notifyBody!!)
+                notifiedKeys.add(notifyKey)
+            }
         }
 
         prefs.edit().putStringSet("notified_keys", notifiedKeys).apply()
