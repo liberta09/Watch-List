@@ -12,9 +12,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.kaan.watchlist.BuildConfig
 import com.kaan.watchlist.data.api.MediaDto
+import com.kaan.watchlist.data.api.TvSeasonResponseDto
 import com.kaan.watchlist.data.api.VideoDto
+import com.kaan.watchlist.data.api.WatchProviderCountryDto
 import com.kaan.watchlist.data.api.TmdbApi
-import com.kaan.watchlist.data.api.enableTlsChainFallback
 import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.domain.model.MediaItem
 import com.kaan.watchlist.domain.model.MediaType
@@ -31,11 +32,10 @@ class MediaRepository(private val context: Context) {
 
     private val tmdbApi: TmdbApi by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
         }
         
         val okHttpClient = OkHttpClient.Builder()
-            .enableTlsChainFallback()
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -53,6 +53,36 @@ class MediaRepository(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("watchlist_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
     private val announcementRepository = AnnouncementRepository(context)
+
+    private val genreTranslations = mapOf(
+        "Talk" to "Talk Show",
+        "Reality" to "Gerçeklik",
+        "News" to "Haber",
+        "Soap" to "Pembe Dizi",
+        "Kids" to "Çocuk",
+        "Sci-Fi & Fantasy" to "Bilim Kurgu & Fantastik",
+        "Action & Adventure" to "Aksiyon & Macera",
+        "War & Politics" to "Savaş & Politika"
+    )
+
+    private fun MediaItem.sanitized(): MediaItem {
+        val g: List<String>? = genres
+        val c: List<String>? = cast
+        val pc: List<String>? = productionCountries
+        val we: Map<String, Long>? = watchedEpisodes
+        val t: String? = title
+        val y: String? = year
+        val o: String? = overview
+        return copy(
+            genres = g ?: emptyList(),
+            cast = c ?: emptyList(),
+            productionCountries = pc ?: emptyList(),
+            watchedEpisodes = we ?: emptyMap(),
+            title = t ?: "Bilinmeyen",
+            year = y ?: "",
+            overview = o ?: ""
+        )
+    }
 
     private val _myList = MutableStateFlow<List<MediaItem>>(emptyList())
     val myList: StateFlow<List<MediaItem>> = _myList.asStateFlow()
@@ -132,7 +162,7 @@ class MediaRepository(private val context: Context) {
                     val jsonStr = gson.toJson(snapshot.value)
                     val list: List<MediaItem>? = gson.fromJson(jsonStr, type)
                     if (list != null) {
-                        _myList.value = list
+                        _myList.value = list.map { it.sanitized() }
                         saveLocalData()
                     }
                 } else {
@@ -159,7 +189,7 @@ class MediaRepository(private val context: Context) {
                     val jsonStr = gson.toJson(snapshot.value)
                     val list: List<MediaItem>? = gson.fromJson(jsonStr, type)
                     if (list != null) {
-                        _favorites.value = list
+                        _favorites.value = list.map { it.sanitized() }
                         saveLocalData()
                     }
                 } else {
@@ -240,8 +270,8 @@ class MediaRepository(private val context: Context) {
         val favs: List<MediaItem> = gson.fromJson(favJson, type) ?: emptyList()
         val loadedNotes: Map<Int, String> = gson.fromJson(notesJson, notesType) ?: emptyMap()
         
-        _myList.value = list
-        _favorites.value = favs
+        _myList.value = list.map { it.sanitized() }
+        _favorites.value = favs.map { it.sanitized() }
         _notes.value = loadedNotes
         _notificationsEnabled.value = prefs.getBoolean("notifications_enabled", true)
     }
@@ -298,6 +328,45 @@ class MediaRepository(private val context: Context) {
         return response.results.map { dto -> 
             mapDtoToMediaItem(dto, MediaType.TV) 
         }
+    }
+
+    suspend fun getTrending(): List<MediaItem> {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
+        return try {
+            val res = tmdbApi.getTrendingWeek(apiKey)
+            res.results.filter { it.mediaType == "movie" || it.mediaType == "tv" }.map { dto ->
+                val type = if (dto.mediaType == "movie") MediaType.MOVIE else MediaType.TV
+                mapDtoToMediaItem(dto, type)
+            }
+        } catch (e: Exception) { emptyList() }
+    }
+
+    suspend fun getNowPlaying(): List<MediaItem> {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
+        return try {
+            val res = tmdbApi.getNowPlayingMovies(apiKey)
+            res.results.map { dto -> mapDtoToMediaItem(dto, MediaType.MOVIE) }
+        } catch (e: Exception) { emptyList() }
+    }
+
+    suspend fun getUpcoming(): List<MediaItem> {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
+        return try {
+            val res = tmdbApi.getUpcomingMovies(apiKey)
+            res.results.map { dto -> mapDtoToMediaItem(dto, MediaType.MOVIE) }
+        } catch (e: Exception) { emptyList() }
+    }
+
+    suspend fun getRecommendations(mediaId: Int, type: MediaType): List<MediaItem> {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
+        return try {
+            val res = if (type == MediaType.MOVIE) {
+                tmdbApi.getMovieRecommendations(mediaId, apiKey)
+            } else {
+                tmdbApi.getTvRecommendations(mediaId, apiKey)
+            }
+            res.results.take(15).map { dto -> mapDtoToMediaItem(dto, type) }
+        } catch (e: Exception) { emptyList() }
     }
 
     suspend fun search(query: String): List<MediaItem> {
@@ -381,7 +450,12 @@ class MediaRepository(private val context: Context) {
             type = fallbackType,
             isFavorite = isFav,
             isInList = inList,
-            isWatched = isWatched
+            isWatched = isWatched,
+            voteAverage = dto.voteAverage ?: existingList?.voteAverage ?: existingFav?.voteAverage,
+            addedAt = existingList?.addedAt ?: existingFav?.addedAt,
+            watchedAt = existingList?.watchedAt ?: existingFav?.watchedAt,
+            userRating = existingList?.userRating ?: existingFav?.userRating,
+            watchedEpisodes = existingList?.watchedEpisodes ?: existingFav?.watchedEpisodes ?: emptyMap()
         )
     }
 
@@ -395,32 +469,12 @@ class MediaRepository(private val context: Context) {
                 removeNote(item.id)
             }
         } else {
-            currentFavs.add(item.copy(isFavorite = true))
+            val now = System.currentTimeMillis()
+            currentFavs.add(item.copy(isFavorite = true, addedAt = item.addedAt ?: now))
         }
         _favorites.value = currentFavs
         saveLocalData()
         updateListIfNecessary(item.id, isFavorite = exists == null)
-        updateFirebase()
-    }
-
-    fun addToList(item: MediaItem, watched: Boolean) {
-        val currentList = _myList.value.toMutableList()
-        val exists = currentList.find { it.id == item.id }
-        if (exists != null) {
-            return // Zaten listedeyse hiçbir şey yapma
-        }
-
-        currentList.add(item.copy(isInList = true, isWatched = watched))
-        _myList.value = currentList
-
-        val currentFavs = _favorites.value.toMutableList()
-        val favIndex = currentFavs.indexOfFirst { it.id == item.id }
-        if (favIndex != -1) {
-            currentFavs[favIndex] = currentFavs[favIndex].copy(isInList = true, isWatched = watched)
-            _favorites.value = currentFavs
-        }
-
-        saveLocalData()
         updateFirebase()
     }
 
@@ -434,55 +488,212 @@ class MediaRepository(private val context: Context) {
                 removeNote(item.id)
             }
         } else {
-            currentList.add(item.copy(isInList = true, isWatched = false))
+            val now = System.currentTimeMillis()
+            currentList.add(item.copy(isInList = true, isWatched = false, addedAt = item.addedAt ?: now))
         }
         _myList.value = currentList
         saveLocalData()
         updateFavIfNecessary(item.id, isInList = exists == null)
         updateFirebase()
     }
-    
-    fun toggleWatchedStatus(item: MediaItem) {
-        val newWatchedStatus = !item.isWatched
 
+    fun addToList(item: MediaItem, watched: Boolean) {
         val currentList = _myList.value.toMutableList()
-        val listIndex = currentList.indexOfFirst { it.id == item.id }
-        if (listIndex != -1) {
-            currentList[listIndex] = currentList[listIndex].copy(isWatched = newWatchedStatus)
-            _myList.value = currentList
+        val exists = currentList.find { it.id == item.id }
+        if (exists != null) {
+            return // Zaten listedeyse hiçbir şey yapma
         }
+
+        val now = System.currentTimeMillis()
+        val newItem = item.copy(
+            isInList = true,
+            isWatched = watched,
+            addedAt = now,
+            watchedAt = if (watched) now else null
+        )
+        currentList.add(newItem)
+        _myList.value = currentList
 
         val currentFavs = _favorites.value.toMutableList()
         val favIndex = currentFavs.indexOfFirst { it.id == item.id }
         if (favIndex != -1) {
-            currentFavs[favIndex] = currentFavs[favIndex].copy(isWatched = newWatchedStatus)
+            currentFavs[favIndex] = currentFavs[favIndex].copy(
+                isInList = true,
+                isWatched = watched,
+                addedAt = now,
+                watchedAt = if (watched) now else null
+            )
             _favorites.value = currentFavs
         }
 
         saveLocalData()
         updateFirebase()
     }
+
+    fun toggleWatchedStatus(item: MediaItem) {
+        val newWatchedStatus = !item.isWatched
+        val now = System.currentTimeMillis()
+        val newWatchedAt = if (newWatchedStatus) now else null
+
+        val currentList = _myList.value.toMutableList()
+        val listIndex = currentList.indexOfFirst { it.id == item.id }
+        if (listIndex != -1) {
+            currentList[listIndex] = currentList[listIndex].copy(
+                isWatched = newWatchedStatus,
+                watchedAt = newWatchedAt
+            )
+            _myList.value = currentList
+        }
+
+        val currentFavs = _favorites.value.toMutableList()
+        val favIndex = currentFavs.indexOfFirst { it.id == item.id }
+        if (favIndex != -1) {
+            currentFavs[favIndex] = currentFavs[favIndex].copy(
+                isWatched = newWatchedStatus,
+                watchedAt = newWatchedAt
+            )
+            _favorites.value = currentFavs
+        }
+
+        saveLocalData()
+        updateFirebase()
+    }
+
+    fun setUserRating(item: MediaItem, rating: Int?) {
+        val now = System.currentTimeMillis()
+        val inList = _myList.value.any { it.id == item.id }
+        val inFav = _favorites.value.any { it.id == item.id }
+
+        if (!inList && !inFav) {
+            addToList(item, watched = true)
+        }
+
+        val currentList = _myList.value.toMutableList()
+        val listIndex = currentList.indexOfFirst { it.id == item.id }
+        if (listIndex != -1) {
+            currentList[listIndex] = currentList[listIndex].copy(userRating = rating)
+            _myList.value = currentList
+        }
+
+        val currentFavs = _favorites.value.toMutableList()
+        val favIndex = currentFavs.indexOfFirst { it.id == item.id }
+        if (favIndex != -1) {
+            currentFavs[favIndex] = currentFavs[favIndex].copy(userRating = rating)
+            _favorites.value = currentFavs
+        }
+
+        saveLocalData()
+        updateFirebase()
+    }
+
+    fun setEpisodeWatched(item: MediaItem, season: Int, episode: Int, watched: Boolean) {
+        val inList = _myList.value.any { it.id == item.id }
+        if (!inList) {
+            addToList(item, watched = false)
+        }
+
+        val key = "S${season}_E${episode}"
+        val targetItem = _myList.value.find { it.id == item.id } ?: item
+        val newEpisodes = targetItem.watchedEpisodes.toMutableMap()
+
+        if (watched) {
+            newEpisodes[key] = System.currentTimeMillis()
+        } else {
+            newEpisodes.remove(key)
+        }
+
+        val updatedItem = targetItem.copy(
+            watchedEpisodes = newEpisodes,
+            lastWatchedSeason = if (watched) season else targetItem.lastWatchedSeason,
+            lastWatchedEpisode = if (watched) episode else targetItem.lastWatchedEpisode
+        )
+
+        updateListIfNecessary(item.id, isInList = true, updatedItem = updatedItem)
+        updateFavIfNecessary(item.id, isInList = true, updatedItem = updatedItem)
+        saveLocalData()
+        updateFirebase()
+    }
+
+    fun setSeasonWatched(item: MediaItem, season: Int, episodeCount: Int, watched: Boolean) {
+        val inList = _myList.value.any { it.id == item.id }
+        if (!inList) {
+            addToList(item, watched = false)
+        }
+
+        val targetItem = _myList.value.find { it.id == item.id } ?: item
+        val newEpisodes = targetItem.watchedEpisodes.toMutableMap()
+        val now = System.currentTimeMillis()
+
+        for (ep in 1..episodeCount) {
+            val key = "S${season}_E${ep}"
+            if (watched) {
+                newEpisodes[key] = now
+            } else {
+                newEpisodes.remove(key)
+            }
+        }
+
+        val updatedItem = targetItem.copy(
+            watchedEpisodes = newEpisodes,
+            lastWatchedSeason = if (watched) season else targetItem.lastWatchedSeason,
+            lastWatchedEpisode = if (watched) episodeCount else targetItem.lastWatchedEpisode
+        )
+
+        updateListIfNecessary(item.id, isInList = true, updatedItem = updatedItem)
+        updateFavIfNecessary(item.id, isInList = true, updatedItem = updatedItem)
+        saveLocalData()
+        updateFirebase()
+    }
     
-    private fun updateListIfNecessary(id: Int, isFavorite: Boolean) {
+    private fun updateListIfNecessary(id: Int, isFavorite: Boolean? = null, isInList: Boolean? = null, updatedItem: MediaItem? = null) {
         val currentList = _myList.value.toMutableList()
         val index = currentList.indexOfFirst { it.id == id }
         if (index != -1) {
-            currentList[index] = currentList[index].copy(isFavorite = isFavorite)
+            val base = updatedItem ?: currentList[index]
+            val withFav = if (isFavorite != null) base.copy(isFavorite = isFavorite) else base
+            currentList[index] = if (isInList != null) withFav.copy(isInList = isInList) else withFav
             _myList.value = currentList
             saveLocalData()
         }
     }
 
-    private fun updateFavIfNecessary(id: Int, isInList: Boolean) {
+    private fun updateFavIfNecessary(id: Int, isInList: Boolean? = null, isFavorite: Boolean? = null, updatedItem: MediaItem? = null) {
         val currentFavs = _favorites.value.toMutableList()
         val index = currentFavs.indexOfFirst { it.id == id }
         if (index != -1) {
-            currentFavs[index] = currentFavs[index].copy(isInList = isInList)
+            val base = updatedItem ?: currentFavs[index]
+            val withList = if (isInList != null) base.copy(isInList = isInList) else base
+            currentFavs[index] = if (isFavorite != null) withList.copy(isFavorite = isFavorite) else withList
             _favorites.value = currentFavs
             saveLocalData()
         }
     }
     
+    suspend fun getTvSeasonDetails(tvId: Int, seasonNumber: Int): TvSeasonResponseDto? {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return null
+        return try {
+            tmdbApi.getTvSeasonDetails(tvId, seasonNumber, apiKey)
+        } catch (e: Exception) {
+            Log.e("MediaRepository", "Error fetching tv season details: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getWatchProviders(mediaId: Int, type: MediaType): WatchProviderCountryDto? {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return null
+        return try {
+            val response = if (type == MediaType.MOVIE) {
+                tmdbApi.getMovieWatchProviders(mediaId, apiKey)
+            } else {
+                tmdbApi.getTvWatchProviders(mediaId, apiKey)
+            }
+            response.results?.get("TR")
+        } catch (e: Exception) {
+            Log.e("MediaRepository", "Error fetching watch providers: ${e.message}")
+            null
+        }
+    }
+
     suspend fun fetchMediaDetails(item: MediaItem): MediaItem {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return item
         return try {
@@ -492,20 +703,27 @@ class MediaRepository(private val context: Context) {
                 tmdbApi.getTvDetails(item.id, apiKey)
             }
             
-            val newGenres = dto.genres?.mapNotNull { it.name } ?: item.genres
+            val newGenres = dto.genres?.mapNotNull { it.name }?.map { genreTranslations[it] ?: it } ?: item.genres
             val newCountries = dto.productionCountries?.mapNotNull { it.name } ?: item.productionCountries
             val newCast = dto.credits?.cast?.take(5)?.mapNotNull { it.name } ?: item.cast
             val newDirector = dto.credits?.crew?.firstOrNull { it.job == "Director" }?.name ?: item.director
             val newVoteAverage = dto.voteAverage ?: item.voteAverage
             val newRuntime = dto.runtime ?: dto.episodeRunTime?.firstOrNull() ?: item.runtime
             
-            val newVideoKey = getTrailerKey(item.id, item.type) ?: item.videoKey
+            val videoList = dto.videos?.results ?: emptyList()
+            val officialTrailer = videoList.firstOrNull { it.type == "Trailer" && it.site == "YouTube" && it.official == true }?.key
+                ?: videoList.firstOrNull { it.type == "Trailer" && it.site == "YouTube" }?.key
+                ?: videoList.firstOrNull { it.type == "Teaser" && it.site == "YouTube" }?.key
+                ?: videoList.firstOrNull { it.site == "YouTube" }?.key
+
+            val newVideoKey = officialTrailer ?: getTrailerKey(item.id, item.type) ?: item.videoKey
             Log.d("TRAILER", "fetchMediaDetails for mediaId=${item.id}, type=${item.type}, resolvedVideoKey=$newVideoKey")
             
             item.copy(
                 originalTitle = dto.originalTitle ?: dto.originalName ?: item.originalTitle,
                 voteAverage = newVoteAverage,
                 runtime = newRuntime,
+                episodeRuntime = dto.episodeRunTime?.firstOrNull() ?: item.episodeRuntime,
                 genres = newGenres,
                 productionCountries = newCountries,
                 director = newDirector,

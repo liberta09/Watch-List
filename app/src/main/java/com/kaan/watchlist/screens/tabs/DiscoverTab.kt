@@ -55,7 +55,11 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
     val context = LocalContext.current
     val popMovies by viewModel.popularMovies.collectAsState()
     val popTvShows by viewModel.popularTvShows.collectAsState()
+    val trending by viewModel.trending.collectAsState()
+    val nowPlaying by viewModel.nowPlaying.collectAsState()
+    val upcoming by viewModel.upcoming.collectAsState()
     val myList by viewModel.myList.collectAsState()
+    val favorites by viewModel.favorites.collectAsState()
     
     val isLoading by viewModel.isDiscoverLoading.collectAsState()
     val error by viewModel.discoverError.collectAsState()
@@ -185,7 +189,84 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(myList) { media ->
-                        MediaCard(media = media, onClick = { onMediaClick(media) })
+                        val userMedia = viewModel.withUserState(media, myList, favorites)
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+
+        if (trending.isNotEmpty()) {
+            item {
+                SectionTitle("Bu Hafta Trend", onTelegramClick = onTelegramClick)
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(trending) { media ->
+                        val userMedia = viewModel.withUserState(media, myList, favorites)
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+
+        if (nowPlaying.isNotEmpty()) {
+            item {
+                SectionTitle("Vizyondakiler")
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(nowPlaying) { media ->
+                        val userMedia = viewModel.withUserState(media, myList, favorites)
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+
+        if (upcoming.isNotEmpty()) {
+            item {
+                SectionTitle("Yakında")
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(upcoming) { media ->
+                        val userMedia = viewModel.withUserState(media, myList, favorites)
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -193,13 +274,21 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         }
 
         item {
-            SectionTitle("Son Eklenenler", onTelegramClick = onTelegramClick)
+            SectionTitle("Popüler Filmler")
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(popMovies) { media ->
-                    MediaCard(media = media, onClick = { onMediaClick(media) })
+                    val userMedia = viewModel.withUserState(media, myList, favorites)
+                    MediaCard(
+                        media = userMedia, 
+                        onClick = { onMediaClick(userMedia) },
+                        onToggleList = { 
+                            if (!it.isInList) viewModel.addToList(it, watched = false) 
+                            else viewModel.toggleList(it) 
+                        }
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -212,7 +301,15 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(popTvShows) { media ->
-                    MediaCard(media = media, onClick = { onMediaClick(media) })
+                    val userMedia = viewModel.withUserState(media, myList, favorites)
+                    MediaCard(
+                        media = userMedia, 
+                        onClick = { onMediaClick(userMedia) },
+                        onToggleList = { 
+                            if (!it.isInList) viewModel.addToList(it, watched = false) 
+                            else viewModel.toggleList(it) 
+                        }
+                    )
                 }
             }
         }

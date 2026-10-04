@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -28,6 +29,7 @@ import com.kaan.watchlist.viewmodel.MediaViewModel
 @Composable
 fun FavoritesTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
     val favorites by viewModel.favorites.collectAsState()
+    val myList by viewModel.myList.collectAsState()
 
     Column(
         modifier = Modifier
@@ -61,14 +63,24 @@ fun FavoritesTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = GridCells.Adaptive(minSize = 110.dp),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(favorites) { media ->
-                    MediaCard(media = media, onClick = { onMediaClick(media) })
+                    val userMedia = viewModel.withUserState(media, myList, favorites)
+                    MediaCard(
+                        media = userMedia, 
+                        onClick = { onMediaClick(userMedia) },
+                        modifier = Modifier.fillMaxWidth(),
+                        fillWidth = true,
+                        onToggleList = { 
+                            if (!it.isInList) viewModel.addToList(it, watched = false) 
+                            else viewModel.toggleList(it) 
+                        }
+                    )
                 }
             }
         }

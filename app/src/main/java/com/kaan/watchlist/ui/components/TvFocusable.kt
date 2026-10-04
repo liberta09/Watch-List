@@ -25,7 +25,10 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kaan.watchlist.ui.theme.BlueAccent
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Modifier.tvFocusable(
     shape: Shape = RoundedCornerShape(8.dp),
@@ -33,7 +36,8 @@ fun Modifier.tvFocusable(
     focusBorderColor: Color = BlueAccent,
     scaleOnFocus: Float = 1.04f,
     focusRequester: FocusRequester? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null
 ): Modifier {
     var isFocused by remember { mutableStateOf(false) }
     val internalFocusRequester = focusRequester ?: remember { FocusRequester() }
@@ -55,22 +59,27 @@ fun Modifier.tvFocusable(
             }
         )
 
-    if (onClick != null) {
+    if (onClick != null || onLongClick != null) {
         modifier = modifier
             .onKeyEvent { keyEvent ->
-                if (keyEvent.type == KeyEventType.KeyUp &&
-                    (keyEvent.key == Key.DirectionCenter || keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter)
-                ) {
-                    onClick()
-                    true
-                } else {
-                    false
+                if (keyEvent.type == KeyEventType.KeyUp) {
+                    if (keyEvent.key == Key.DirectionCenter || keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) {
+                        onClick?.invoke()
+                        return@onKeyEvent true
+                    }
+                    // Handle Menu button on TV remote for long click behavior
+                    if (keyEvent.key == Key.Menu) {
+                        onLongClick?.invoke()
+                        return@onKeyEvent true
+                    }
                 }
+                false
             }
-            .clickable(
+            .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = onClick
+                onClick = { onClick?.invoke() },
+                onLongClick = onLongClick
             )
     }
 

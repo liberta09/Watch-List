@@ -2,7 +2,6 @@ package com.kaan.watchlist.data.repository
 
 import com.kaan.watchlist.BuildConfig
 import com.kaan.watchlist.data.api.UpdateApi
-import com.kaan.watchlist.data.api.enableTlsChainFallback
 import com.kaan.watchlist.util.UpdateConfig
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -21,7 +20,6 @@ class UpdateRepository {
 
     private val updateApi: UpdateApi by lazy {
         val okHttpClient = OkHttpClient.Builder()
-            .enableTlsChainFallback()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()

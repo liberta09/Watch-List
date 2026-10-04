@@ -255,7 +255,11 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                 SearchTab(viewModel = viewModel, onMediaClick = { rootNavController.navigate(Screen.Detail.createRoute(it.id)) })
             }
             composable(BottomNavScreen.MyList.route) {
-                MyListTab(viewModel = viewModel, onMediaClick = { rootNavController.navigate(Screen.Detail.createRoute(it.id)) })
+                MyListTab(
+                    viewModel = viewModel,
+                    onMediaClick = { rootNavController.navigate(Screen.Detail.createRoute(it.id)) },
+                    onNavigateToStats = { rootNavController.navigate(Screen.Stats.route) }
+                )
             }
             composable(BottomNavScreen.Favorites.route) {
                 FavoritesTab(viewModel = viewModel, onMediaClick = { rootNavController.navigate(Screen.Detail.createRoute(it.id)) })

@@ -3,6 +3,7 @@ package com.kaan.watchlist.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,16 +32,40 @@ import com.kaan.watchlist.ui.theme.DarkNavy
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.LightText
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
+import com.kaan.watchlist.domain.model.MediaType
+import java.util.Locale
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
 @Composable
 fun MediaCard(
     media: MediaItem,
     onClick: () -> Unit,
-    onToggleWatched: ((MediaItem) -> Unit)? = null
+    modifier: Modifier = Modifier,
+    fillWidth: Boolean = false,
+    onToggleWatched: ((MediaItem) -> Unit)? = null,
+    onToggleList: ((MediaItem) -> Unit)? = null
 ) {
+    var showPreview by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier
-            .width(120.dp)
-            .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onClick),
+        modifier = modifier
+            .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier.width(120.dp))
+            .tvFocusable(
+                shape = RoundedCornerShape(8.dp),
+                onClick = onClick,
+                onLongClick = { showPreview = true }
+            ),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
@@ -58,6 +83,53 @@ fun MediaCard(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+
+                // TMDB Rating Badge (Top Right)
+                if (media.voteAverage != null && media.voteAverage > 0) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.Black.copy(alpha = 0.75f))
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFFD700),
+                                modifier = Modifier.height(10.dp)
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = String.format(Locale.US, "%.1f", media.voteAverage),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                // User Rating Badge (Top Left)
+                if (media.userRating != null) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(BlueAccent)
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "Sen: ${media.userRating}",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -74,6 +146,17 @@ fun MediaCard(
                 fontSize = 12.sp,
                 maxLines = 1
             )
+
+            // Latest watched episode for TV shows
+            if (media.type == MediaType.TV && (media.lastWatchedSeason != null && media.lastWatchedEpisode != null)) {
+                Text(
+                    text = "S${media.lastWatchedSeason} B${media.lastWatchedEpisode}",
+                    color = BlueAccent,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+            }
             
             if (onToggleWatched != null) {
                 Spacer(modifier = Modifier.height(6.dp))
@@ -112,5 +195,105 @@ fun MediaCard(
                 }
             }
         }
+    }
+
+    if (showPreview) {
+        AlertDialog(
+            onDismissRequest = { showPreview = false },
+            containerColor = DarkSurface,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AsyncImage(
+                        model = media.posterUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(60.dp)
+                            .aspectRatio(2f / 3f)
+                            .clip(RoundedCornerShape(6.dp))
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = media.title,
+                            color = LightText,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = media.year, color = LightText.copy(alpha = 0.7f), fontSize = 13.sp)
+                            if (media.voteAverage != null && media.voteAverage > 0) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Text(
+                                    text = String.format(Locale.US, "%.1f", media.voteAverage),
+                                    color = LightText,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        if (media.genres.isNotEmpty()) {
+                            Text(
+                                text = media.genres.take(2).joinToString(", "),
+                                color = LightText.copy(alpha = 0.6f),
+                                fontSize = 12.sp,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            },
+            text = {
+                Text(
+                    text = if (media.overview.isNotBlank()) media.overview else "Açıklama bulunmuyor.",
+                    color = LightText.copy(alpha = 0.85f),
+                    fontSize = 13.sp,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            confirmButton = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            showPreview = false
+                            onClick()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = {
+                                showPreview = false
+                                onClick()
+                            })
+                    ) {
+                        Text("Detaya Git", fontSize = 13.sp)
+                    }
+
+                    if (onToggleList != null) {
+                        Button(
+                            onClick = {
+                                onToggleList(media)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = if (media.isInList) DarkNavy else BlueAccent),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = { onToggleList(media) })
+                        ) {
+                            Text(if (media.isInList) "✓ Listede" else "+ Listeye Ekle", fontSize = 13.sp)
+                        }
+                    }
+                }
+            }
+        )
     }
 }

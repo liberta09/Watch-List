@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,6 +70,11 @@ import androidx.compose.material.icons.filled.CheckCircle
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import com.kaan.watchlist.navigation.Screen
+import com.kaan.watchlist.domain.model.MediaItem
+import com.kaan.watchlist.domain.model.MediaType
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import com.kaan.watchlist.ui.components.MediaCard
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.DarkNavy
@@ -77,24 +83,53 @@ import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.viewmodel.MediaViewModel
 import java.util.Locale
 
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.LinearProgressIndicator
+import com.kaan.watchlist.data.api.WatchProviderCountryDto
+import com.kaan.watchlist.data.api.WatchProviderItemDto
+import com.kaan.watchlist.data.api.TvSeasonResponseDto
+import android.content.Intent
+import android.net.Uri
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaId: Int) {
     val selectedMedia by viewModel.selectedMedia.collectAsState()
     val isLoading by viewModel.isLoadingDetails.collectAsState()
+    val detailNotFound by viewModel.detailNotFound.collectAsState()
+    val myList by viewModel.myList.collectAsState()
+    val favorites by viewModel.favorites.collectAsState()
     val notes by viewModel.notes.collectAsState()
+    val watchProviders by viewModel.watchProviders.collectAsState()
+    val seasonDetails by viewModel.currentSeasonDetails.collectAsState()
+    val currentSeasonKey by viewModel.currentSeasonKey.collectAsState()
 
     LaunchedEffect(mediaId) {
         viewModel.loadMediaDetails(mediaId)
     }
 
-    val media = selectedMedia
-    if (media == null) {
-        if (!isLoading) {
+    if (detailNotFound) {
+        LaunchedEffect(Unit) {
             navController.popBackStack()
         }
         return
     }
+
+    val rawMedia = selectedMedia
+    if (rawMedia == null || rawMedia.id != mediaId) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = BlueAccent)
+        }
+        return
+    }
+
+    val media = viewModel.withUserState(rawMedia, myList, favorites)
 
     val currentNote = notes[media.id]
     var isEditingNote by remember { mutableStateOf(false) }
@@ -133,7 +168,9 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.popBackStack() },
-                        modifier = Modifier.tvFocusable(shape = CircleShape, onClick = { navController.popBackStack() })
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                            .tvFocusable(shape = CircleShape, onClick = { navController.popBackStack() })
                     ) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = LightText)
                     }
@@ -150,7 +187,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(bottom = innerPadding.calculateBottomPadding())
+                    .padding(top = innerPadding.calculateTopPadding(), bottom = innerPadding.calculateBottomPadding())
                     .verticalScroll(rememberScrollState())
             ) {
             Box(
@@ -217,7 +254,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             }
                             if (media.voteAverage != null && media.voteAverage > 0) {
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.Default.Favorite, contentDescription = "Rating", tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = String.format(Locale.US, "%.1f", media.voteAverage),
@@ -308,6 +345,15 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                     }
                     Spacer(modifier = Modifier.height(14.dp))
                 }
+
+                // User Rating Section
+                UserRatingSection(
+                    currentRating = media.userRating,
+                    onRatingSelected = { rating ->
+                        viewModel.setUserRating(media, rating)
+                    }
+                )
+                Spacer(modifier = Modifier.height(14.dp))
 
                 // Personal Note Section
                 Text(
@@ -432,6 +478,29 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
 
                 Spacer(modifier = Modifier.height(14.dp))
 
+                // TV Show Episodes
+                if (media.type == MediaType.TV) {
+                    TvEpisodesSection(
+                        media = media,
+                        seasonDetails = seasonDetails,
+                        currentSeasonKey = currentSeasonKey,
+                        onSelectSeason = { season ->
+                            viewModel.loadTvSeasonDetails(media.id, season)
+                        },
+                        onToggleEpisode = { s, ep, watched ->
+                            viewModel.setEpisodeWatched(media, s, ep, watched)
+                        },
+                        onToggleSeason = { s, count, watched ->
+                            viewModel.setSeasonWatched(media, s, count, watched)
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+
+                // Watch Providers
+                WatchProvidersSection(providers = watchProviders)
+                Spacer(modifier = Modifier.height(14.dp))
+
                 // Description Section
                 Text(
                     text = "Açıklama",
@@ -479,6 +548,37 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                         lineHeight = 20.sp
                     )
                 }
+
+                // Recommendations (AŞAMA 7)
+                val recommendations by viewModel.recommendations.collectAsState()
+                if (recommendations.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Benzer İçerikler",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LightText
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(recommendations) { rec ->
+                            val userMedia = viewModel.withUserState(rec, myList, favorites)
+                            MediaCard(
+                                media = userMedia,
+                                onClick = { navController.navigate(Screen.Detail.createRoute(userMedia.id)) },
+                                onToggleList = {
+                                    if (!it.isInList) {
+                                        viewModel.addToList(it, watched = false)
+                                    } else {
+                                        viewModel.toggleList(it)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
                 
                 Spacer(modifier = Modifier.height(48.dp))
             }
@@ -513,7 +613,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Film listenize eklendi.",
+                            text = if (media.type == MediaType.MOVIE) "Film listenize eklendi." else "Dizi listenize eklendi.",
                             fontSize = 16.sp,
                             color = LightText.copy(alpha = 0.8f),
                             textAlign = TextAlign.Center
@@ -585,4 +685,330 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
         }
     }
 }
+}
+
+@Composable
+fun UserRatingSection(
+    currentRating: Int?,
+    onRatingSelected: (Int?) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Puanın",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = LightText
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            for (i in 1..10) {
+                val isSelected = currentRating != null && i <= currentRating
+                IconButton(
+                    onClick = {
+                        if (currentRating == i) {
+                            onRatingSelected(null)
+                        } else {
+                            onRatingSelected(i)
+                        }
+                    },
+                    modifier = Modifier
+                        .size(32.dp)
+                        .tvFocusable(shape = CircleShape, onClick = {
+                            if (currentRating == i) {
+                                onRatingSelected(null)
+                            } else {
+                                onRatingSelected(i)
+                            }
+                        })
+                ) {
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "$i Puan",
+                        tint = if (isSelected) Color(0xFFFFD700) else Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+        if (currentRating != null) {
+            Text(
+                text = "Puanın: $currentRating / 10",
+                fontSize = 13.sp,
+                color = BlueAccent,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun WatchProvidersSection(
+    providers: WatchProviderCountryDto?
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Nerede İzlenir",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = LightText
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+
+        if (providers == null || (providers.flatrate.isNullOrEmpty() && providers.rent.isNullOrEmpty() && providers.buy.isNullOrEmpty())) {
+            Text(
+                text = "Türkiye'de bir platformda bulunamadı",
+                fontSize = 14.sp,
+                color = LightText.copy(alpha = 0.6f)
+            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (!providers.flatrate.isNullOrEmpty()) {
+                    ProviderCategoryRow("Abonelikle", providers.flatrate, providers.link, context)
+                }
+                if (!providers.rent.isNullOrEmpty()) {
+                    ProviderCategoryRow("Kirala", providers.rent, providers.link, context)
+                }
+                if (!providers.buy.isNullOrEmpty()) {
+                    ProviderCategoryRow("Satın Al", providers.buy, providers.link, context)
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Kaynak: JustWatch",
+                fontSize = 11.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
+
+@Composable
+fun ProviderCategoryRow(
+    title: String,
+    items: List<WatchProviderItemDto>,
+    link: String?,
+    context: android.content.Context
+) {
+    Column {
+        Text(text = title, fontSize = 13.sp, color = LightText.copy(alpha = 0.7f), fontWeight = FontWeight.Medium)
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items.forEach { item ->
+                if (!item.logoPath.isNullOrBlank()) {
+                    AsyncImage(
+                        model = "https://image.tmdb.org/t/p/w92${item.logoPath}",
+                        contentDescription = item.providerName,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = {
+                                if (!link.isNullOrBlank()) {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {}
+                                }
+                            })
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TvEpisodesSection(
+    media: MediaItem,
+    seasonDetails: TvSeasonResponseDto?,
+    currentSeasonKey: String?,
+    onSelectSeason: (Int) -> Unit,
+    onToggleEpisode: (season: Int, episode: Int, watched: Boolean) -> Unit,
+    onToggleSeason: (season: Int, episodeCount: Int, watched: Boolean) -> Unit
+) {
+    var selectedSeason by remember(media.id) { mutableStateOf(1) }
+    val totalSeasons = media.totalSeasons ?: 1
+
+    LaunchedEffect(media.id, selectedSeason) {
+        onSelectSeason(selectedSeason)
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Bölümler",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = LightText
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Season Chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            for (s in 1..totalSeasons) {
+                val isSelected = s == selectedSeason
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isSelected) BlueAccent else DarkSurface)
+                        .tvFocusable(shape = RoundedCornerShape(16.dp), onClick = { selectedSeason = s })
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "S$s",
+                        color = LightText,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        val expectedKey = "${media.id}_$selectedSeason"
+        val isSeasonLoaded = currentSeasonKey == expectedKey && seasonDetails != null
+
+        val episodes = if (isSeasonLoaded) seasonDetails?.episodes ?: emptyList() else emptyList()
+        val totalEps = media.totalEpisodes
+        val watchedCount = media.watchedEpisodes.size
+
+        // Progress bar
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (totalEps != null) {
+                    Text(
+                        text = "$watchedCount / $totalEps bölüm izlendi",
+                        fontSize = 13.sp,
+                        color = LightText.copy(alpha = 0.8f)
+                    )
+                } else {
+                    Text(
+                        text = "$watchedCount bölüm izlendi",
+                        fontSize = 13.sp,
+                        color = LightText.copy(alpha = 0.8f)
+                    )
+                }
+                if (isSeasonLoaded && episodes.isNotEmpty()) {
+                    TextButton(
+                        onClick = {
+                            val allWatchedInSeason = episodes.all { ep ->
+                                media.watchedEpisodes.containsKey("S${selectedSeason}_E${ep.episodeNumber}")
+                            }
+                            onToggleSeason(selectedSeason, episodes.size, !allWatchedInSeason)
+                        }
+                    ) {
+                        Text(
+                            text = if (episodes.all { media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }) "Sezonu geri al" else "Sezonu tamamla",
+                            fontSize = 12.sp,
+                            color = BlueAccent
+                        )
+                    }
+                }
+            }
+
+            if (totalEps != null) {
+                val progress = if (totalEps > 0) (watchedCount.toFloat() / totalEps).coerceIn(0f, 1f) else 0f
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    color = BlueAccent,
+                    trackColor = DarkSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+
+            // Next Episode
+            val nextEpText = if (totalEps != null && watchedCount >= totalEps) {
+                "Tüm bölümler izlendi ✓"
+            } else if (isSeasonLoaded && episodes.isNotEmpty()) {
+                val firstUnwatched = episodes.firstOrNull { !media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }
+                if (firstUnwatched != null) {
+                    "Sıradaki: S${selectedSeason} B${firstUnwatched.episodeNumber}"
+                } else if (selectedSeason < totalSeasons) {
+                    "Sıradaki: S${selectedSeason + 1} B1"
+                } else {
+                    "Tüm bölümler izlendi ✓"
+                }
+            } else {
+                "Sıradaki: S${media.lastWatchedSeason ?: 1} B${(media.lastWatchedEpisode ?: 0) + 1}"
+            }
+            Text(text = nextEpText, fontSize = 12.sp, color = BlueAccent, fontWeight = FontWeight.Medium)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Episode List
+        if (!isSeasonLoaded) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = BlueAccent, modifier = Modifier.size(32.dp))
+            }
+        } else {
+            episodes.forEach { ep ->
+            val epNum = ep.episodeNumber ?: 1
+            val epKey = "S${selectedSeason}_E$epNum"
+            val isEpWatched = media.watchedEpisodes.containsKey(epKey)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(DarkSurface)
+                    .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = {
+                        onToggleEpisode(selectedSeason, epNum, !isEpWatched)
+                    })
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "B$epNum - ${ep.name ?: "Bölüm $epNum"}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LightText
+                    )
+                    if (!ep.airDate.isNullOrBlank()) {
+                        Text(
+                            text = ep.airDate,
+                            fontSize = 11.sp,
+                            color = LightText.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+
+                IconButton(
+                    onClick = { onToggleEpisode(selectedSeason, epNum, !isEpWatched) }
+                ) {
+                    Icon(
+                        imageVector = if (isEpWatched) Icons.Default.CheckCircle else Icons.Default.Add,
+                        contentDescription = "Watched",
+                        tint = if (isEpWatched) BlueAccent else Color.Gray
+                    )
+                }
+            }
+        }
+        }
+    }
 }

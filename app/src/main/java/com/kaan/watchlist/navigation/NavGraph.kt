@@ -14,6 +14,7 @@ import com.kaan.watchlist.screens.DetailScreen
 import com.kaan.watchlist.screens.HomeScreen
 import com.kaan.watchlist.screens.LoginScreen
 import com.kaan.watchlist.screens.RegisterScreen
+import com.kaan.watchlist.screens.StatsScreen
 import com.kaan.watchlist.screens.TelegramWebScreen
 import com.kaan.watchlist.screens.TrailerScreen
 import com.kaan.watchlist.viewmodel.MediaViewModel
@@ -50,6 +51,9 @@ fun SetupNavGraph(
         ) { backStackEntry ->
             val mediaId = backStackEntry.arguments?.getInt("mediaId") ?: 0
             DetailScreen(navController = navController, viewModel = sharedViewModel, mediaId = mediaId)
+        }
+        composable(route = Screen.Stats.route) {
+            StatsScreen(navController = navController, viewModel = sharedViewModel)
         }
         composable(
             route = Screen.Trailer.route,
