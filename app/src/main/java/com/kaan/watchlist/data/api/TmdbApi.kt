@@ -148,8 +148,18 @@ data class MediaDetailsDto(
     @SerializedName("production_countries") val productionCountries: List<CountryDto>?,
     @SerializedName("number_of_seasons") val numberOfSeasons: Int?,
     @SerializedName("number_of_episodes") val numberOfEpisodes: Int?,
+    @SerializedName("status") val status: String?,
+    @SerializedName("next_episode_to_air") val nextEpisodeToAir: EpisodeAirDto?,
+    @SerializedName("last_episode_to_air") val lastEpisodeToAir: EpisodeAirDto?,
     @SerializedName("credits") val credits: CreditsDto?,
     @SerializedName("videos") val videos: VideoResponseDto?
+)
+
+data class EpisodeAirDto(
+    @SerializedName("air_date") val airDate: String?,
+    @SerializedName("season_number") val seasonNumber: Int?,
+    @SerializedName("episode_number") val episodeNumber: Int?,
+    @SerializedName("name") val name: String?
 )
 
 data class GenreDto(@SerializedName("name") val name: String?)

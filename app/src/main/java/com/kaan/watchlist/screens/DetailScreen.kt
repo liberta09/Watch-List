@@ -272,6 +272,40 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                 color = LightText.copy(alpha = 0.6f)
                             )
                         }
+                        
+                        // Upcoming Info
+                        if (media.type == MediaType.TV) {
+                            if (!media.nextEpisodeAirDate.isNullOrBlank()) {
+                                val s = media.nextEpisodeSeason ?: 1
+                                val e = media.nextEpisodeNumber ?: 1
+                                val date = com.kaan.watchlist.util.DateUtils.formatDisplayDate(media.nextEpisodeAirDate)
+                                val text = if (e == 1) {
+                                    "📅 Yeni sezon başlıyor: $s. Sezon · $date"
+                                } else {
+                                    "📅 Sıradaki bölüm: S$s B$e · $date"
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = text, fontSize = 13.sp, color = BlueAccent, fontWeight = FontWeight.Medium)
+                            } else {
+                                val statusText = when (media.showStatus) {
+                                    "Ended" -> "Dizi sona erdi"
+                                    "Canceled" -> "Dizi iptal edildi"
+                                    "Returning Series" -> "Yeni sezon bekleniyor (tarih belli değil)"
+                                    else -> null
+                                }
+                                if (statusText != null) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(text = statusText, fontSize = 13.sp, color = LightText.copy(alpha = 0.6f))
+                                }
+                            }
+                        } else if (media.type == MediaType.MOVIE) {
+                            val daysUntil = com.kaan.watchlist.util.DateUtils.getDaysUntil(media.releaseDate)
+                            if (daysUntil != null && daysUntil >= 0) {
+                                val date = com.kaan.watchlist.util.DateUtils.formatDisplayDate(media.releaseDate)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = "🎬 Vizyon tarihi: $date", fontSize = 13.sp, color = BlueAccent, fontWeight = FontWeight.Medium)
+                            }
+                        }
                     }
                 }
 

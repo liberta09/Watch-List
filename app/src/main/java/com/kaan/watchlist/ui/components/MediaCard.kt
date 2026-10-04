@@ -53,6 +53,7 @@ fun MediaCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     fillWidth: Boolean = false,
+    subtitle: String? = null,
     onToggleWatched: ((MediaItem) -> Unit)? = null,
     onToggleList: ((MediaItem) -> Unit)? = null
 ) {
@@ -130,6 +131,28 @@ fun MediaCard(
                         )
                     }
                 }
+                
+                // YENI Badge (Bottom Left)
+                if (media.isInList && media.type == MediaType.TV && media.lastAiredSeason != null && media.lastAiredEpisode != null) {
+                    val lastAiredKey = "S${media.lastAiredSeason}_E${media.lastAiredEpisode}"
+                    if (!media.watchedEpisodes.containsKey(lastAiredKey) && media.watchedEpisodes.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFFE50914))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "YENİ",
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -146,6 +169,15 @@ fun MediaCard(
                 fontSize = 12.sp,
                 maxLines = 1
             )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    color = BlueAccent,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             // Latest watched episode for TV shows
             if (media.type == MediaType.TV && (media.lastWatchedSeason != null && media.lastWatchedEpisode != null)) {

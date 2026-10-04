@@ -22,6 +22,9 @@ import com.kaan.watchlist.domain.model.MediaType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -719,7 +722,7 @@ class MediaRepository(private val context: Context) {
             val newVideoKey = officialTrailer ?: getTrailerKey(item.id, item.type) ?: item.videoKey
             Log.d("TRAILER", "fetchMediaDetails for mediaId=${item.id}, type=${item.type}, resolvedVideoKey=$newVideoKey")
             
-            item.copy(
+            val updatedItem = item.copy(
                 originalTitle = dto.originalTitle ?: dto.originalName ?: item.originalTitle,
                 voteAverage = newVoteAverage,
                 runtime = newRuntime,
@@ -730,11 +733,91 @@ class MediaRepository(private val context: Context) {
                 cast = newCast,
                 videoKey = newVideoKey,
                 totalSeasons = dto.numberOfSeasons ?: item.totalSeasons,
-                totalEpisodes = dto.numberOfEpisodes ?: item.totalEpisodes
+                totalEpisodes = dto.numberOfEpisodes ?: item.totalEpisodes,
+                showStatus = dto.status,
+                nextEpisodeAirDate = dto.nextEpisodeToAir?.airDate,
+                nextEpisodeSeason = dto.nextEpisodeToAir?.seasonNumber,
+                nextEpisodeNumber = dto.nextEpisodeToAir?.episodeNumber,
+                nextEpisodeName = dto.nextEpisodeToAir?.name,
+                lastAiredSeason = dto.lastEpisodeToAir?.seasonNumber,
+                lastAiredEpisode = dto.lastEpisodeToAir?.episodeNumber,
+                releaseDate = if (item.type == MediaType.MOVIE) dto.releaseDate else item.releaseDate
             )
+            
+            val inList = _myList.value.any { it.id == item.id }
+            val inFav = _favorites.value.any { it.id == item.id }
+            if (inList || inFav) {
+                updateListIfNecessary(item.id, updatedItem = updatedItem)
+                updateFavIfNecessary(item.id, updatedItem = updatedItem)
+                saveLocalData()
+                updateFirebase()
+            }
+            
+            updatedItem
         } catch (e: Exception) {
             Log.e("MediaRepository", "Error fetching details for id=${item.id}: ${e.message}")
             item
+        }
+    }
+
+    suspend fun refreshUpcomingInfo(): List<MediaItem> = coroutineScope {
+        val allItems = (_myList.value + _favorites.value).distinctBy { it.id }.take(40)
+        if (allItems.isEmpty()) return@coroutineScope emptyList()
+
+        val lastRefresh = prefs.getLong("upcoming_last_refresh", 0L)
+        val now = System.currentTimeMillis()
+        // Son 12 saat içinde yenilenmişse tekrar istek atma
+        if (now - lastRefresh < 12 * 60 * 60 * 1000L) {
+            return@coroutineScope getUpcomingFromLocal(allItems)
+        }
+
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") {
+            return@coroutineScope getUpcomingFromLocal(allItems)
+        }
+
+        val updatedList = mutableListOf<MediaItem>()
+        for (chunk in allItems.chunked(5)) {
+            val jobs = chunk.map { item ->
+                async { fetchMediaDetails(item) }
+            }
+            updatedList.addAll(jobs.awaitAll())
+        }
+
+        prefs.edit().putLong("upcoming_last_refresh", now).apply()
+        return@coroutineScope getUpcomingFromLocal(updatedList)
+    }
+
+    private fun getUpcomingFromLocal(items: List<MediaItem>): List<MediaItem> {
+        val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale("tr"))
+        // Günü başlangıcına yuvarla, dünü de saymasın
+        val cal = java.util.Calendar.getInstance()
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        cal.set(java.util.Calendar.MINUTE, 0)
+        cal.set(java.util.Calendar.SECOND, 0)
+        cal.set(java.util.Calendar.MILLISECOND, 0)
+        val todayMs = cal.timeInMillis
+        val sixtyDaysMs = todayMs + 60L * 24 * 60 * 60 * 1000L
+
+        return items.filter { item ->
+            try {
+                val dateStr = if (item.type == MediaType.TV) item.nextEpisodeAirDate else item.releaseDate
+                if (dateStr.isNullOrBlank()) false
+                else {
+                    val date = formatter.parse(dateStr)
+                    if (date != null) {
+                        date.time in todayMs..sixtyDaysMs
+                    } else false
+                }
+            } catch (e: Exception) {
+                false
+            }
+        }.sortedBy { item ->
+            val dateStr = if (item.type == MediaType.TV) item.nextEpisodeAirDate else item.releaseDate
+            try {
+                formatter.parse(dateStr!!)?.time ?: Long.MAX_VALUE
+            } catch (e: Exception) {
+                Long.MAX_VALUE
+            }
         }
     }
 }

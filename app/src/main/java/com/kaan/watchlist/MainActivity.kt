@@ -36,9 +36,37 @@ import com.kaan.watchlist.util.RemoteCommandListener
 import com.kaan.watchlist.util.UpdateHelper
 import kotlinx.coroutines.delay
 
+import android.content.Intent
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import com.kaan.watchlist.util.UpcomingScheduler
+import android.content.Context
+
 class MainActivity : ComponentActivity() {
+    private val openMediaId = mutableStateOf<Int?>(null)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val id = intent?.getIntExtra("open_media_id", -1) ?: -1
+        if (id != -1) {
+            openMediaId.value = id
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleIntent(intent)
+        
+        val prefs = getSharedPreferences("watchlist_prefs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("notifications_enabled", true)) {
+            UpcomingScheduler.schedule(this)
+        }
         try {
             val appContext = applicationContext
             // Veritabanı kuralları oturum istediği için servisleri oturum hazır olunca başlatıyoruz.
@@ -61,7 +89,11 @@ class MainActivity : ComponentActivity() {
                 val downloadState by UpdateHelper.downloadState.collectAsState()
 
                 Box(modifier = Modifier.fillMaxSize()) {
-                    SetupNavGraph(navController = navController)
+                    SetupNavGraph(
+                        navController = navController,
+                        initialMediaId = openMediaId.value,
+                        onInitialMediaIdHandled = { openMediaId.value = null }
+                    )
 
                     when (val state = downloadState) {
                         is UpdateHelper.DownloadState.Downloading -> {

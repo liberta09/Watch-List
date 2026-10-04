@@ -46,6 +46,9 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     private val _upcoming = MutableStateFlow<List<MediaItem>>(emptyList())
     val upcoming: StateFlow<List<MediaItem>> = _upcoming.asStateFlow()
 
+    private val _upcomingForUser = MutableStateFlow<List<MediaItem>>(emptyList())
+    val upcomingForUser: StateFlow<List<MediaItem>> = _upcomingForUser.asStateFlow()
+
     private val _recommendations = MutableStateFlow<List<MediaItem>>(emptyList())
     val recommendations: StateFlow<List<MediaItem>> = _recommendations.asStateFlow()
 
@@ -153,12 +156,16 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
             val upcomingDef = async {
                 try { repository.getUpcoming() } catch (e: Exception) { emptyList<MediaItem>() }
             }
+            val upcomingUserDef = async {
+                try { repository.refreshUpcomingInfo() } catch (e: Exception) { emptyList<MediaItem>() }
+            }
 
             _popularMovies.value = popMoviesDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
             _popularTvShows.value = popTvDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
             _trending.value = trendDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
             _nowPlaying.value = nowPlayDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
             _upcoming.value = upcomingDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
+            _upcomingForUser.value = upcomingUserDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
 
             if (_popularMovies.value.isEmpty() && _popularTvShows.value.isEmpty()) {
                 _discoverError.value = "İçerikler yüklenemedi. Lütfen internet bağlantınızı kontrol edin."
