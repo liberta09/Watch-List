@@ -140,52 +140,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             
             Spacer(modifier = Modifier.height(28.dp))
 
-            // 1. Misafir Modu
-            Button(
-                onClick = onGuestLogin,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onGuestLogin),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkSurface),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(text = "Misafir Modu", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = LightText)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 2. Giriş Yap
-            Button(
-                onClick = onLogin,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onLogin),
-                colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(text = if (isLoading) "Giriş yapılıyor..." else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 3. Kayıt Ol
-            Button(
-                onClick = onRegister,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onRegister),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(text = "Kayıt Ol", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BlueAccent)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 4. Kullanıcı Adı
+            // 1. E-posta
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it; errorMessage = null },
@@ -207,7 +162,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 5. Şifre
+            // 2. Şifre
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it; errorMessage = null },
@@ -228,9 +183,55 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
                 shape = RoundedCornerShape(12.dp)
             )
 
+            // 3. Hata Mesajı
             errorMessage?.let { msg ->
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(text = msg, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 4. Giriş Yap
+            Button(
+                onClick = onLogin,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onLogin),
+                colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(text = if (isLoading) "Giriş yapılıyor..." else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 5. Kayıt Ol
+            Button(
+                onClick = onRegister,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onRegister),
+                colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(text = "Kayıt Ol", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BlueAccent)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 6. Misafir Modu
+            Button(
+                onClick = onGuestLogin,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onGuestLogin),
+                colors = ButtonDefaults.buttonColors(containerColor = DarkSurface),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(text = "Misafir Modu", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = LightText)
             }
         }
     }

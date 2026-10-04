@@ -1,7 +1,7 @@
 {
   "enabled": true,
-  "id": "announcement_001",
-  "title": "📢 Watch List Güncellendi",
-  "message": "Uygulamamız güncellendi! 🎉\n\nHepiniz hoş geldiniz.\nWatch List'i daha iyi hale getirmek için çalışmalarımıza devam ediyoruz.\nYeni sürümümüzü keyifle kullanmanız dileğiyle. ❤️",
+  "id": "announcement_002",
+  "title": "🎉 Watch List 1.1.14",
+  "message": "Watch List v1.1.14 Sürümü Yayında! 🚀\n\nYeni Özellikler:\n⭐ Puan Rozetleri ve Hızlı Önizleme (Uzun basarak hızlı bakış)\n📺 Nerede İzlenir? (JustWatch platform entegrasyonu)\n🎬 Dizi Bölüm Takibi (Sezon ve bölüm bazlı izleme)\n🌟 Kendi Puanın (1-10 yıldız ile puanlama)\n🔥 Trend, Vizyondakiler ve Yakında Listeleri\n🎯 Benzer İçerikler Önerileri\n📊 Listem'de Gelişmiş Sıralama ve Filtreleme\n📈 Detaylı İzleme İstatistikleri\n\nKeyifli seyirler! ❤️",
   "buttonText": "Tamam"
 }

@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kaan.watchlist.data.repository.MediaRepository
+import com.kaan.watchlist.data.api.TvSeasonResponseDto
+import com.kaan.watchlist.data.api.WatchProviderCountryDto
 import com.kaan.watchlist.domain.model.Announcement
+import com.kaan.watchlist.domain.model.MediaType
 import com.kaan.watchlist.domain.model.MediaItem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -33,6 +36,18 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     private val _popularTvShows = MutableStateFlow<List<MediaItem>>(emptyList())
     val popularTvShows: StateFlow<List<MediaItem>> = _popularTvShows.asStateFlow()
 
+    private val _trending = MutableStateFlow<List<MediaItem>>(emptyList())
+    val trending: StateFlow<List<MediaItem>> = _trending.asStateFlow()
+
+    private val _nowPlaying = MutableStateFlow<List<MediaItem>>(emptyList())
+    val nowPlaying: StateFlow<List<MediaItem>> = _nowPlaying.asStateFlow()
+
+    private val _upcoming = MutableStateFlow<List<MediaItem>>(emptyList())
+    val upcoming: StateFlow<List<MediaItem>> = _upcoming.asStateFlow()
+
+    private val _recommendations = MutableStateFlow<List<MediaItem>>(emptyList())
+    val recommendations: StateFlow<List<MediaItem>> = _recommendations.asStateFlow()
+
     private val _isDiscoverLoading = MutableStateFlow(true)
     val isDiscoverLoading = _isDiscoverLoading.asStateFlow()
 
@@ -51,10 +66,49 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     private val _isLoadingDetails = MutableStateFlow(false)
     val isLoadingDetails = _isLoadingDetails.asStateFlow()
 
+    private val _watchProviders = MutableStateFlow<WatchProviderCountryDto?>(null)
+    val watchProviders = _watchProviders.asStateFlow()
+
+    private val tvSeasonsCache = mutableMapOf<String, TvSeasonResponseDto>()
+    private val _currentSeasonDetails = MutableStateFlow<TvSeasonResponseDto?>(null)
+    val currentSeasonDetails = _currentSeasonDetails.asStateFlow()
+
+    private val _detailNotFound = MutableStateFlow(false)
+    val detailNotFound = _detailNotFound.asStateFlow()
+
     val myList = repository.myList
     val favorites = repository.favorites
     val notes = repository.notes
     val notificationsEnabled = repository.notificationsEnabled
+
+    fun withUserState(item: MediaItem, myList: List<MediaItem>, favorites: List<MediaItem>): MediaItem {
+        val listRecord = myList.find { it.id == item.id }
+        val favRecord = favorites.find { it.id == item.id }
+
+        val inList = listRecord != null
+        val isFav = favRecord != null
+        val isWatched = listRecord?.isWatched ?: favRecord?.isWatched ?: item.isWatched
+        val userRating = listRecord?.userRating ?: favRecord?.userRating ?: item.userRating
+        val watchedAt = listRecord?.watchedAt ?: favRecord?.watchedAt ?: item.watchedAt
+        val addedAt = listRecord?.addedAt ?: favRecord?.addedAt ?: item.addedAt
+        val watchedEpisodes = listRecord?.watchedEpisodes ?: favRecord?.watchedEpisodes ?: item.watchedEpisodes
+        val isTracked = listRecord?.isTracked ?: favRecord?.isTracked ?: item.isTracked
+        val lastWatchedSeason = listRecord?.lastWatchedSeason ?: favRecord?.lastWatchedSeason ?: item.lastWatchedSeason
+        val lastWatchedEpisode = listRecord?.lastWatchedEpisode ?: favRecord?.lastWatchedEpisode ?: item.lastWatchedEpisode
+
+        return item.copy(
+            isInList = inList,
+            isFavorite = isFav,
+            isWatched = isWatched,
+            userRating = userRating,
+            watchedAt = watchedAt,
+            addedAt = addedAt,
+            watchedEpisodes = watchedEpisodes,
+            isTracked = isTracked,
+            lastWatchedSeason = lastWatchedSeason,
+            lastWatchedEpisode = lastWatchedEpisode
+        )
+    }
 
     fun isLoggedIn(): Boolean = repository.isLoggedIn
 
@@ -76,14 +130,14 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
             _isDiscoverLoading.value = true
             _discoverError.value = null
             try {
-                val movies = repository.getPopularMovies()
-                val tvShows = repository.getPopularTvShows()
+                _popularMovies.value = repository.getPopularMovies()
+                _popularTvShows.value = repository.getPopularTvShows()
+                _trending.value = repository.getTrending()
+                _nowPlaying.value = repository.getNowPlaying()
+                _upcoming.value = repository.getUpcoming()
                 
-                if (movies.isEmpty() && tvShows.isEmpty()) {
+                if (_popularMovies.value.isEmpty() && _popularTvShows.value.isEmpty()) {
                     _discoverError.value = "İçerikler yüklenemedi. Lütfen internet bağlantınızı kontrol edin."
-                } else {
-                    _popularMovies.value = movies
-                    _popularTvShows.value = tvShows
                 }
             } catch (e: Exception) {
                 _discoverError.value = "Bir hata oluştu: ${e.localizedMessage}"
@@ -129,22 +183,61 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     fun loadMediaDetails(mediaId: Int) {
         viewModelScope.launch {
             _isLoadingDetails.value = true
+            _detailNotFound.value = false
+            _watchProviders.value = null
+            _recommendations.value = emptyList()
+
             val baseMedia = _popularMovies.value.find { it.id == mediaId }
                 ?: _popularTvShows.value.find { it.id == mediaId }
+                ?: _trending.value.find { it.id == mediaId }
+                ?: _nowPlaying.value.find { it.id == mediaId }
+                ?: _upcoming.value.find { it.id == mediaId }
                 ?: _searchResults.value.find { it.id == mediaId }
+                ?: _recommendations.value.find { it.id == mediaId }
                 ?: myList.value.find { it.id == mediaId }
                 ?: favorites.value.find { it.id == mediaId }
             
             if (baseMedia != null) {
                 // First set what we have so UI can show it immediately
                 _selectedMedia.value = baseMedia
+                loadWatchProviders(baseMedia.id, baseMedia.type)
+                loadRecommendations(baseMedia.id, baseMedia.type)
                 // Then fetch details
                 val detailedMedia = repository.fetchMediaDetails(baseMedia)
                 _selectedMedia.value = detailedMedia
             } else {
                 _selectedMedia.value = null
+                _detailNotFound.value = true
             }
             _isLoadingDetails.value = false
+        }
+    }
+
+    fun loadRecommendations(mediaId: Int, type: MediaType) {
+        viewModelScope.launch {
+            _recommendations.value = repository.getRecommendations(mediaId, type)
+        }
+    }
+
+    fun loadWatchProviders(mediaId: Int, type: MediaType) {
+        viewModelScope.launch {
+            _watchProviders.value = repository.getWatchProviders(mediaId, type)
+        }
+    }
+
+    fun loadTvSeasonDetails(tvId: Int, seasonNumber: Int) {
+        val cacheKey = "${tvId}_$seasonNumber"
+        if (tvSeasonsCache.containsKey(cacheKey)) {
+            _currentSeasonDetails.value = tvSeasonsCache[cacheKey]
+            return
+        }
+
+        viewModelScope.launch {
+            val details = repository.getTvSeasonDetails(tvId, seasonNumber)
+            if (details != null) {
+                tvSeasonsCache[cacheKey] = details
+                _currentSeasonDetails.value = details
+            }
         }
     }
     
@@ -166,6 +259,18 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
     fun toggleWatchedStatus(item: MediaItem) {
         repository.toggleWatchedStatus(item)
+    }
+
+    fun setUserRating(item: MediaItem, rating: Int?) {
+        repository.setUserRating(item, rating)
+    }
+
+    fun setEpisodeWatched(item: MediaItem, season: Int, episode: Int, watched: Boolean) {
+        repository.setEpisodeWatched(item, season, episode, watched)
+    }
+
+    fun setSeasonWatched(item: MediaItem, season: Int, episodeCount: Int, watched: Boolean) {
+        repository.setSeasonWatched(item, season, episodeCount, watched)
     }
 
     fun saveNote(mediaId: Int, note: String) {

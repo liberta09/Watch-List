@@ -3,7 +3,6 @@ package com.kaan.watchlist.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import com.kaan.watchlist.data.api.AnnouncementApi
-import com.kaan.watchlist.data.api.enableTlsChainFallback
 import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.util.UpdateConfig
 import okhttp3.OkHttpClient
@@ -16,7 +15,6 @@ class AnnouncementRepository(context: Context) {
 
     private val announcementApi: AnnouncementApi by lazy {
         val okHttpClient = OkHttpClient.Builder()
-            .enableTlsChainFallback()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .build()
@@ -38,7 +36,7 @@ class AnnouncementRepository(context: Context) {
     }
 
     suspend fun fetchAnnouncement(): Announcement? {
-        val url = "https://raw.githubusercontent.com/${UpdateConfig.GITHUB_OWNER}/${UpdateConfig.GITHUB_REPO}/main/announcement.json"
+        val url = "https://raw.githubusercontent.com/${UpdateConfig.GITHUB_OWNER}/${UpdateConfig.GITHUB_REPO}/master/announcement.json"
         val lastDismissedId = getDismissedAnnouncementId()
 
         return try {

@@ -22,16 +22,20 @@ android {
             ?: System.getenv(name)?.takeIf { it.isNotBlank() }
 
     val tmdbApiKey = secret("TMDB_API_KEY") ?: ""
-    val keystorePassword = secret("KEYSTORE_PASSWORD") ?: "WatchList2026"
+    val keystorePassword = secret("KEYSTORE_PASSWORD")
     val keyAlias = secret("KEY_ALIAS") ?: "watchlist"
-    val keyPassword = secret("KEY_PASSWORD") ?: "WatchList2026"
+    val keyPassword = secret("KEY_PASSWORD")
 
-    signingConfigs {
-        create("release") {
-            storeFile = rootProject.file("WatchList-release-key.jks")
-            storePassword = keystorePassword
-            this.keyAlias = keyAlias
-            this.keyPassword = keyPassword
+    val hasReleaseKey = keystorePassword != null && keyPassword != null && rootProject.file("WatchList-release-key.jks").exists()
+
+    if (hasReleaseKey) {
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file("WatchList-release-key.jks")
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
         }
     }
 
@@ -39,8 +43,8 @@ android {
         applicationId = "com.kaan.watchlist"
         minSdk = 24
         targetSdk = 35
-        versionCode = 11
-        versionName = "1.1.13"
+        versionCode = 12
+        versionName = "1.1.14"
         
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
 
@@ -49,7 +53,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseKey) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             optimization {
                 enable = false
             }
@@ -93,4 +99,14 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+tasks.register<Copy>("copyApkToDesktop") {
+    from(layout.buildDirectory.dir("outputs/apk/debug"))
+    include("*.apk")
+    into("${System.getProperty("user.home")}/Desktop")
+    rename { "WatchList.apk" }
+}
+afterEvaluate {
+    tasks.named("assembleDebug") { finalizedBy("copyApkToDesktop") }
 }

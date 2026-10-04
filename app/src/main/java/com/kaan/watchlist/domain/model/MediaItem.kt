@@ -26,17 +26,21 @@ data class MediaItem(
     val originalTitle: String? = null,
     val voteAverage: Double? = null,
     val runtime: Int? = null,
+    val episodeRuntime: Int? = null,
     val genres: List<String> = emptyList(),
     val productionCountries: List<String> = emptyList(),
     val director: String? = null,
     val cast: List<String> = emptyList(),
     val videoKey: String? = null,
 
-    // TV Show Tracking
+    // User State & Tracking
+    val addedAt: Long? = null,
+    val watchedAt: Long? = null,
+    val userRating: Int? = null,
     val isTracked: Boolean = false,
     val totalSeasons: Int? = null,
     val totalEpisodes: Int? = null,
-    val watchedEpisodes: Map<String, Boolean> = emptyMap(), // Key: "S1_E1"
+    val watchedEpisodes: Map<String, Long> = emptyMap(), // Key: "S1_E1", Value: epoch ms
     val lastWatchedSeason: Int? = null,
     val lastWatchedEpisode: Int? = null
 ) {

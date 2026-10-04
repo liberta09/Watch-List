@@ -28,6 +28,40 @@ interface TmdbApi {
         @Query("page") page: Int = 1
     ): TmdbResponse
 
+    @GET("3/trending/all/week")
+    suspend fun getTrendingWeek(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "tr-TR"
+    ): TmdbResponse
+
+    @GET("3/movie/now_playing")
+    suspend fun getNowPlayingMovies(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "tr-TR",
+        @Query("region") region: String = "TR"
+    ): TmdbResponse
+
+    @GET("3/movie/upcoming")
+    suspend fun getUpcomingMovies(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "tr-TR",
+        @Query("region") region: String = "TR"
+    ): TmdbResponse
+
+    @GET("3/movie/{movie_id}/recommendations")
+    suspend fun getMovieRecommendations(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "tr-TR"
+    ): TmdbResponse
+
+    @GET("3/tv/{tv_id}/recommendations")
+    suspend fun getTvRecommendations(
+        @Path("tv_id") tvId: Int,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "tr-TR"
+    ): TmdbResponse
+
     @GET("3/movie/{movie_id}")
     suspend fun getMovieDetails(
         @Path("movie_id") movieId: Int,
@@ -57,6 +91,26 @@ interface TmdbApi {
         @Query("api_key") apiKey: String,
         @Query("language") language: String? = null
     ): VideoResponseDto
+
+    @GET("3/movie/{movie_id}/watch/providers")
+    suspend fun getMovieWatchProviders(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
+    ): WatchProviderResponseDto
+
+    @GET("3/tv/{tv_id}/watch/providers")
+    suspend fun getTvWatchProviders(
+        @Path("tv_id") tvId: Int,
+        @Query("api_key") apiKey: String
+    ): WatchProviderResponseDto
+
+    @GET("3/tv/{tv_id}/season/{season_number}")
+    suspend fun getTvSeasonDetails(
+        @Path("tv_id") tvId: Int,
+        @Path("season_number") seasonNumber: Int,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "tr-TR"
+    ): TvSeasonResponseDto
 }
 
 data class TmdbResponse(
@@ -72,7 +126,8 @@ data class MediaDto(
     @SerializedName("release_date") val releaseDate: String?,
     @SerializedName("first_air_date") val firstAirDate: String?,
     @SerializedName("overview") val overview: String?,
-    @SerializedName("media_type") val mediaType: String?
+    @SerializedName("media_type") val mediaType: String?,
+    @SerializedName("vote_average") val voteAverage: Double?
 )
 
 data class MediaDetailsDto(
@@ -115,4 +170,35 @@ data class VideoDto(
     @SerializedName("site") val site: String?,
     @SerializedName("key") val key: String?,
     @SerializedName("official") val official: Boolean?
+)
+
+data class WatchProviderResponseDto(
+    @SerializedName("results") val results: Map<String, WatchProviderCountryDto>?
+)
+
+data class WatchProviderCountryDto(
+    @SerializedName("link") val link: String?,
+    @SerializedName("flatrate") val flatrate: List<WatchProviderItemDto>?,
+    @SerializedName("rent") val rent: List<WatchProviderItemDto>?,
+    @SerializedName("buy") val buy: List<WatchProviderItemDto>?
+)
+
+data class WatchProviderItemDto(
+    @SerializedName("provider_id") val providerId: Int?,
+    @SerializedName("provider_name") val providerName: String?,
+    @SerializedName("logo_path") val logoPath: String?
+)
+
+data class TvSeasonResponseDto(
+    @SerializedName("season_number") val seasonNumber: Int?,
+    @SerializedName("name") val name: String?,
+    @SerializedName("episodes") val episodes: List<EpisodeDto>?
+)
+
+data class EpisodeDto(
+    @SerializedName("episode_number") val episodeNumber: Int?,
+    @SerializedName("name") val name: String?,
+    @SerializedName("air_date") val airDate: String?,
+    @SerializedName("runtime") val runtime: Int?,
+    @SerializedName("still_path") val stillPath: String?
 )
