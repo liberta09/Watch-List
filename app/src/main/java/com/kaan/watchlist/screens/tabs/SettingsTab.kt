@@ -67,14 +67,16 @@ fun SettingsTab(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val updateStatus by viewModel.updateStatus.collectAsState()
 
-    val permissionLauncher = rememberLauncherForActivityResult(
+            val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             viewModel.setNotificationsEnabled(true)
+            com.kaan.watchlist.util.UpcomingScheduler.schedule(context)
             NotificationHelper.sendTestNotification(context)
         } else {
             viewModel.setNotificationsEnabled(false)
+            com.kaan.watchlist.util.UpcomingScheduler.cancel(context)
             Toast.makeText(context, "Bildirim izni reddedildi.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -242,6 +244,8 @@ fun SettingsTab(
                         permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     } else {
                         viewModel.setNotificationsEnabled(isChecked)
+                        if (isChecked) com.kaan.watchlist.util.UpcomingScheduler.schedule(context)
+                        else com.kaan.watchlist.util.UpcomingScheduler.cancel(context)
                     }
                 },
                 colors = SwitchDefaults.colors(
@@ -275,7 +279,23 @@ fun SettingsTab(
                 .height(50.dp)
                 .tvFocusable(shape = RoundedCornerShape(12.dp))
         ) {
-            Text(text = "Test Bildirimi Gönder", color = LightText, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(text = "Test Bildirimi Gönder", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                com.kaan.watchlist.util.UpcomingScheduler.checkNow(context)
+                Toast.makeText(context, "Kontrol başlatıldı", Toast.LENGTH_SHORT).show()
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .tvFocusable(shape = RoundedCornerShape(12.dp))
+        ) {
+            Text(text = "Yaklaşanları şimdi kontrol et", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
 
         Spacer(modifier = Modifier.height(32.dp))

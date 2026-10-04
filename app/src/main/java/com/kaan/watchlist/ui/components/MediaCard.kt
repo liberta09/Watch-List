@@ -53,6 +53,9 @@ fun MediaCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     fillWidth: Boolean = false,
+    subtitle: String? = null,
+    showYear: Boolean = true,
+    topBadge: String? = null,
     onToggleWatched: ((MediaItem) -> Unit)? = null,
     onToggleList: ((MediaItem) -> Unit)? = null
 ) {
@@ -112,22 +115,62 @@ fun MediaCard(
                     }
                 }
 
-                // User Rating Badge (Top Left)
-                if (media.userRating != null) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(BlueAccent)
-                            .padding(horizontal = 4.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "Sen: ${media.userRating}",
-                            color = Color.White,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                // Top Left Badges
+                Column(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
+                    if (media.userRating != null) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(BlueAccent)
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "Sen: ${media.userRating}",
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    if (topBadge != null) {
+                        if (media.userRating != null) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFFE50914))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = topBadge,
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+                }
+                
+                // YENI Badge (Bottom Left)
+                if (media.isInList && media.type == MediaType.TV && media.lastAiredSeason != null && media.lastAiredEpisode != null) {
+                    val lastAiredKey = "S${media.lastAiredSeason}_E${media.lastAiredEpisode}"
+                    if (!media.watchedEpisodes.containsKey(lastAiredKey) && media.watchedEpisodes.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFFE50914))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "YENİ",
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
                     }
                 }
             }
@@ -140,12 +183,23 @@ fun MediaCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Text(
-                text = media.year,
-                color = LightText.copy(alpha = 0.7f),
-                fontSize = 12.sp,
-                maxLines = 1
-            )
+            if (showYear) {
+                Text(
+                    text = media.year,
+                    color = LightText.copy(alpha = 0.7f),
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+            }
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    color = BlueAccent,
+                    fontSize = 11.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             // Latest watched episode for TV shows
             if (media.type == MediaType.TV && (media.lastWatchedSeason != null && media.lastWatchedEpisode != null)) {

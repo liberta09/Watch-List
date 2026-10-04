@@ -58,6 +58,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
     val trending by viewModel.trending.collectAsState()
     val nowPlaying by viewModel.nowPlaying.collectAsState()
     val upcoming by viewModel.upcoming.collectAsState()
+    val upcomingForUser by viewModel.upcomingForUser.collectAsState()
     val myList by viewModel.myList.collectAsState()
     val favorites by viewModel.favorites.collectAsState()
     
@@ -178,6 +179,55 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                         )
                     }
                 }
+            }
+        }
+        
+        if (upcomingForUser.isNotEmpty()) {
+            item {
+                SectionTitle("📅 Takip Ettiklerinde Yakında")
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(upcomingForUser) { media ->
+                        val userMedia = viewModel.withUserState(media, myList, favorites)
+                        
+                        val days = com.kaan.watchlist.util.DateUtils.getDaysUntil(
+                            if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV) userMedia.nextEpisodeAirDate else userMedia.releaseDate
+                        )
+                        val daysStr = when (days) {
+                            0 -> "Bugün"
+                            1 -> "Yarın"
+                            2, 3, 4, 5, 6 -> "$days gün sonra"
+                            else -> com.kaan.watchlist.util.DateUtils.formatShortDate(
+                                if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV) userMedia.nextEpisodeAirDate else userMedia.releaseDate
+                            )
+                        }
+                        
+                        val topBadge = if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV && userMedia.nextEpisodeNumber == 1) "YENİ SEZON" else null
+                        
+                        val subtitle = if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV) {
+                            val season = userMedia.nextEpisodeSeason ?: 1
+                            val ep = userMedia.nextEpisodeNumber ?: 1
+                            "S$season B$ep · $daysStr"
+                        } else {
+                            "Vizyon · $daysStr"
+                        }
+                        
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            subtitle = subtitle,
+                            showYear = false,
+                            topBadge = topBadge,
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
         

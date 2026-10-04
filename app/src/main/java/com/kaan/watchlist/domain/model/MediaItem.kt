@@ -42,7 +42,17 @@ data class MediaItem(
     val totalEpisodes: Int? = null,
     val watchedEpisodes: Map<String, Long> = emptyMap(), // Key: "S1_E1", Value: epoch ms
     val lastWatchedSeason: Int? = null,
-    val lastWatchedEpisode: Int? = null
+    val lastWatchedEpisode: Int? = null,
+
+    // Upcoming Info
+    val showStatus: String? = null,
+    val nextEpisodeAirDate: String? = null,
+    val nextEpisodeSeason: Int? = null,
+    val nextEpisodeNumber: Int? = null,
+    val nextEpisodeName: String? = null,
+    val lastAiredSeason: Int? = null,
+    val lastAiredEpisode: Int? = null,
+    val releaseDate: String? = null
 ) {
     @get:Exclude
     val posterUrl: String get() = if (posterPath != null) "https://image.tmdb.org/t/p/w500$posterPath" else ""

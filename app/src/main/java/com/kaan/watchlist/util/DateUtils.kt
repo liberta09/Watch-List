@@ -1,0 +1,51 @@
+package com.kaan.watchlist.util
+
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+
+object DateUtils {
+    private val trLocale = Locale("tr")
+    private val formatter = SimpleDateFormat("yyyy-MM-dd", trLocale)
+    private val displayFormatter = SimpleDateFormat("d MMMM yyyy", trLocale)
+    private val shortFormatter = SimpleDateFormat("d MMM", trLocale)
+
+    fun getDaysUntil(dateStr: String?): Int? {
+        if (dateStr.isNullOrBlank()) return null
+        return try {
+            val target = formatter.parse(dateStr) ?: return null
+            val now = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.time
+            val diff = target.time - now.time
+            val days = (diff / (1000 * 60 * 60 * 24)).toInt()
+            days
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun formatDisplayDate(dateStr: String?): String {
+        if (dateStr.isNullOrBlank()) return ""
+        return try {
+            val date = formatter.parse(dateStr) ?: return dateStr
+            displayFormatter.format(date)
+        } catch (e: Exception) {
+            dateStr
+        }
+    }
+
+    fun formatShortDate(dateStr: String?): String {
+        if (dateStr.isNullOrBlank()) return ""
+        return try {
+            val date = formatter.parse(dateStr) ?: return dateStr
+            shortFormatter.format(date)
+        } catch (e: Exception) {
+            dateStr
+        }
+    }
+}

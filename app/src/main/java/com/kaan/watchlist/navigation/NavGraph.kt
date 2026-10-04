@@ -20,14 +20,25 @@ import com.kaan.watchlist.screens.TrailerScreen
 import com.kaan.watchlist.viewmodel.MediaViewModel
 import com.kaan.watchlist.viewmodel.MediaViewModelFactory
 
+import androidx.compose.runtime.LaunchedEffect
+
 @Composable
 fun SetupNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    initialMediaId: Int? = null,
+    onInitialMediaIdHandled: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val repository = remember { MediaRepository(context) }
     val factory = remember { MediaViewModelFactory(repository) }
     val sharedViewModel: MediaViewModel = viewModel(factory = factory)
+
+    LaunchedEffect(initialMediaId) {
+        if (initialMediaId != null) {
+            navController.navigate(Screen.Detail.createRoute(initialMediaId))
+            onInitialMediaIdHandled()
+        }
+    }
 
     NavHost(
         navController = navController,
