@@ -10,6 +10,7 @@ import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.domain.model.MediaType
 import com.kaan.watchlist.domain.model.MediaItem
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -72,6 +73,12 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     private val tvSeasonsCache = mutableMapOf<String, TvSeasonResponseDto>()
     private val _currentSeasonDetails = MutableStateFlow<TvSeasonResponseDto?>(null)
     val currentSeasonDetails = _currentSeasonDetails.asStateFlow()
+    
+    private val _currentSeasonKey = MutableStateFlow<String?>(null)
+    val currentSeasonKey = _currentSeasonKey.asStateFlow()
+    
+    private val mediaCache = mutableMapOf<Int, MediaItem>()
+    private var detailJob: Job? = null
 
     private val _detailNotFound = MutableStateFlow(false)
     val detailNotFound = _detailNotFound.asStateFlow()
@@ -91,7 +98,8 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
         val userRating = listRecord?.userRating ?: favRecord?.userRating ?: item.userRating
         val watchedAt = listRecord?.watchedAt ?: favRecord?.watchedAt ?: item.watchedAt
         val addedAt = listRecord?.addedAt ?: favRecord?.addedAt ?: item.addedAt
-        val watchedEpisodes = listRecord?.watchedEpisodes ?: favRecord?.watchedEpisodes ?: item.watchedEpisodes
+        val tempEpisodes = listRecord?.watchedEpisodes ?: favRecord?.watchedEpisodes ?: item.watchedEpisodes
+        val watchedEpisodes = tempEpisodes ?: emptyMap()
         val isTracked = listRecord?.isTracked ?: favRecord?.isTracked ?: item.isTracked
         val lastWatchedSeason = listRecord?.lastWatchedSeason ?: favRecord?.lastWatchedSeason ?: item.lastWatchedSeason
         val lastWatchedEpisode = listRecord?.lastWatchedEpisode ?: favRecord?.lastWatchedEpisode ?: item.lastWatchedEpisode
@@ -129,21 +137,34 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
         viewModelScope.launch {
             _isDiscoverLoading.value = true
             _discoverError.value = null
-            try {
-                _popularMovies.value = repository.getPopularMovies()
-                _popularTvShows.value = repository.getPopularTvShows()
-                _trending.value = repository.getTrending()
-                _nowPlaying.value = repository.getNowPlaying()
-                _upcoming.value = repository.getUpcoming()
-                
-                if (_popularMovies.value.isEmpty() && _popularTvShows.value.isEmpty()) {
-                    _discoverError.value = "İçerikler yüklenemedi. Lütfen internet bağlantınızı kontrol edin."
-                }
-            } catch (e: Exception) {
-                _discoverError.value = "Bir hata oluştu: ${e.localizedMessage}"
-            } finally {
-                _isDiscoverLoading.value = false
+            
+            val popMoviesDef = async {
+                try { repository.getPopularMovies() } catch (e: Exception) { emptyList<MediaItem>() }
             }
+            val popTvDef = async {
+                try { repository.getPopularTvShows() } catch (e: Exception) { emptyList<MediaItem>() }
+            }
+            val trendDef = async {
+                try { repository.getTrending() } catch (e: Exception) { emptyList<MediaItem>() }
+            }
+            val nowPlayDef = async {
+                try { repository.getNowPlaying() } catch (e: Exception) { emptyList<MediaItem>() }
+            }
+            val upcomingDef = async {
+                try { repository.getUpcoming() } catch (e: Exception) { emptyList<MediaItem>() }
+            }
+
+            _popularMovies.value = popMoviesDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
+            _popularTvShows.value = popTvDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
+            _trending.value = trendDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
+            _nowPlaying.value = nowPlayDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
+            _upcoming.value = upcomingDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
+
+            if (_popularMovies.value.isEmpty() && _popularTvShows.value.isEmpty()) {
+                _discoverError.value = "İçerikler yüklenemedi. Lütfen internet bağlantınızı kontrol edin."
+            }
+            
+            _isDiscoverLoading.value = false
         }
     }
 
@@ -167,7 +188,7 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
                 if (results.isEmpty()) {
                     _searchError.value = "Sonuç bulunamadı."
                 }
-                _searchResults.value = results
+                _searchResults.value = results.also { list -> list.forEach { mediaCache[it.id] = it } }
             } catch (e: Exception) {
                 _searchError.value = "Arama sırasında bir hata oluştu: ${e.localizedMessage}"
             } finally {
@@ -181,22 +202,19 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     }
     
     fun loadMediaDetails(mediaId: Int) {
-        viewModelScope.launch {
+        detailJob?.cancel()
+        detailJob = viewModelScope.launch {
             _isLoadingDetails.value = true
             _detailNotFound.value = false
-            _watchProviders.value = null
-            _recommendations.value = emptyList()
 
-            val baseMedia = _popularMovies.value.find { it.id == mediaId }
-                ?: _popularTvShows.value.find { it.id == mediaId }
-                ?: _trending.value.find { it.id == mediaId }
-                ?: _nowPlaying.value.find { it.id == mediaId }
-                ?: _upcoming.value.find { it.id == mediaId }
-                ?: _searchResults.value.find { it.id == mediaId }
-                ?: _recommendations.value.find { it.id == mediaId }
-                ?: myList.value.find { it.id == mediaId }
+            val baseMedia = myList.value.find { it.id == mediaId }
                 ?: favorites.value.find { it.id == mediaId }
+                ?: mediaCache[mediaId]
             
+            _recommendations.value = emptyList()
+            _watchProviders.value = null
+            _currentSeasonDetails.value = null
+
             if (baseMedia != null) {
                 // First set what we have so UI can show it immediately
                 _selectedMedia.value = baseMedia
@@ -204,6 +222,7 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
                 loadRecommendations(baseMedia.id, baseMedia.type)
                 // Then fetch details
                 val detailedMedia = repository.fetchMediaDetails(baseMedia)
+                mediaCache[detailedMedia.id] = detailedMedia
                 _selectedMedia.value = detailedMedia
             } else {
                 _selectedMedia.value = null
@@ -215,7 +234,7 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
     fun loadRecommendations(mediaId: Int, type: MediaType) {
         viewModelScope.launch {
-            _recommendations.value = repository.getRecommendations(mediaId, type)
+            _recommendations.value = repository.getRecommendations(mediaId, type).also { list -> list.forEach { mediaCache[it.id] = it } }
         }
     }
 
@@ -227,6 +246,7 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
     fun loadTvSeasonDetails(tvId: Int, seasonNumber: Int) {
         val cacheKey = "${tvId}_$seasonNumber"
+        _currentSeasonKey.value = cacheKey
         if (tvSeasonsCache.containsKey(cacheKey)) {
             _currentSeasonDetails.value = tvSeasonsCache[cacheKey]
             return
@@ -234,7 +254,7 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
         viewModelScope.launch {
             val details = repository.getTvSeasonDetails(tvId, seasonNumber)
-            if (details != null) {
+            if (details != null && _currentSeasonKey.value == cacheKey) {
                 tvSeasonsCache[cacheKey] = details
                 _currentSeasonDetails.value = details
             }

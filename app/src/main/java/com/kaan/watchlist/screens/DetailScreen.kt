@@ -83,6 +83,7 @@ import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.viewmodel.MediaViewModel
 import java.util.Locale
 
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.LinearProgressIndicator
 import com.kaan.watchlist.data.api.WatchProviderCountryDto
@@ -102,6 +103,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
     val notes by viewModel.notes.collectAsState()
     val watchProviders by viewModel.watchProviders.collectAsState()
     val seasonDetails by viewModel.currentSeasonDetails.collectAsState()
+    val currentSeasonKey by viewModel.currentSeasonKey.collectAsState()
 
     LaunchedEffect(mediaId) {
         viewModel.loadMediaDetails(mediaId)
@@ -166,7 +168,9 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.popBackStack() },
-                        modifier = Modifier.tvFocusable(shape = CircleShape, onClick = { navController.popBackStack() })
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                            .tvFocusable(shape = CircleShape, onClick = { navController.popBackStack() })
                     ) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = LightText)
                     }
@@ -183,7 +187,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(bottom = innerPadding.calculateBottomPadding())
+                    .padding(top = innerPadding.calculateTopPadding(), bottom = innerPadding.calculateBottomPadding())
                     .verticalScroll(rememberScrollState())
             ) {
             Box(
@@ -250,7 +254,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             }
                             if (media.voteAverage != null && media.voteAverage > 0) {
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.Default.Favorite, contentDescription = "Rating", tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = String.format(Locale.US, "%.1f", media.voteAverage),
@@ -479,6 +483,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                     TvEpisodesSection(
                         media = media,
                         seasonDetails = seasonDetails,
+                        currentSeasonKey = currentSeasonKey,
                         onSelectSeason = { season ->
                             viewModel.loadTvSeasonDetails(media.id, season)
                         },
@@ -562,7 +567,14 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             val userMedia = viewModel.withUserState(rec, myList, favorites)
                             MediaCard(
                                 media = userMedia,
-                                onClick = { navController.navigate(Screen.Detail.createRoute(userMedia.id)) }
+                                onClick = { navController.navigate(Screen.Detail.createRoute(userMedia.id)) },
+                                onToggleList = {
+                                    if (!it.isInList) {
+                                        viewModel.addToList(it, watched = false)
+                                    } else {
+                                        viewModel.toggleList(it)
+                                    }
+                                }
                             )
                         }
                     }
@@ -815,14 +827,15 @@ fun ProviderCategoryRow(
 fun TvEpisodesSection(
     media: MediaItem,
     seasonDetails: TvSeasonResponseDto?,
+    currentSeasonKey: String?,
     onSelectSeason: (Int) -> Unit,
     onToggleEpisode: (season: Int, episode: Int, watched: Boolean) -> Unit,
     onToggleSeason: (season: Int, episodeCount: Int, watched: Boolean) -> Unit
 ) {
-    var selectedSeason by remember { mutableStateOf(1) }
+    var selectedSeason by remember(media.id) { mutableStateOf(1) }
     val totalSeasons = media.totalSeasons ?: 1
 
-    LaunchedEffect(selectedSeason) {
+    LaunchedEffect(media.id, selectedSeason) {
         onSelectSeason(selectedSeason)
     }
 
@@ -861,8 +874,11 @@ fun TvEpisodesSection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        val episodes = seasonDetails?.episodes ?: emptyList()
-        val totalEps = media.totalEpisodes ?: (totalSeasons * 10)
+        val expectedKey = "${media.id}_$selectedSeason"
+        val isSeasonLoaded = currentSeasonKey == expectedKey && seasonDetails != null
+
+        val episodes = if (isSeasonLoaded) seasonDetails?.episodes ?: emptyList() else emptyList()
+        val totalEps = media.totalEpisodes
         val watchedCount = media.watchedEpisodes.size
 
         // Progress bar
@@ -872,43 +888,63 @@ fun TvEpisodesSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "$watchedCount / $totalEps bölüm izlendi",
-                    fontSize = 13.sp,
-                    color = LightText.copy(alpha = 0.8f)
-                )
-                TextButton(
-                    onClick = {
-                        val allWatchedInSeason = episodes.all { ep ->
-                            media.watchedEpisodes.containsKey("S${selectedSeason}_E${ep.episodeNumber}")
-                        }
-                        onToggleSeason(selectedSeason, episodes.size, !allWatchedInSeason)
-                    }
-                ) {
+                if (totalEps != null) {
                     Text(
-                        text = if (episodes.all { media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }) "Sezonu geri al" else "Sezonu tamamla",
-                        fontSize = 12.sp,
-                        color = BlueAccent
+                        text = "$watchedCount / $totalEps bölüm izlendi",
+                        fontSize = 13.sp,
+                        color = LightText.copy(alpha = 0.8f)
                     )
+                } else {
+                    Text(
+                        text = "$watchedCount bölüm izlendi",
+                        fontSize = 13.sp,
+                        color = LightText.copy(alpha = 0.8f)
+                    )
+                }
+                if (isSeasonLoaded && episodes.isNotEmpty()) {
+                    TextButton(
+                        onClick = {
+                            val allWatchedInSeason = episodes.all { ep ->
+                                media.watchedEpisodes.containsKey("S${selectedSeason}_E${ep.episodeNumber}")
+                            }
+                            onToggleSeason(selectedSeason, episodes.size, !allWatchedInSeason)
+                        }
+                    ) {
+                        Text(
+                            text = if (episodes.all { media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }) "Sezonu geri al" else "Sezonu tamamla",
+                            fontSize = 12.sp,
+                            color = BlueAccent
+                        )
+                    }
                 }
             }
 
-            val progress = if (totalEps > 0) (watchedCount.toFloat() / totalEps).coerceIn(0f, 1f) else 0f
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp)),
-                color = BlueAccent,
-                trackColor = DarkSurface
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
+            if (totalEps != null) {
+                val progress = if (totalEps > 0) (watchedCount.toFloat() / totalEps).coerceIn(0f, 1f) else 0f
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    color = BlueAccent,
+                    trackColor = DarkSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+            }
 
             // Next Episode
-            val nextEpText = if (watchedCount >= totalEps) {
+            val nextEpText = if (totalEps != null && watchedCount >= totalEps) {
                 "Tüm bölümler izlendi ✓"
+            } else if (isSeasonLoaded && episodes.isNotEmpty()) {
+                val firstUnwatched = episodes.firstOrNull { !media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }
+                if (firstUnwatched != null) {
+                    "Sıradaki: S${selectedSeason} B${firstUnwatched.episodeNumber}"
+                } else if (selectedSeason < totalSeasons) {
+                    "Sıradaki: S${selectedSeason + 1} B1"
+                } else {
+                    "Tüm bölümler izlendi ✓"
+                }
             } else {
                 "Sıradaki: S${media.lastWatchedSeason ?: 1} B${(media.lastWatchedEpisode ?: 0) + 1}"
             }
@@ -918,7 +954,17 @@ fun TvEpisodesSection(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Episode List
-        episodes.forEach { ep ->
+        if (!isSeasonLoaded) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = BlueAccent, modifier = Modifier.size(32.dp))
+            }
+        } else {
+            episodes.forEach { ep ->
             val epNum = ep.episodeNumber ?: 1
             val epKey = "S${selectedSeason}_E$epNum"
             val isEpWatched = media.watchedEpisodes.containsKey(epKey)
@@ -962,6 +1008,7 @@ fun TvEpisodesSection(
                     )
                 }
             }
+        }
         }
     }
 }

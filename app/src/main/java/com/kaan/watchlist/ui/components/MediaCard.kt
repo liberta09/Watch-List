@@ -52,6 +52,7 @@ fun MediaCard(
     media: MediaItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    fillWidth: Boolean = false,
     onToggleWatched: ((MediaItem) -> Unit)? = null,
     onToggleList: ((MediaItem) -> Unit)? = null
 ) {
@@ -59,6 +60,7 @@ fun MediaCard(
 
     Card(
         modifier = modifier
+            .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier.width(120.dp))
             .tvFocusable(
                 shape = RoundedCornerShape(8.dp),
                 onClick = onClick,

@@ -54,6 +54,36 @@ class MediaRepository(private val context: Context) {
     private val gson = Gson()
     private val announcementRepository = AnnouncementRepository(context)
 
+    private val genreTranslations = mapOf(
+        "Talk" to "Talk Show",
+        "Reality" to "Gerçeklik",
+        "News" to "Haber",
+        "Soap" to "Pembe Dizi",
+        "Kids" to "Çocuk",
+        "Sci-Fi & Fantasy" to "Bilim Kurgu & Fantastik",
+        "Action & Adventure" to "Aksiyon & Macera",
+        "War & Politics" to "Savaş & Politika"
+    )
+
+    private fun MediaItem.sanitized(): MediaItem {
+        val g: List<String>? = genres
+        val c: List<String>? = cast
+        val pc: List<String>? = productionCountries
+        val we: Map<String, Long>? = watchedEpisodes
+        val t: String? = title
+        val y: String? = year
+        val o: String? = overview
+        return copy(
+            genres = g ?: emptyList(),
+            cast = c ?: emptyList(),
+            productionCountries = pc ?: emptyList(),
+            watchedEpisodes = we ?: emptyMap(),
+            title = t ?: "Bilinmeyen",
+            year = y ?: "",
+            overview = o ?: ""
+        )
+    }
+
     private val _myList = MutableStateFlow<List<MediaItem>>(emptyList())
     val myList: StateFlow<List<MediaItem>> = _myList.asStateFlow()
 
@@ -132,7 +162,7 @@ class MediaRepository(private val context: Context) {
                     val jsonStr = gson.toJson(snapshot.value)
                     val list: List<MediaItem>? = gson.fromJson(jsonStr, type)
                     if (list != null) {
-                        _myList.value = list
+                        _myList.value = list.map { it.sanitized() }
                         saveLocalData()
                     }
                 } else {
@@ -159,7 +189,7 @@ class MediaRepository(private val context: Context) {
                     val jsonStr = gson.toJson(snapshot.value)
                     val list: List<MediaItem>? = gson.fromJson(jsonStr, type)
                     if (list != null) {
-                        _favorites.value = list
+                        _favorites.value = list.map { it.sanitized() }
                         saveLocalData()
                     }
                 } else {
@@ -240,8 +270,8 @@ class MediaRepository(private val context: Context) {
         val favs: List<MediaItem> = gson.fromJson(favJson, type) ?: emptyList()
         val loadedNotes: Map<Int, String> = gson.fromJson(notesJson, notesType) ?: emptyMap()
         
-        _myList.value = list
-        _favorites.value = favs
+        _myList.value = list.map { it.sanitized() }
+        _favorites.value = favs.map { it.sanitized() }
         _notes.value = loadedNotes
         _notificationsEnabled.value = prefs.getBoolean("notifications_enabled", true)
     }
@@ -673,7 +703,7 @@ class MediaRepository(private val context: Context) {
                 tmdbApi.getTvDetails(item.id, apiKey)
             }
             
-            val newGenres = dto.genres?.mapNotNull { it.name } ?: item.genres
+            val newGenres = dto.genres?.mapNotNull { it.name }?.map { genreTranslations[it] ?: it } ?: item.genres
             val newCountries = dto.productionCountries?.mapNotNull { it.name } ?: item.productionCountries
             val newCast = dto.credits?.cast?.take(5)?.mapNotNull { it.name } ?: item.cast
             val newDirector = dto.credits?.crew?.firstOrNull { it.job == "Director" }?.name ?: item.director

@@ -190,7 +190,14 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 ) {
                     items(myList) { media ->
                         val userMedia = viewModel.withUserState(media, myList, favorites)
-                        MediaCard(media = userMedia, onClick = { onMediaClick(userMedia) })
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -206,7 +213,14 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 ) {
                     items(trending) { media ->
                         val userMedia = viewModel.withUserState(media, myList, favorites)
-                        MediaCard(media = userMedia, onClick = { onMediaClick(userMedia) })
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -222,7 +236,14 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 ) {
                     items(nowPlaying) { media ->
                         val userMedia = viewModel.withUserState(media, myList, favorites)
-                        MediaCard(media = userMedia, onClick = { onMediaClick(userMedia) })
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -238,7 +259,14 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 ) {
                     items(upcoming) { media ->
                         val userMedia = viewModel.withUserState(media, myList, favorites)
-                        MediaCard(media = userMedia, onClick = { onMediaClick(userMedia) })
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -253,7 +281,14 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             ) {
                 items(popMovies) { media ->
                     val userMedia = viewModel.withUserState(media, myList, favorites)
-                    MediaCard(media = userMedia, onClick = { onMediaClick(userMedia) })
+                    MediaCard(
+                        media = userMedia, 
+                        onClick = { onMediaClick(userMedia) },
+                        onToggleList = { 
+                            if (!it.isInList) viewModel.addToList(it, watched = false) 
+                            else viewModel.toggleList(it) 
+                        }
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -267,7 +302,14 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             ) {
                 items(popTvShows) { media ->
                     val userMedia = viewModel.withUserState(media, myList, favorites)
-                    MediaCard(media = userMedia, onClick = { onMediaClick(userMedia) })
+                    MediaCard(
+                        media = userMedia, 
+                        onClick = { onMediaClick(userMedia) },
+                        onToggleList = { 
+                            if (!it.isInList) viewModel.addToList(it, watched = false) 
+                            else viewModel.toggleList(it) 
+                        }
+                    )
                 }
             }
         }

@@ -149,7 +149,12 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                     MediaCard(
                         media = userMedia, 
                         onClick = { onMediaClick(userMedia) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        fillWidth = true,
+                        onToggleList = { 
+                            if (!it.isInList) viewModel.addToList(it, watched = false) 
+                            else viewModel.toggleList(it) 
+                        }
                     )
                 }
             }

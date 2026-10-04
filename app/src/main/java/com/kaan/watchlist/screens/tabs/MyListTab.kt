@@ -121,15 +121,14 @@ fun MyListTab(
             }
 
             if (onNavigateToStats != null) {
-                IconButton(
-                    onClick = onNavigateToStats,
-                    modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onNavigateToStats)
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(BlueAccent)
+                        .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onNavigateToStats)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "İstatistikler",
-                        tint = BlueAccent
-                    )
+                    Text("📊 İstatistikler", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }
@@ -253,7 +252,12 @@ fun MyListTab(
                             media = media, 
                             onClick = { onMediaClick(media) },
                             modifier = Modifier.fillMaxWidth(),
-                            onToggleWatched = { viewModel.toggleWatchedStatus(it) }
+                            fillWidth = true,
+                            onToggleWatched = { viewModel.toggleWatchedStatus(it) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
                         )
                     }
                 }
@@ -273,7 +277,12 @@ fun MyListTab(
                             media = media, 
                             onClick = { onMediaClick(media) },
                             modifier = Modifier.fillMaxWidth(),
-                            onToggleWatched = { viewModel.toggleWatchedStatus(it) }
+                            fillWidth = true,
+                            onToggleWatched = { viewModel.toggleWatchedStatus(it) },
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
                         )
                     }
                 }
