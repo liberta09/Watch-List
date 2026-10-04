@@ -45,6 +45,12 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     private val _searchError = MutableStateFlow<String?>(null)
     val searchError = _searchError.asStateFlow()
 
+    private val _selectedMedia = MutableStateFlow<MediaItem?>(null)
+    val selectedMedia = _selectedMedia.asStateFlow()
+    
+    private val _isLoadingDetails = MutableStateFlow(false)
+    val isLoadingDetails = _isLoadingDetails.asStateFlow()
+
     val myList = repository.myList
     val favorites = repository.favorites
     val notes = repository.notes
@@ -118,6 +124,32 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     
     fun clearSearch() {
         _searchResults.value = emptyList()
+    }
+    
+    fun loadMediaDetails(mediaId: Int) {
+        viewModelScope.launch {
+            _isLoadingDetails.value = true
+            val baseMedia = _popularMovies.value.find { it.id == mediaId }
+                ?: _popularTvShows.value.find { it.id == mediaId }
+                ?: _searchResults.value.find { it.id == mediaId }
+                ?: myList.value.find { it.id == mediaId }
+                ?: favorites.value.find { it.id == mediaId }
+            
+            if (baseMedia != null) {
+                // First set what we have so UI can show it immediately
+                _selectedMedia.value = baseMedia
+                // Then fetch details
+                val detailedMedia = repository.fetchMediaDetails(baseMedia)
+                _selectedMedia.value = detailedMedia
+            } else {
+                _selectedMedia.value = null
+            }
+            _isLoadingDetails.value = false
+        }
+    }
+    
+    fun clearSelectedMedia() {
+        _selectedMedia.value = null
     }
 
     fun toggleFavorite(item: MediaItem) {

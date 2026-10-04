@@ -68,31 +68,31 @@ import androidx.compose.foundation.border
 import androidx.compose.material.icons.filled.CheckCircle
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
+import com.kaan.watchlist.navigation.Screen
 import com.kaan.watchlist.ui.components.tvFocusable
 import com.kaan.watchlist.ui.theme.BlueAccent
 import com.kaan.watchlist.ui.theme.DarkNavy
 import com.kaan.watchlist.ui.theme.DarkSurface
 import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.viewmodel.MediaViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaId: Int) {
-    val movies by viewModel.popularMovies.collectAsState()
-    val shows by viewModel.popularTvShows.collectAsState()
-    val search by viewModel.searchResults.collectAsState()
-    val list by viewModel.myList.collectAsState()
-    val favs by viewModel.favorites.collectAsState()
+    val selectedMedia by viewModel.selectedMedia.collectAsState()
+    val isLoading by viewModel.isLoadingDetails.collectAsState()
     val notes by viewModel.notes.collectAsState()
 
-    val media = movies.find { it.id == mediaId }
-        ?: shows.find { it.id == mediaId }
-        ?: search.find { it.id == mediaId }
-        ?: list.find { it.id == mediaId }
-        ?: favs.find { it.id == mediaId }
+    LaunchedEffect(mediaId) {
+        viewModel.loadMediaDetails(mediaId)
+    }
 
+    val media = selectedMedia
     if (media == null) {
-        navController.popBackStack()
+        if (!isLoading) {
+            navController.popBackStack()
+        }
         return
     }
 
@@ -103,6 +103,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
     var showAddToListDialog by remember { mutableStateOf(false) }
     
     val initialFocusRequester = remember { FocusRequester() }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(showSuccessOverlay) {
         if (showSuccessOverlay) {
@@ -201,11 +202,39 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             color = LightText
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = media.year,
-                            fontSize = 15.sp,
-                            color = LightText.copy(alpha = 0.7f)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = media.year,
+                                fontSize = 15.sp,
+                                color = LightText.copy(alpha = 0.7f)
+                            )
+                            if (media.runtime != null && media.runtime > 0) {
+                                Text(
+                                    text = " • ${media.runtime} dk",
+                                    fontSize = 15.sp,
+                                    color = LightText.copy(alpha = 0.7f)
+                                )
+                            }
+                            if (media.voteAverage != null && media.voteAverage > 0) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(Icons.Default.Favorite, contentDescription = "Rating", tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = String.format(Locale.US, "%.1f", media.voteAverage),
+                                    fontSize = 15.sp,
+                                    color = LightText.copy(alpha = 0.9f),
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                        if (media.genres.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = media.genres.take(3).joinToString(", "),
+                                fontSize = 13.sp,
+                                color = LightText.copy(alpha = 0.6f)
+                            )
+                        }
                     }
                 }
 
@@ -261,6 +290,24 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
+                
+                if (media.videoKey != null) {
+                    val onWatchTrailer = {
+                        navController.navigate(Screen.Trailer.createRoute(media.videoKey))
+                    }
+
+                    Button(
+                        onClick = onWatchTrailer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onWatchTrailer),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE50914)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Fragmanı İzle", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
 
                 // Personal Note Section
                 Text(
@@ -399,6 +446,39 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                     color = LightText.copy(alpha = 0.8f),
                     lineHeight = 20.sp
                 )
+                
+                if (!media.director.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Yönetmen",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LightText
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = media.director,
+                        fontSize = 14.sp,
+                        color = LightText.copy(alpha = 0.8f)
+                    )
+                }
+
+                if (media.cast.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Oyuncular",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LightText
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = media.cast.joinToString(", "),
+                        fontSize = 14.sp,
+                        color = LightText.copy(alpha = 0.8f),
+                        lineHeight = 20.sp
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(48.dp))
             }

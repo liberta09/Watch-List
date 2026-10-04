@@ -12,6 +12,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.kaan.watchlist.BuildConfig
 import com.kaan.watchlist.data.api.MediaDto
+import com.kaan.watchlist.data.api.VideoDto
 import com.kaan.watchlist.data.api.TmdbApi
 import com.kaan.watchlist.data.api.enableTlsChainFallback
 import com.kaan.watchlist.domain.model.Announcement
@@ -309,6 +310,56 @@ class MediaRepository(private val context: Context) {
         }
     }
 
+    suspend fun getTrailerKey(mediaId: Int, type: MediaType): String? {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return null
+        
+        suspend fun fetch(lang: String?): List<VideoDto>? {
+            return try {
+                val res = if (type == MediaType.MOVIE) {
+                    tmdbApi.getMovieVideos(mediaId, apiKey, lang)
+                } else {
+                    tmdbApi.getTvVideos(mediaId, apiKey, lang)
+                }
+                Log.d("TRAILER", "Fetched videos lang=$lang, count=${res.results?.size ?: 0}")
+                res.results
+            } catch (e: Exception) {
+                Log.e("TRAILER", "Error fetching videos lang=$lang: ${e.message}")
+                null
+            }
+        }
+
+        var videos = fetch("tr-TR")
+        if (videos.isNullOrEmpty()) videos = fetch("en-US")
+        if (videos.isNullOrEmpty()) videos = fetch(null)
+
+        if (videos.isNullOrEmpty()) {
+            Log.d("TRAILER", "No videos found for mediaId=$mediaId, type=$type")
+            return null
+        }
+
+        val officialTrailer = videos.firstOrNull { it.type == "Trailer" && it.site == "YouTube" && it.official == true }
+        if (officialTrailer != null) {
+            Log.d("TRAILER", "Selected official trailer key=${officialTrailer.key}")
+            return officialTrailer.key
+        }
+
+        val anyTrailer = videos.firstOrNull { it.type == "Trailer" && it.site == "YouTube" }
+        if (anyTrailer != null) {
+            Log.d("TRAILER", "Selected trailer key=${anyTrailer.key}")
+            return anyTrailer.key
+        }
+
+        val teaser = videos.firstOrNull { it.type == "Teaser" && it.site == "YouTube" }
+        if (teaser != null) {
+            Log.d("TRAILER", "Selected teaser key=${teaser.key}")
+            return teaser.key
+        }
+
+        val anyYoutube = videos.firstOrNull { it.site == "YouTube" }
+        Log.d("TRAILER", "Selected fallback youtube key=${anyYoutube?.key}")
+        return anyYoutube?.key
+    }
+
     private fun mapDtoToMediaItem(dto: MediaDto, fallbackType: MediaType): MediaItem {
         val existingFav = _favorites.value.find { it.id == dto.id }
         val existingList = _myList.value.find { it.id == dto.id }
@@ -429,6 +480,43 @@ class MediaRepository(private val context: Context) {
             currentFavs[index] = currentFavs[index].copy(isInList = isInList)
             _favorites.value = currentFavs
             saveLocalData()
+        }
+    }
+    
+    suspend fun fetchMediaDetails(item: MediaItem): MediaItem {
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return item
+        return try {
+            val dto = if (item.type == MediaType.MOVIE) {
+                tmdbApi.getMovieDetails(item.id, apiKey)
+            } else {
+                tmdbApi.getTvDetails(item.id, apiKey)
+            }
+            
+            val newGenres = dto.genres?.mapNotNull { it.name } ?: item.genres
+            val newCountries = dto.productionCountries?.mapNotNull { it.name } ?: item.productionCountries
+            val newCast = dto.credits?.cast?.take(5)?.mapNotNull { it.name } ?: item.cast
+            val newDirector = dto.credits?.crew?.firstOrNull { it.job == "Director" }?.name ?: item.director
+            val newVoteAverage = dto.voteAverage ?: item.voteAverage
+            val newRuntime = dto.runtime ?: dto.episodeRunTime?.firstOrNull() ?: item.runtime
+            
+            val newVideoKey = getTrailerKey(item.id, item.type) ?: item.videoKey
+            Log.d("TRAILER", "fetchMediaDetails for mediaId=${item.id}, type=${item.type}, resolvedVideoKey=$newVideoKey")
+            
+            item.copy(
+                originalTitle = dto.originalTitle ?: dto.originalName ?: item.originalTitle,
+                voteAverage = newVoteAverage,
+                runtime = newRuntime,
+                genres = newGenres,
+                productionCountries = newCountries,
+                director = newDirector,
+                cast = newCast,
+                videoKey = newVideoKey,
+                totalSeasons = dto.numberOfSeasons ?: item.totalSeasons,
+                totalEpisodes = dto.numberOfEpisodes ?: item.totalEpisodes
+            )
+        } catch (e: Exception) {
+            Log.e("MediaRepository", "Error fetching details for id=${item.id}: ${e.message}")
+            item
         }
     }
 }

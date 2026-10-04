@@ -20,12 +20,36 @@ data class MediaItem(
     val isInList: Boolean = false,
     @get:PropertyName("isWatched")
     @SerializedName(value = "isWatched", alternate = ["watched"])
-    val isWatched: Boolean = false
+    val isWatched: Boolean = false,
+
+    // Extended Details
+    val originalTitle: String? = null,
+    val voteAverage: Double? = null,
+    val runtime: Int? = null,
+    val genres: List<String> = emptyList(),
+    val productionCountries: List<String> = emptyList(),
+    val director: String? = null,
+    val cast: List<String> = emptyList(),
+    val videoKey: String? = null,
+
+    // TV Show Tracking
+    val isTracked: Boolean = false,
+    val totalSeasons: Int? = null,
+    val totalEpisodes: Int? = null,
+    val watchedEpisodes: Map<String, Boolean> = emptyMap(), // Key: "S1_E1"
+    val lastWatchedSeason: Int? = null,
+    val lastWatchedEpisode: Int? = null
 ) {
     @get:Exclude
     val posterUrl: String get() = if (posterPath != null) "https://image.tmdb.org/t/p/w500$posterPath" else ""
     @get:Exclude
     val backdropUrl: String get() = if (backdropPath != null) "https://image.tmdb.org/t/p/w1280$backdropPath" else ""
+    
+    @get:Exclude
+    val displayTitle: String get() = title
+    
+    @get:Exclude
+    val displayYear: String get() = year
 }
 
 enum class MediaType {
