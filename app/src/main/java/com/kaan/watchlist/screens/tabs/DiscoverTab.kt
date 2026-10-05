@@ -160,6 +160,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                     IconButton(
                         onClick = {
                             viewModel.checkForUpdates()
+                            viewModel.loadHomeData()
                             if (updateStatus is UpdateStatus.UpToDate) {
                                 Toast.makeText(context, "Uygulamanız güncel.", Toast.LENGTH_SHORT).show()
                             }
@@ -168,6 +169,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                             shape = CircleShape,
                             onClick = {
                                 viewModel.checkForUpdates()
+                                viewModel.loadHomeData()
                                 if (updateStatus is UpdateStatus.UpToDate) {
                                     Toast.makeText(context, "Uygulamanız güncel.", Toast.LENGTH_SHORT).show()
                                 }

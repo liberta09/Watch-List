@@ -6,7 +6,5 @@
             <size android:width="320dp" android:height="180dp"/>
         </shape>
     </item>
-    <item android:drawable="@drawable/ic_watchlist_logo"
-          android:top="50dp" android:bottom="50dp"
-          android:left="50dp" android:right="50dp"/>
+    <item android:drawable="@drawable/ic_watchlist_logo" android:gravity="center" android:width="110dp" android:height="110dp" />
 </layer-list>

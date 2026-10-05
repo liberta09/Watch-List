@@ -169,14 +169,18 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
             // Personal Recommendations Logic
             val currentMyList = repository.myList.value
-            val seeds = currentMyList.filter { (it.userRating ?: 0) >= 7 }
+            val currentFavorites = repository.favorites.value
+            val allUserMedia = (currentMyList + currentFavorites).distinctBy { it.id }
+            
+            val highlyRated = allUserMedia.filter { (it.userRating ?: 0) >= 7 }
                 .sortedByDescending { it.userRating }
                 .take(3)
-                .ifEmpty {
-                    currentMyList.filter { it.isWatched }
-                        .sortedByDescending { it.watchedAt ?: 0L }
-                        .take(3)
-                }
+                
+            val recentlyWatched = allUserMedia.filter { it.isWatched }
+                .sortedByDescending { it.watchedAt ?: 0L }
+                .take(3)
+                
+            val seeds = (highlyRated + recentlyWatched).distinctBy { it.id }.take(5)
                 
             val personalRecsMap = mutableMapOf<Int, Int>()
             val personalRecsReasons = mutableMapOf<Int, String>()
