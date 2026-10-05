@@ -85,7 +85,7 @@ class WatchListWidget : GlanceAppWidget() {
                 if (state.thisWeek.isEmpty()) {
                     EmptyText("Bu hafta takip ettiğin bir şey yok")
                 } else {
-                    state.thisWeek.take(if (isSmall) 3 else 4).forEach { row ->
+                    state.thisWeek.take(if (isSmall) 2 else 3).forEach { row ->
                         MediaRow(row)
                     }
                 }
@@ -97,7 +97,7 @@ class WatchListWidget : GlanceAppWidget() {
                     if (state.continueWatching.isEmpty()) {
                         EmptyText("Henüz bölüm işaretlemedin")
                     } else {
-                        state.continueWatching.forEach { row ->
+                        state.continueWatching.take(2).forEach { row ->
                             MediaRow(row)
                         }
                     }

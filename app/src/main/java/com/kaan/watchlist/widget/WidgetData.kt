@@ -29,14 +29,12 @@ object WidgetData {
         val myList = try { gson.fromJson<List<MediaItem>>(myListJson, type) } catch (e: Exception) { emptyList() }
         val favList = try { gson.fromJson<List<MediaItem>>(favJson, type) } catch (e: Exception) { emptyList() }
 
-        val allItems = (myList + favList).distinctBy { it.id }.map {
-            // Ensure lists/maps are not null from Gson parsing
-            it.copy(
-                genres = it.genres ?: emptyList(),
-                productionCountries = it.productionCountries ?: emptyList(),
-                cast = it.cast ?: emptyList(),
-                watchedEpisodes = it.watchedEpisodes ?: emptyMap()
-            )
+        val allItems = (myList + favList).distinctBy { it.id }.map { item ->
+            val g: List<String>? = item.genres
+            val pc: List<String>? = item.productionCountries
+            val c: List<String>? = item.cast
+            val we: Map<String, Long>? = item.watchedEpisodes
+            item.copy(genres = g ?: emptyList(), productionCountries = pc ?: emptyList(), cast = c ?: emptyList(), watchedEpisodes = we ?: emptyMap())
         }
 
         // This Week
