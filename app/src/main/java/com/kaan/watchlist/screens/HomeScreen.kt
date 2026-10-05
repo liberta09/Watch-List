@@ -30,6 +30,9 @@ import com.kaan.watchlist.screens.tabs.FavoritesTab
 import com.kaan.watchlist.screens.tabs.MyListTab
 import com.kaan.watchlist.screens.tabs.SearchTab
 import com.kaan.watchlist.screens.tabs.SettingsTab
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -78,6 +81,17 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val isGuest = !AuthRepository.isSignedIn
+    
+    val context = LocalContext.current
+    val homeFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        if (com.kaan.watchlist.util.DeviceUtils.isTv(context)) {
+            try {
+                homeFocusRequester.requestFocus()
+            } catch (e: Exception) {}
+        }
+    }
 
     BackHandler(enabled = isGuest) {
         if (currentRoute != BottomNavScreen.Discover.route) {
@@ -221,8 +235,12 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                         }
                     }
 
+                    val focusModifier = if (item.screen.route == BottomNavScreen.Discover.route) {
+                        Modifier.focusRequester(homeFocusRequester)
+                    } else Modifier
+                    
                     NavigationBarItem(
-                        modifier = Modifier.tvFocusable(
+                        modifier = focusModifier.tvFocusable(
                             shape = RoundedCornerShape(16.dp),
                             scaleOnFocus = 1.08f,
                             onClick = onTabClick

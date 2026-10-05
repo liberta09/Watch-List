@@ -59,6 +59,8 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
     val nowPlaying by viewModel.nowPlaying.collectAsState()
     val upcoming by viewModel.upcoming.collectAsState()
     val upcomingForUser by viewModel.upcomingForUser.collectAsState()
+    val personalRecommendations by viewModel.personalRecommendations.collectAsState()
+    val recommendationReasons by viewModel.recommendationReasons.collectAsState()
     val myList by viewModel.myList.collectAsState()
     val favorites by viewModel.favorites.collectAsState()
     
@@ -220,6 +222,31 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                             subtitle = subtitle,
                             showYear = false,
                             topBadge = topBadge,
+                            onToggleList = { 
+                                if (!it.isInList) viewModel.addToList(it, watched = false) 
+                                else viewModel.toggleList(it) 
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+        
+        if (personalRecommendations.isNotEmpty()) {
+            item {
+                SectionTitle("✨ Sana Özel")
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(personalRecommendations) { media ->
+                        val userMedia = viewModel.withUserState(media, myList, favorites)
+                        val reason = recommendationReasons[media.id]
+                        MediaCard(
+                            media = userMedia, 
+                            onClick = { onMediaClick(userMedia) },
+                            subtitle = if (reason != null) "$reason izlediğin için" else null,
                             onToggleList = { 
                                 if (!it.isInList) viewModel.addToList(it, watched = false) 
                                 else viewModel.toggleList(it) 

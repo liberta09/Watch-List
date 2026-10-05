@@ -11,6 +11,7 @@ import com.kaan.watchlist.domain.model.MediaType
 import com.kaan.watchlist.domain.model.MediaItem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,6 +49,12 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
 
     private val _upcomingForUser = MutableStateFlow<List<MediaItem>>(emptyList())
     val upcomingForUser: StateFlow<List<MediaItem>> = _upcomingForUser.asStateFlow()
+
+    private val _personalRecommendations = MutableStateFlow<List<MediaItem>>(emptyList())
+    val personalRecommendations: StateFlow<List<MediaItem>> = _personalRecommendations.asStateFlow()
+
+    private val _recommendationReasons = MutableStateFlow<Map<Int, String>>(emptyMap())
+    val recommendationReasons: StateFlow<Map<Int, String>> = _recommendationReasons.asStateFlow()
 
     private val _recommendations = MutableStateFlow<List<MediaItem>>(emptyList())
     val recommendations: StateFlow<List<MediaItem>> = _recommendations.asStateFlow()
@@ -159,6 +166,57 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
             val upcomingUserDef = async {
                 try { repository.refreshUpcomingInfo() } catch (e: Exception) { emptyList<MediaItem>() }
             }
+
+            // Personal Recommendations Logic
+            val currentMyList = repository.myList.value
+            val seeds = currentMyList.filter { (it.userRating ?: 0) >= 7 }
+                .sortedByDescending { it.userRating }
+                .take(3)
+                .ifEmpty {
+                    currentMyList.filter { it.isWatched }
+                        .sortedByDescending { it.watchedAt ?: 0L }
+                        .take(3)
+                }
+                
+            val personalRecsMap = mutableMapOf<Int, Int>()
+            val personalRecsReasons = mutableMapOf<Int, String>()
+            val fetchedRecs = mutableMapOf<Int, MediaItem>()
+            
+            if (seeds.isNotEmpty()) {
+                val recJobs = seeds.map { seed ->
+                    async {
+                        try {
+                            val recs = repository.getRecommendations(seed.id, seed.type)
+                            Pair(seed.title, recs)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                }
+                val results = recJobs.awaitAll().filterNotNull()
+                
+                val favList = repository.favorites.value
+                for ((seedTitle, recs) in results) {
+                    for (rec in recs) {
+                        val inList = currentMyList.any { it.id == rec.id }
+                        val inFav = favList.any { it.id == rec.id }
+                        if (!inList && !inFav) {
+                            personalRecsMap[rec.id] = personalRecsMap.getOrDefault(rec.id, 0) + 1
+                            if (!personalRecsReasons.containsKey(rec.id)) {
+                                personalRecsReasons[rec.id] = seedTitle
+                            }
+                            fetchedRecs[rec.id] = rec
+                        }
+                    }
+                }
+            }
+
+            val sortedPersonalRecs = fetchedRecs.values.sortedWith(compareByDescending<MediaItem> { personalRecsMap[it.id] ?: 0 }
+                .thenByDescending { it.voteAverage ?: 0.0 })
+                .take(20)
+
+            _personalRecommendations.value = sortedPersonalRecs.also { list -> list.forEach { mediaCache[it.id] = it } }
+            _recommendationReasons.value = personalRecsReasons
 
             _popularMovies.value = popMoviesDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
             _popularTvShows.value = popTvDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }

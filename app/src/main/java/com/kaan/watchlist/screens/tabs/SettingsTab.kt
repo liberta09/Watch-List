@@ -226,76 +226,82 @@ fun SettingsTab(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Notifications Toggle Section
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .tvFocusable(shape = RoundedCornerShape(12.dp)),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Bildirimleri Aç", color = LightText, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            Switch(
-                checked = notificationsEnabled,
-                onCheckedChange = { isChecked ->
-                    if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        val isTvDevice = com.kaan.watchlist.util.DeviceUtils.isTv(context)
+
+        if (!isTvDevice) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .tvFocusable(shape = RoundedCornerShape(12.dp)),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Bildirimleri Aç", color = LightText, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Switch(
+                    checked = notificationsEnabled,
+                    onCheckedChange = { isChecked ->
+                        if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            viewModel.setNotificationsEnabled(isChecked)
+                            if (isChecked) com.kaan.watchlist.util.UpcomingScheduler.schedule(context)
+                            else com.kaan.watchlist.util.UpcomingScheduler.cancel(context)
+                        }
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = BlueAccent,
+                        uncheckedThumbColor = Color.Gray,
+                        uncheckedTrackColor = DarkNavy
+                    )
+                )
+            }
+    
+            Spacer(modifier = Modifier.height(12.dp))
+    
+            Button(
+                onClick = {
+                    if (notificationsEnabled) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            NotificationHelper.sendTestNotification(context)
+                        }
                     } else {
-                        viewModel.setNotificationsEnabled(isChecked)
-                        if (isChecked) com.kaan.watchlist.util.UpcomingScheduler.schedule(context)
-                        else com.kaan.watchlist.util.UpcomingScheduler.cancel(context)
+                        Toast.makeText(context, "Bildirimler kapalı. Lütfen önce bildirimleri açın.", Toast.LENGTH_SHORT).show()
                     }
                 },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = BlueAccent,
-                    uncheckedThumbColor = Color.Gray,
-                    uncheckedTrackColor = DarkNavy
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(
-            onClick = {
-                if (notificationsEnabled) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        NotificationHelper.sendTestNotification(context)
-                    }
-                } else {
-                    Toast.makeText(context, "Bildirimler kapalı. Lütfen önce bildirimleri açın.", Toast.LENGTH_SHORT).show()
-                }
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .tvFocusable(shape = RoundedCornerShape(12.dp))
-        ) {
-            Text(text = "Test Bildirimi Gönder", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(
-            onClick = {
-                com.kaan.watchlist.util.UpcomingScheduler.checkNow(context)
-                Toast.makeText(context, "Kontrol başlatıldı", Toast.LENGTH_SHORT).show()
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .tvFocusable(shape = RoundedCornerShape(12.dp))
-        ) {
-            Text(text = "Yaklaşanları şimdi kontrol et", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .tvFocusable(shape = RoundedCornerShape(12.dp))
+            ) {
+                Text(text = "Test Bildirimi Gönder", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+    
+            Spacer(modifier = Modifier.height(12.dp))
+    
+            Button(
+                onClick = {
+                    com.kaan.watchlist.util.UpcomingScheduler.checkNow(context)
+                    Toast.makeText(context, "Kontrol başlatıldı", Toast.LENGTH_SHORT).show()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .tvFocusable(shape = RoundedCornerShape(12.dp))
+            ) {
+                Text(text = "Yaklaşanları şimdi kontrol et", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
