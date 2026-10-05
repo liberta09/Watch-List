@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Watch List</string>
+    <string name="widget_description">Bu hafta çıkacaklar ve kaldığın yer</string>
 </resources>

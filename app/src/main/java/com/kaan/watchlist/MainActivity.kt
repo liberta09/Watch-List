@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.kaan.watchlist.widget.WidgetUpdater.requestUpdate(this)
         handleIntent(intent)
         
         val prefs = getSharedPreferences("watchlist_prefs", Context.MODE_PRIVATE)

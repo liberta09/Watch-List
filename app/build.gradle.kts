@@ -43,8 +43,8 @@ android {
         applicationId = "com.kaan.watchlist"
         minSdk = 24
         targetSdk = 35
-        versionCode = 14
-        versionName = "1.1.16"
+        versionCode = 15
+        versionName = "1.1.17"
         
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
 
@@ -93,6 +93,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
     implementation("androidx.work:work-runtime-ktx:2.10.1")
+    implementation("androidx.glance:glance-appwidget:1.1.1")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

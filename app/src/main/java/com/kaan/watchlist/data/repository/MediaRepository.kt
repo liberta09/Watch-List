@@ -286,6 +286,7 @@ class MediaRepository(private val context: Context) {
             putString("notes", gson.toJson(_notes.value))
             apply()
         }
+        com.kaan.watchlist.widget.WidgetUpdater.requestUpdate(context)
     }
 
     fun saveNote(mediaId: Int, note: String) {

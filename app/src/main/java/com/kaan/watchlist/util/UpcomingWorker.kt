@@ -176,6 +176,9 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
         }
 
         prefs.edit().putStringSet("notified_keys", notifiedKeys).apply()
+        
+        com.kaan.watchlist.widget.WidgetUpdater.requestUpdate(applicationContext)
+        
         Result.success()
     }
 
