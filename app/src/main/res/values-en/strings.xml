@@ -314,4 +314,28 @@
     <string name="widget_season_episode">%1$sS%2$d E%3$d · %4$s</string>
     <string name="widget_movie_release">Release · %1$s</string>
     <string name="telegram_channel">Telegram Channel</string>
+    <!-- Detail Screen Extra -->
+    <string name="general_back">Back</string>
+    <string name="detail_runtime_mins"> • %1$s mins</string>
+    <string name="detail_rating_desc">Rating</string>
+    <string name="detail_status_ended">Show ended</string>
+    <string name="detail_status_canceled">Show canceled</string>
+    <string name="detail_personal_note">Personal Note</string>
+    <string name="detail_description">Description</string>
+    <string name="detail_no_overview">No description available for this item.</string>
+    <string name="detail_similar">Similar Content</string>
+    <string name="detail_movie_added">Movie added to your list.</string>
+    <string name="detail_tv_added">TV Show added to your list.</string>
+    <string name="detail_your_rating_title">Your Rating</string>
+    <string name="detail_rating_stars">%1$s Stars</string>
+    <string name="detail_rating_format">Your Rating: %1$s / 10</string>
+    <string name="where_to_watch_short">Where to Watch</string>
+    <string name="where_to_watch_not_found">Not found on any platform in your region</string>
+    <string name="provider_flatrate">Stream</string>
+    <string name="provider_rent">Rent</string>
+    <string name="provider_buy">Buy</string>
+    <string name="detail_season_undo">Undo season</string>
+    <string name="detail_season_complete">Complete season</string>
+    <string name="detail_next_up">Up Next: S%1$s E%2$s</string>
+    <string name="detail_no_rating_yet">No rating yet</string>
 </resources>

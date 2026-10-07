@@ -313,4 +313,28 @@
     <string name="widget_season_episode">%1$sS%2$d B%3$d · %4$s</string>
     <string name="widget_movie_release">Vizyon · %1$s</string>
     <string name="telegram_channel">Telegram Kanalı</string>
+    <!-- Detail Screen Extra -->
+    <string name="general_back">Geri</string>
+    <string name="detail_runtime_mins"> • %1$s dk</string>
+    <string name="detail_rating_desc">Rating</string>
+    <string name="detail_status_ended">Dizi sona erdi</string>
+    <string name="detail_status_canceled">Dizi iptal edildi</string>
+    <string name="detail_personal_note">Kişisel Notunuz</string>
+    <string name="detail_description">Açıklama</string>
+    <string name="detail_no_overview">Bu içerik için bir açıklama bulunmuyor.</string>
+    <string name="detail_similar">Benzer İçerikler</string>
+    <string name="detail_movie_added">Film listenize eklendi.</string>
+    <string name="detail_tv_added">Dizi listenize eklendi.</string>
+    <string name="detail_your_rating_title">Puanın</string>
+    <string name="detail_rating_stars">%1$s Puan</string>
+    <string name="detail_rating_format">Puanın: %1$s / 10</string>
+    <string name="where_to_watch_short">Nerede İzlenir</string>
+    <string name="where_to_watch_not_found">Türkiye\'de bir platformda bulunamadı</string>
+    <string name="provider_flatrate">Abonelikle</string>
+    <string name="provider_rent">Kirala</string>
+    <string name="provider_buy">Satın Al</string>
+    <string name="detail_season_undo">Sezonu geri al</string>
+    <string name="detail_season_complete">Sezonu tamamla</string>
+    <string name="detail_next_up">Sıradaki: S%1$s B%2$s</string>
+    <string name="detail_no_rating_yet">Henüz puan yok</string>
 </resources>
