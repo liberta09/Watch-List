@@ -344,4 +344,13 @@
     <string name="login_subtitle">Kataloğunu oluştur, keşfet ve izle.</string>
     <string name="source_justwatch">Kaynak: JustWatch</string>
     <string name="discover_because_you_watched">%1$s izlediğin için</string>
+    <!-- Trakt & Update Repository Errors -->
+    <string name="trakt_err_session_expired">Trakt oturumu süresi dolmuş, yeniden bağlan</string>
+    <string name="trakt_err_api">Trakt API Hatası: %1$d</string>
+    <string name="trakt_err_empty_response">Boş yanıt döndü</string>
+    <string name="trakt_err_unknown">Bilinmeyen Hata</string>
+    <string name="update_err_not_configured">Güncelleme sunucusu henüz yapılandırılmamış (GitHub deposu bekleniyor).</string>
+    <string name="update_err_no_apk">Yeni %1$s sürümü bulundu fakat APK indirme adresi bulunamadı.</string>
+    <string name="update_err_check_failed">Güncelleme kontrolü yapılamadı. İnternet bağlantınızı kontrol edin.</string>
+    <string name="stats_missing_movie_runtime">%1$d filmin süre bilgisi eksik</string>
 </resources>

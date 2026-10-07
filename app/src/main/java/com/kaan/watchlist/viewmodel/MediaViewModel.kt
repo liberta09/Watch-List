@@ -27,7 +27,7 @@ class MediaViewModel(
     private val traktRepository: com.kaan.watchlist.data.repository.TraktRepository
 ) : ViewModel() {
 
-    private val updateRepository = UpdateRepository()
+    private val updateRepository by lazy { UpdateRepository(repository.context) }
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus.asStateFlow()
 

@@ -130,7 +130,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         onClick = { navController.popBackStack() },
                         modifier = Modifier.tvFocusable(shape = CircleShape, onClick = { navController.popBackStack() })
                     ) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = LightText)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.general_back), tint = LightText)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -154,9 +154,9 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    StatBox("Filmler", "${watchedMovies.size}", Modifier.weight(1f))
-                    StatBox("Diziler", "${watchedTvShows.size}", Modifier.weight(1f))
-                    StatBox("Bölümler", "$totalEpisodesWatched", Modifier.weight(1f))
+                    StatBox(stringResource(R.string.my_list_movie), "${watchedMovies.size}", Modifier.weight(1f))
+                    StatBox(stringResource(R.string.my_list_tv), "${watchedTvShows.size}", Modifier.weight(1f))
+                    StatBox(stringResource(R.string.detail_episodes), "$totalEpisodesWatched", Modifier.weight(1f))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(
@@ -171,7 +171,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         Text(durationText, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = BlueAccent)
                         if (missingMovieTimeCount > 0) {
                             Text(
-                                "$missingMovieTimeCount filmin süre bilgisi eksik",
+                                stringResource(R.string.stats_missing_movie_runtime, missingMovieTimeCount),
                                 fontSize = 11.sp,
                                 color = Color.Gray,
                                 modifier = Modifier.padding(top = 4.dp)
@@ -218,7 +218,10 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Monthly calculation
-                        val months = listOf("Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Ekim", "Kas", "Aral")
+                        val currentLocale = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales().let {
+                            if (it.isEmpty) Locale.getDefault() else it.get(0) ?: Locale.getDefault()
+                        }
+                        val months = java.text.DateFormatSymbols(currentLocale).shortMonths.take(12)
                         val monthCounts = FloatArray(12) { 0f }
                         
                         myList.filter { it.isWatched }.forEach { item ->
@@ -350,7 +353,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(stringResource(R.string.stats_average_score), fontSize = 13.sp, color = LightText.copy(alpha = 0.8f))
                             Text(
-                                if (avgRating > 0) String.format(Locale.US, "%.1f / 10", avgRating) else "Henüz puan yok",
+                                if (avgRating > 0) String.format(Locale.US, "%.1f / 10", avgRating) else stringResource(R.string.detail_no_rating_yet),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = BlueAccent

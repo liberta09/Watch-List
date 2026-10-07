@@ -1,6 +1,8 @@
 package com.kaan.watchlist.data.repository
 
+import android.content.Context
 import com.kaan.watchlist.BuildConfig
+import com.kaan.watchlist.R
 import com.kaan.watchlist.data.api.UpdateApi
 import com.kaan.watchlist.util.UpdateConfig
 import okhttp3.OkHttpClient
@@ -16,7 +18,7 @@ sealed class UpdateStatus {
     data class Error(val message: String) : UpdateStatus()
 }
 
-class UpdateRepository {
+class UpdateRepository(private val context: Context) {
 
     private val updateApi: UpdateApi by lazy {
         val okHttpClient = OkHttpClient.Builder()
@@ -34,7 +36,7 @@ class UpdateRepository {
 
     suspend fun checkForUpdates(): UpdateStatus {
         if (!UpdateConfig.isConfigured) {
-            return UpdateStatus.Error("Güncelleme sunucusu henüz yapılandırılmamış (GitHub deposu bekleniyor).")
+            return UpdateStatus.Error(context.getString(R.string.update_err_not_configured))
         }
 
         return try {
@@ -47,7 +49,7 @@ class UpdateRepository {
                 val apkAsset = release.assets?.find { it.name?.endsWith(".apk", ignoreCase = true) == true }
                 val downloadUrl = apkAsset?.downloadUrl ?: release.htmlUrl ?: ""
                 if (downloadUrl.isBlank()) {
-                    UpdateStatus.Error("Yeni $rawTag sürümü bulundu fakat APK indirme adresi bulunamadı.")
+                    UpdateStatus.Error(context.getString(R.string.update_err_no_apk, rawTag))
                 } else {
                     UpdateStatus.UpdateAvailable(rawTag, downloadUrl)
                 }
@@ -55,7 +57,7 @@ class UpdateRepository {
                 UpdateStatus.UpToDate
             }
         } catch (e: Exception) {
-            UpdateStatus.Error("Güncelleme kontrolü yapılamadı. İnternet bağlantınızı kontrol edin.")
+            UpdateStatus.Error(context.getString(R.string.update_err_check_failed))
         }
     }
 

@@ -7,6 +7,7 @@ import com.kaan.watchlist.data.api.DeviceCodeRequest
 import com.kaan.watchlist.data.api.DeviceTokenRequest
 import com.kaan.watchlist.data.api.RefreshTokenRequest
 import com.kaan.watchlist.data.api.TraktApi
+import com.kaan.watchlist.R
 import com.kaan.watchlist.domain.model.MediaItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -181,11 +182,11 @@ class TraktRepository(private val context: Context, private val mediaRepository:
             if (!response.isSuccessful) {
                 if (response.code() == 401) {
                     disconnect()
-                    throw Exception("Trakt oturumu süresi dolmuş, yeniden bağlan")
+                    throw Exception(context.getString(R.string.trakt_err_session_expired))
                 }
-                throw Exception("Trakt API Hatası: ${response.code()}")
+                throw Exception(context.getString(R.string.trakt_err_api, response.code()))
             }
-            return response.body() ?: throw Exception("Boş yanıt döndü")
+            return response.body() ?: throw Exception(context.getString(R.string.trakt_err_empty_response))
         } catch (e: Exception) {
             throw e
         }
@@ -341,7 +342,7 @@ class TraktRepository(private val context: Context, private val mediaRepository:
             unmatched = unmatchedCount
         )
         } catch (e: Exception) {
-            ImportResult(0, 0, 0, 0, errorMessage = e.message ?: "Bilinmeyen Hata")
+            ImportResult(0, 0, 0, 0, errorMessage = e.message ?: context.getString(R.string.trakt_err_unknown))
         }
     }
 

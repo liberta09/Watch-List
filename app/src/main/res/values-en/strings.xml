@@ -345,4 +345,13 @@
     <string name="login_subtitle">Build your catalog, discover and watch.</string>
     <string name="source_justwatch">Source: JustWatch</string>
     <string name="discover_because_you_watched">Because you watched %1$s</string>
+    <!-- Trakt & Update Repository Errors -->
+    <string name="trakt_err_session_expired">Trakt session expired, please reconnect</string>
+    <string name="trakt_err_api">Trakt API Error: %1$d</string>
+    <string name="trakt_err_empty_response">Returned empty response</string>
+    <string name="trakt_err_unknown">Unknown Error</string>
+    <string name="update_err_not_configured">Update server is not configured yet (waiting for GitHub repository).</string>
+    <string name="update_err_no_apk">New %1$s version found, but no APK download link was found.</string>
+    <string name="update_err_check_failed">Could not check for updates. Please check your internet connection.</string>
+    <string name="stats_missing_movie_runtime">%1$d movies missing duration info</string>
 </resources>
