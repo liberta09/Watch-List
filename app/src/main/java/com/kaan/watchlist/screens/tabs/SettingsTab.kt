@@ -363,6 +363,7 @@ fun SettingsTab(
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = { viewModel.importFromTrakt() },
+                        enabled = importState !is com.kaan.watchlist.viewmodel.ImportState.InProgress,
                         colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
@@ -442,15 +443,24 @@ fun SettingsTab(
                 androidx.compose.material3.AlertDialog(
                     onDismissRequest = { viewModel.resetTraktImportState() },
                     containerColor = DarkSurface,
-                    title = { Text("✓ İçe aktarma tamamlandı", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold) },
+                    title = { 
+                        if (state.result.errorMessage != null) {
+                            Text("❌ İçe aktarma başarısız", color = Color(0xFFFF6B6B), fontWeight = FontWeight.Bold)
+                        } else {
+                            Text("✓ İçe aktarma tamamlandı", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+                        }
+                    },
                     text = {
                         Column {
-                            Text("🎬 ${state.result.moviesAdded} film eklendi", color = LightText)
-                            Text("📺 ${state.result.showsAdded} dizi eklendi", color = LightText)
-                            Text("▶️ ${state.result.episodesAdded} bölüm izlendi işareti", color = LightText)
-                            Text("🔄 ${state.result.itemsUpdated} öğe güncellendi", color = LightText)
-                            if (state.result.unmatched > 0) {
-                                Text("⚠️ ${state.result.unmatched} öğe eşleştirilemedi", color = Color(0xFFFF6B6B))
+                            if (state.result.errorMessage != null) {
+                                Text(state.result.errorMessage, color = LightText)
+                            } else {
+                                Text("📦 ${state.result.itemsAdded} öğe eklendi", color = LightText)
+                                Text("▶️ ${state.result.episodesAdded} bölüm izlendi işareti", color = LightText)
+                                Text("🔄 ${state.result.itemsUpdated} öğe güncellendi", color = LightText)
+                                if (state.result.unmatched > 0) {
+                                    Text("⚠️ ${state.result.unmatched} öğe eşleştirilemedi", color = Color(0xFFFF6B6B))
+                                }
                             }
                         }
                     },

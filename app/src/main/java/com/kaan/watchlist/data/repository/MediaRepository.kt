@@ -31,7 +31,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-class MediaRepository(private val context: Context) {
+class MediaRepository(val context: Context) {
 
     private val tmdbApi: TmdbApi by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {

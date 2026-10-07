@@ -443,13 +443,18 @@ class MediaViewModel(
     }
 
     fun importFromTrakt() {
+        if (_traktImportState.value is ImportState.InProgress) return
         viewModelScope.launch {
             _traktImportState.value = ImportState.InProgress(0, 0)
             val result = traktRepository.importAll { done, total ->
                 _traktImportState.value = ImportState.InProgress(done, total)
             }
             _traktImportState.value = ImportState.Completed(result)
-            repository.refreshUpcomingInfo()
+            if (result.errorMessage == null) {
+                repository.refreshUpcomingInfo()
+                loadHomeData()
+                com.kaan.watchlist.widget.WidgetUpdater.requestUpdate(repository.context)
+            }
         }
     }
 }

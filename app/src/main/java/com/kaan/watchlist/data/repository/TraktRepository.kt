@@ -23,11 +23,11 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 data class ImportResult(
-    val moviesAdded: Int,
-    val showsAdded: Int,
+    val itemsAdded: Int,
     val episodesAdded: Int,
     val itemsUpdated: Int,
-    val unmatched: Int
+    val unmatched: Int,
+    val errorMessage: String? = null
 )
 
 class TraktRepository(private val context: Context, private val mediaRepository: MediaRepository) {
@@ -131,21 +131,21 @@ class TraktRepository(private val context: Context, private val mediaRepository:
         return false
     }
 
-    suspend fun refreshIfNeeded(): Boolean {
+    suspend fun refreshIfNeeded(force: Boolean = false): Boolean {
         if (!isConnected()) return false
         val expiresAt = getExpiresAt()
         val oneDayMs = 24 * 60 * 60 * 1000L
-        if (System.currentTimeMillis() + oneDayMs >= expiresAt) {
-            return performTokenRefresh()
+        if (force || System.currentTimeMillis() + oneDayMs >= expiresAt) {
+            return performTokenRefresh(force)
         }
         return true
     }
 
-    private suspend fun performTokenRefresh(): Boolean {
+    private suspend fun performTokenRefresh(force: Boolean = false): Boolean {
         tokenMutex.withLock {
             val expiresAt = getExpiresAt()
             val oneDayMs = 24 * 60 * 60 * 1000L
-            if (System.currentTimeMillis() + oneDayMs < expiresAt) {
+            if (!force && System.currentTimeMillis() + oneDayMs < expiresAt) {
                 return true
             }
 
@@ -169,26 +169,51 @@ class TraktRepository(private val context: Context, private val mediaRepository:
         }
     }
 
-    suspend fun importAll(onProgress: (done: Int, total: Int) -> Unit): ImportResult = coroutineScope {
-        if (!isConnected()) return@coroutineScope ImportResult(0, 0, 0, 0, 0)
-        
-        // 1. Paralel istekler
-        var unmatchedCount = 0
-        var totalEpisodesAdded = 0
-        
-        val deferredWatchedMovies = async { traktApi.getWatchedMovies().let { if (it.isSuccessful) it.body() ?: emptyList() else emptyList() } }
-        val deferredWatchedShows = async { traktApi.getWatchedShows().let { if (it.isSuccessful) it.body() ?: emptyList() else emptyList() } }
-        val deferredWatchlistMovies = async { traktApi.getWatchlistMovies().let { if (it.isSuccessful) it.body() ?: emptyList() else emptyList() } }
-        val deferredWatchlistShows = async { traktApi.getWatchlistShows().let { if (it.isSuccessful) it.body() ?: emptyList() else emptyList() } }
-        val deferredRatedMovies = async { traktApi.getRatedMovies().let { if (it.isSuccessful) it.body() ?: emptyList() else emptyList() } }
-        val deferredRatedShows = async { traktApi.getRatedShows().let { if (it.isSuccessful) it.body() ?: emptyList() else emptyList() } }
+    private suspend fun <T> safeTraktCall(apiCall: suspend () -> retrofit2.Response<T>): T {
+        try {
+            var response = apiCall()
+            if (response.code() == 401) {
+                val refreshed = refreshIfNeeded(force = true)
+                if (refreshed) {
+                    response = apiCall()
+                }
+            }
+            if (!response.isSuccessful) {
+                if (response.code() == 401) {
+                    disconnect()
+                    throw Exception("Trakt oturumu süresi dolmuş, yeniden bağlan")
+                }
+                throw Exception("Trakt API Hatası: ${response.code()}")
+            }
+            return response.body() ?: throw Exception("Boş yanıt döndü")
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 
-        val watchedMovies = deferredWatchedMovies.await()
-        val watchedShows = deferredWatchedShows.await()
-        val watchlistMovies = deferredWatchlistMovies.await()
-        val watchlistShows = deferredWatchlistShows.await()
-        val ratedMovies = deferredRatedMovies.await()
-        val ratedShows = deferredRatedShows.await()
+    suspend fun importAll(onProgress: (done: Int, total: Int) -> Unit): ImportResult = coroutineScope {
+        if (!isConnected()) return@coroutineScope ImportResult(0, 0, 0, 0)
+        
+        try {
+            refreshIfNeeded()
+
+            // 1. Paralel istekler
+            var unmatchedCount = 0
+            var totalEpisodesAdded = 0
+            
+            val deferredWatchedMovies = async { safeTraktCall { traktApi.getWatchedMovies() } }
+            val deferredWatchedShows = async { safeTraktCall { traktApi.getWatchedShows() } }
+            val deferredWatchlistMovies = async { safeTraktCall { traktApi.getWatchlistMovies() } }
+            val deferredWatchlistShows = async { safeTraktCall { traktApi.getWatchlistShows() } }
+            val deferredRatedMovies = async { safeTraktCall { traktApi.getRatedMovies() } }
+            val deferredRatedShows = async { safeTraktCall { traktApi.getRatedShows() } }
+
+            val watchedMovies = deferredWatchedMovies.await()
+            val watchedShows = deferredWatchedShows.await()
+            val watchlistMovies = deferredWatchlistMovies.await()
+            val watchlistShows = deferredWatchlistShows.await()
+            val ratedMovies = deferredRatedMovies.await()
+            val ratedShows = deferredRatedShows.await()
 
         val itemMap = mutableMapOf<Pair<com.kaan.watchlist.domain.model.MediaType, Int>, MediaItemBuilder>()
 
@@ -310,12 +335,14 @@ class TraktRepository(private val context: Context, private val mediaRepository:
         val stats = mediaRepository.importItems(finalMediaItems)
         
         ImportResult(
-            moviesAdded = finalMediaItems.count { it.type == com.kaan.watchlist.domain.model.MediaType.MOVIE },
-            showsAdded = finalMediaItems.count { it.type == com.kaan.watchlist.domain.model.MediaType.TV }, 
+            itemsAdded = stats.itemsAdded,
             episodesAdded = totalEpisodesAdded,
             itemsUpdated = stats.itemsUpdated,
             unmatched = unmatchedCount
         )
+        } catch (e: Exception) {
+            ImportResult(0, 0, 0, 0, errorMessage = e.message ?: "Bilinmeyen Hata")
+        }
     }
 
     private class MediaItemBuilder(

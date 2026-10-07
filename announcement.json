@@ -1,7 +1,7 @@
 {
   "enabled": true,
-  "id": "announcement_005",
-  "title": "🧩 Watch List 1.1.17",
-  "message": "Watch List v1.1.17 Sürümü Yayında! 🚀\n\nYeni Özellikler:\n🧩 Ana Ekran Widget'ı: Artık uygulamayı açmadan, telefonunuzun ana ekranından bu hafta çıkacak bölümleri ve filmleri, ayrıca kaldığınız dizileri görebilirsiniz!\n\n(Eklemek için ana ekranda boş bir yere uzun basın, Widget'lar veya Araç Takımları menüsünden Watch List'i seçin.)\n\nKeyifli seyirler! ❤️",
+  "id": "announcement_006",
+  "title": "🔗 Watch List 1.1.18",
+  "message": "Trakt.tv hesabını bağlayıp izlediklerini, izleme listeni ve puanlarını Watch List'e aktarabilirsin. Ayarlar > Trakt.tv.",
   "buttonText": "Harika!"
 }
