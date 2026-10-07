@@ -21,7 +21,10 @@ import kotlinx.coroutines.launch
 import com.kaan.watchlist.data.repository.UpdateRepository
 import com.kaan.watchlist.data.repository.UpdateStatus
 
-class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
+class MediaViewModel(
+    private val repository: MediaRepository,
+    private val traktRepository: com.kaan.watchlist.data.repository.TraktRepository
+) : ViewModel() {
 
     private val updateRepository = UpdateRepository()
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
@@ -391,13 +394,82 @@ class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
             _updateStatus.value = updateRepository.checkForUpdates()
         }
     }
+
+    // --- TRAKT.TV ---
+    private val _traktConnected = MutableStateFlow(false)
+    val traktConnected: StateFlow<Boolean> = _traktConnected
+
+    val traktConfigured: Boolean get() = traktRepository.isConfigured
+
+    private val _traktImportState = MutableStateFlow<ImportState>(ImportState.Idle)
+    val traktImportState: StateFlow<ImportState> = _traktImportState
+
+    private val _traktDeviceCode = MutableStateFlow<com.kaan.watchlist.data.api.DeviceCodeResponse?>(null)
+    val traktDeviceCode: StateFlow<com.kaan.watchlist.data.api.DeviceCodeResponse?> = _traktDeviceCode
+
+    fun checkTraktConnection() {
+        viewModelScope.launch {
+            traktRepository.refreshIfNeeded()
+            _traktConnected.value = traktRepository.isConnected()
+        }
+    }
+
+    fun startTraktAuth() {
+        viewModelScope.launch {
+            _traktDeviceCode.value = null
+            val code = traktRepository.startDeviceAuth()
+            if (code != null) {
+                _traktDeviceCode.value = code
+                val success = traktRepository.pollForToken(code.device_code, code.interval, code.expires_in)
+                _traktDeviceCode.value = null
+                if (success) {
+                    _traktConnected.value = true
+                }
+            }
+        }
+    }
+
+    fun cancelTraktAuth() {
+        _traktDeviceCode.value = null
+    }
+
+    fun disconnectTrakt() {
+        traktRepository.disconnect()
+        _traktConnected.value = false
+    }
+
+    fun resetTraktImportState() {
+        _traktImportState.value = ImportState.Idle
+    }
+
+    fun importFromTrakt() {
+        if (_traktImportState.value is ImportState.InProgress) return
+        viewModelScope.launch {
+            _traktImportState.value = ImportState.InProgress(0, 0)
+            val result = traktRepository.importAll { done, total ->
+                _traktImportState.value = ImportState.InProgress(done, total)
+            }
+            _traktImportState.value = ImportState.Completed(result)
+            if (result.errorMessage == null) {
+                repository.refreshUpcomingInfo()
+                loadHomeData()
+                com.kaan.watchlist.widget.WidgetUpdater.requestUpdate(repository.context)
+            }
+        }
+    }
 }
 
-class MediaViewModelFactory(private val repository: MediaRepository) : ViewModelProvider.Factory {
+sealed class ImportState {
+    object Idle : ImportState()
+    data class InProgress(val done: Int, val total: Int) : ImportState()
+    data class Completed(val result: com.kaan.watchlist.data.repository.ImportResult) : ImportState()
+}
+
+class MediaViewModelFactory(private val repository: MediaRepository, private val traktRepository: com.kaan.watchlist.data.repository.TraktRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MediaViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MediaViewModel(repository) as T
+            return MediaViewModel(repository, traktRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

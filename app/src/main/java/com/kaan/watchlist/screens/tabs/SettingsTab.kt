@@ -1,5 +1,7 @@
 package com.kaan.watchlist.screens.tabs
 
+import androidx.compose.runtime.LaunchedEffect
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -302,6 +304,174 @@ fun SettingsTab(
             }
             
             Spacer(modifier = Modifier.height(24.dp))
+        }
+        
+        // --- Trakt.tv Card ---
+        val traktConfigured = viewModel.traktConfigured
+        val traktConnected by viewModel.traktConnected.collectAsState()
+        val deviceCode by viewModel.traktDeviceCode.collectAsState()
+        val importState by viewModel.traktImportState.collectAsState()
+
+        LaunchedEffect(Unit) {
+            viewModel.checkTraktConnection()
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .padding(16.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Trakt.tv Senkronizasyonu",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LightText
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (!traktConfigured) {
+                    Text(
+                        text = "Trakt yapılandırılmamış.",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                } else if (!traktConnected) {
+                    Button(
+                        onClick = { viewModel.startTraktAuth() },
+                        colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .tvFocusable(shape = RoundedCornerShape(12.dp))
+                    ) {
+                        Text("Trakt Hesabını Bağla", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    }
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "✓ Trakt bağlı", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Spacer(modifier = Modifier.weight(1f))
+                        androidx.compose.material3.TextButton(
+                            onClick = { viewModel.disconnectTrakt() },
+                            modifier = Modifier.tvFocusable()
+                        ) {
+                            Text("Bağlantıyı Kes", color = Color(0xFFFF6B6B), fontSize = 14.sp)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { viewModel.importFromTrakt() },
+                        enabled = importState !is com.kaan.watchlist.viewmodel.ImportState.InProgress,
+                        colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .tvFocusable(shape = RoundedCornerShape(12.dp))
+                    ) {
+                        Text("Trakt'tan İçe Aktar", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    }
+                }
+            }
+        }
+
+        // Auth Dialog
+        if (deviceCode != null) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { viewModel.cancelTraktAuth() },
+                containerColor = DarkSurface,
+                title = { Text("Trakt Bağlantısı", color = LightText, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        Text("trakt.tv/activate adresine git ve bu kodu gir:", color = LightText, fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = deviceCode!!.user_code.uppercase(),
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BlueAccent,
+                            letterSpacing = 4.sp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        androidx.compose.material3.CircularProgressIndicator(color = BlueAccent, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Bekleniyor...", color = LightText.copy(alpha=0.7f), fontSize = 12.sp)
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = { viewModel.cancelTraktAuth() }, modifier = Modifier.tvFocusable()) {
+                        Text("İptal", color = LightText)
+                    }
+                }
+            )
+        }
+
+        // Import Dialog
+        when (val state = importState) {
+            is com.kaan.watchlist.viewmodel.ImportState.InProgress -> {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { /* No dismiss */ },
+                    containerColor = DarkSurface,
+                    title = { Text("Trakt'tan İçe Aktarılıyor", color = LightText, fontWeight = FontWeight.Bold) },
+                    text = {
+                        Column {
+                            Text("İçe aktarılıyor... ${state.done} / ${state.total}", color = LightText)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            if (state.total > 0) {
+                                androidx.compose.material3.LinearProgressIndicator(
+                                    progress = { state.done.toFloat() / state.total },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = BlueAccent,
+                                    trackColor = DarkNavy
+                                )
+                            } else {
+                                androidx.compose.material3.LinearProgressIndicator(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = BlueAccent,
+                                    trackColor = DarkNavy
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {}
+                )
+            }
+            is com.kaan.watchlist.viewmodel.ImportState.Completed -> {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { viewModel.resetTraktImportState() },
+                    containerColor = DarkSurface,
+                    title = { 
+                        if (state.result.errorMessage != null) {
+                            Text("❌ İçe aktarma başarısız", color = Color(0xFFFF6B6B), fontWeight = FontWeight.Bold)
+                        } else {
+                            Text("✓ İçe aktarma tamamlandı", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    text = {
+                        Column {
+                            if (state.result.errorMessage != null) {
+                                Text(state.result.errorMessage, color = LightText)
+                            } else {
+                                Text("📦 ${state.result.itemsAdded} öğe eklendi", color = LightText)
+                                Text("▶️ ${state.result.episodesAdded} bölüm izlendi işareti", color = LightText)
+                                Text("🔄 ${state.result.itemsUpdated} öğe güncellendi", color = LightText)
+                                if (state.result.unmatched > 0) {
+                                    Text("⚠️ ${state.result.unmatched} öğe eşleştirilemedi", color = Color(0xFFFF6B6B))
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        androidx.compose.material3.TextButton(onClick = { viewModel.resetTraktImportState() }, modifier = Modifier.tvFocusable()) {
+                            Text("Tamam", color = BlueAccent, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                )
+            }
+            else -> {}
         }
 
         Spacer(modifier = Modifier.height(32.dp))

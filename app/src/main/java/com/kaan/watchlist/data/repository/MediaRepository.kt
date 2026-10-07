@@ -31,7 +31,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-class MediaRepository(private val context: Context) {
+class MediaRepository(val context: Context) {
 
     private val tmdbApi: TmdbApi by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -236,6 +236,60 @@ class MediaRepository(private val context: Context) {
             }
         }
         db.getReference("users/$uid/notes").addValueEventListener(notesListener!!)
+    }
+
+    data class ImportStats(
+        val itemsUpdated: Int,
+        val itemsAdded: Int
+    )
+
+    fun importItems(items: List<MediaItem>): ImportStats {
+        val currentList = _myList.value.toMutableList()
+        var updatedCount = 0
+        var addedCount = 0
+
+        for (newItem in items) {
+            val existingIndex = currentList.indexOfFirst { it.id == newItem.id && it.type == newItem.type }
+            if (existingIndex >= 0) {
+                val existing = currentList[existingIndex]
+                
+                // Merge episodes
+                val mergedEpisodes = existing.watchedEpisodes.toMutableMap()
+                for ((key, time) in newItem.watchedEpisodes) {
+                    val existingTime = mergedEpisodes[key]
+                    if (existingTime == null || time > existingTime) {
+                        mergedEpisodes[key] = time
+                    }
+                }
+
+                val merged = existing.copy(
+                    isWatched = existing.isWatched || newItem.isWatched,
+                    userRating = existing.userRating ?: newItem.userRating,
+                    watchedAt = existing.watchedAt ?: newItem.watchedAt,
+                    addedAt = existing.addedAt ?: newItem.addedAt,
+                    watchedEpisodes = mergedEpisodes,
+                    lastWatchedSeason = newItem.lastWatchedSeason ?: existing.lastWatchedSeason,
+                    lastWatchedEpisode = newItem.lastWatchedEpisode ?: existing.lastWatchedEpisode,
+                    isInList = true
+                ).sanitized()
+                
+                if (merged != existing) {
+                    currentList[existingIndex] = merged
+                    updatedCount++
+                }
+            } else {
+                currentList.add(newItem.copy(isInList = true).sanitized())
+                addedCount++
+            }
+        }
+
+        if (updatedCount > 0 || addedCount > 0) {
+            _myList.value = currentList
+            saveLocalData()
+            updateFirebase()
+        }
+
+        return ImportStats(updatedCount, addedCount)
     }
 
     private fun updateFirebase() {

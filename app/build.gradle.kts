@@ -22,6 +22,7 @@ android {
             ?: System.getenv(name)?.takeIf { it.isNotBlank() }
 
     val tmdbApiKey = secret("TMDB_API_KEY") ?: ""
+    val traktClientId = secret("TRAKT_CLIENT_ID") ?: ""
     val keystorePassword = secret("KEYSTORE_PASSWORD")
     val keyAlias = secret("KEY_ALIAS") ?: "watchlist"
     val keyPassword = secret("KEY_PASSWORD")
@@ -43,10 +44,11 @@ android {
         applicationId = "com.kaan.watchlist"
         minSdk = 24
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.1.17"
+        versionCode = 16
+        versionName = "1.1.18"
         
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
+        buildConfigField("String", "TRAKT_CLIENT_ID", "\"$traktClientId\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -104,11 +106,11 @@ dependencies {
 }
 
 tasks.register<Copy>("copyApkToDesktop") {
-    from(layout.buildDirectory.dir("outputs/apk/debug"))
+    from(layout.buildDirectory.dir("outputs/apk/release"))
     include("*.apk")
     into("${System.getProperty("user.home")}/Desktop")
     rename { "WatchList.apk" }
 }
 afterEvaluate {
-    tasks.named("assembleDebug") { finalizedBy("copyApkToDesktop") }
+    tasks.named("assembleRelease") { finalizedBy("copyApkToDesktop") }
 }
