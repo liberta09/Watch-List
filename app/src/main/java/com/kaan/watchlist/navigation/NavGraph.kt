@@ -30,7 +30,8 @@ fun SetupNavGraph(
 ) {
     val context = LocalContext.current
     val repository = remember { MediaRepository(context) }
-    val factory = remember { MediaViewModelFactory(repository) }
+    val traktRepository = remember { com.kaan.watchlist.data.repository.TraktRepository(context, repository) }
+    val factory = remember { MediaViewModelFactory(repository, traktRepository) }
     val sharedViewModel: MediaViewModel = viewModel(factory = factory)
 
     LaunchedEffect(initialMediaId) {
