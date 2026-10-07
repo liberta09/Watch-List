@@ -1,4 +1,356 @@
 <resources>
     <string name="app_name">Watch List</string>
     <string name="widget_description">Bu hafta çıkacaklar ve kaldığın yer</string>
+
+    <!-- Home Screen -->
+    <string name="home_tab_discover">Keşfet</string>
+    <string name="home_tab_search">Ara</string>
+    <string name="home_tab_my_list">Listem</string>
+    <string name="home_tab_favorites">Favoriler</string>
+    <string name="home_tab_settings">Ayarlar</string>
+
+    <string name="update_downloading">Güncelleme indiriliyor...</string>
+    <string name="update_available">Güncelleme Mevcut</string>
+    <string name="update_install">Kur (Install)</string>
+    <string name="update_later">Daha Sonra</string>
+    <string name="update_do_update">Güncellemeyi Yap</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_add_to_list">LİSTEYE EKLE</string>
+    <string name="detail_added_to_list">✓ LİSTEYE EKLENDİ</string>
+    <string name="detail_add_to_favorite">Favoriye Ekle</string>
+    <string name="detail_in_favorites">Favorilerde</string>
+    <string name="detail_watch_trailer">Fragmanı İzle</string>
+    <string name="detail_release_date">🎬 Vizyon tarihi: %1$s</string>
+    <string name="detail_score">Ortalama Puan: %1$s</string>
+
+    <string name="detail_note_placeholder">Notunuzu buraya yazın...</string>
+    <string name="detail_cancel">İptal</string>
+    <string name="detail_save">Kaydet</string>
+    <string name="detail_delete_note">Notu Sil</string>
+    <string name="detail_edit_note">Notu Düzenle</string>
+    <string name="detail_add_note">Not Ekle</string>
+
+    <string name="detail_dialog_add_title">Listeye Ekle</string>
+    <string name="detail_dialog_add_desc">Bu içeriği nasıl eklemek istersin?</string>
+    <string name="detail_dialog_to_watch">🔖 İzlenecek</string>
+    <string name="detail_dialog_watched">✓ İzlendi</string>
+
+    <!-- Tabs & General -->
+    <string name="tab_stats">📊 İstatistikler</string>
+    <string name="sort_by">Sırala: %1$s</string>
+    <string name="sort_date_added">Eklenme Tarihi (Yeni → Eski)</string>
+    <string name="sort_tmdb_score">TMDB Puanı (Yüksek → Düşük)</string>
+    <string name="sort_my_score">Benim Puanım (Yüksek → Düşük)</string>
+    <string name="sort_name">Ada Göre (A-Z)</string>
+    <string name="sort_date_watched">İzlenme Tarihi (Yeni → Eski)</string>
+
+    <string name="empty_list">Listeniz şu an boş.</string>
+    <string name="empty_favorites">Henüz favori eklemediniz.</string>
+
+    <!-- Search Tab -->
+    <string name="search_placeholder">Film veya dizi ara...</string>
+
+    <!-- Settings Tab -->
+    <string name="settings_language">Dil / Language</string>
+    <string name="settings_lang_system">Sistem Varsayılanı</string>
+    <string name="settings_lang_tr">Türkçe</string>
+    <string name="settings_lang_en">English</string>
+
+    <string name="settings_check_update">Güncellemeleri Kontrol Et</string>
+    <string name="settings_checking">Kontrol ediliyor...</string>
+    <string name="settings_up_to_date">Uygulamanız güncel.</string>
+    <string name="settings_recheck">Yeniden Kontrol Et</string>
+    <string name="settings_download_update">Güncellemeyi İndir</string>
+    <string name="settings_retry">Tekrar Dene</string>
+
+    <string name="settings_share_list">Liste Paylaşımı</string>
+    <string name="settings_share_my_list">Listemi Paylaş</string>
+    <string name="settings_open_with_code">Kod ile Liste Aç</string>
+    <string name="settings_my_shared_lists">Paylaşılan Listelerim</string>
+
+    <string name="settings_trakt_title">Trakt.tv</string>
+    <string name="settings_trakt_connect">Trakt Hesabını Bağla</string>
+    <string name="settings_trakt_disconnect">Trakt Bağlantısını Kes</string>
+    <string name="settings_trakt_sync">Trakt Verilerimi İçe Aktar</string>
+
+    <!-- Discover -->
+    <string name="discover_trending">Bu Hafta Trend</string>
+    <string name="discover_now_playing">Vizyondakiler</string>
+    <string name="discover_upcoming">Yakında</string>
+    <string name="discover_popular_movies">Popüler Filmler</string>
+    <string name="discover_popular_tv">Popüler Diziler</string>
+    <string name="discover_for_you">✨ Sana Özel</string>
+
+    <!-- Detail General -->
+    <string name="where_to_watch">Nereden İzleyebilirim?</string>
+    <string name="cast">Oyuncular</string>
+    <string name="director">Yönetmen</string>
+    <string name="genres">Türler</string>
+    <string name="duration">Süre</string>
+    <string name="country">Ülke</string>
+    <string name="seasons">Sezonlar</string>
+    <string name="recommendations">Önerilenler</string>
+    <string name="next_episode">Sonraki Bölüm</string>
+    <string name="my_rating">Benim Puanım</string>
+    <string name="rate">Puan Ver</string>
+
+    <!-- Season details -->
+    <string name="season_title">Sezon %1$d</string>
+    <string name="episode_title">Bölüm %1$d</string>
+
+    <!-- General -->
+    <string name="general_retry">Tekrar Dene</string>
+    <string name="general_cancel">İptal</string>
+    <string name="general_save">Kaydet</string>
+    <string name="general_ok">Tamam</string>
+    <string name="general_close">Kapat</string>
+    <string name="general_copy">Kopyala</string>
+
+    <!-- Toasts -->
+    <string name="toast_update_downloading">Güncelleme indiriliyor...</string>
+    <string name="toast_notification_permission_denied">Bildirim izni reddedildi.</string>
+    <string name="toast_notifications_disabled">Bildirimler kapalı. Lütfen önce bildirimleri açın.</string>
+    <string name="toast_check_started">Kontrol başlatıldı</string>
+    <string name="toast_share_list_failed">Liste paylaşılamadı (Sadece giriş yapan kullanıcılar paylaşabilir)</string>
+    <string name="toast_invalid_share_code">Bu kod geçersiz veya paylaşım kapatılmış</string>
+    <string name="toast_telegram_not_found">Telegram\'ı veya tarayıcıyı açacak bir uygulama bulunamadı.</string>
+    <string name="toast_app_up_to_date">Uygulamanız güncel.</string>
+    <string name="toast_login_required">Oturum açmanız gerekiyor.</string>
+    <string name="toast_account_created">Hesap oluşturuldu, şimdi giriş yapabilirsin.</string>
+    <string name="toast_already_in_list">Tüm öğeler zaten listenizde</string>
+    <string name="toast_adding_items">%1$d öğe ekleniyor...</string>
+    <string name="toast_added">Eklendi!</string>
+    <string name="toast_page_load_error">Sayfa yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.</string>
+    <string name="toast_install_file_not_found">Kurulum dosyası bulunamadı.</string>
+    <string name="toast_open_install_failed">Kurulum ekranı açılamadı: %1$s</string>
+    <string name="toast_test_notification_sent">Test bildirimi gönderildi!</string>
+    <string name="toast_notification_permission_not_found">Bildirim izni bulunamadı.</string>
+    <string name="toast_notification_send_failed">Bildirim gönderilemedi: %1$s</string>
+    <string name="toast_notification_system_disabled">Sistem ayarlarından uygulamanın bildirimleri kapatılmış.</string>
+    <string name="toast_notification_approve">Lütfen cihaz bildirim iznini onaylayın.</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_new_season_starts">📅 Yeni sezon başlıyor: %1$s. Sezon · %2$s</string>
+    <string name="detail_next_episode">📅 Sıradaki bölüm: S%1$s B%2$s · %3$s</string>
+    <string name="detail_waiting_new_season">Yeni sezon bekleniyor (tarih belli değil)</string>
+    <string name="detail_episodes">Bölümler</string>
+    <string name="detail_watched_count">%1$d / %2$d bölüm izlendi</string>
+    <string name="detail_watched_count_no_total">%1$d bölüm izlendi</string>
+    <string name="detail_all_episodes_watched">Tüm bölümler izlendi ✓</string>
+    <string name="detail_episode_format">B%1$d - %2$s</string>
+    <string name="detail_episode_fallback">Bölüm %1$d</string>
+
+    <!-- Settings Tab -->
+    <string name="settings_notifications_title">Bildirimler</string>
+    <string name="settings_notifications_enable">Bildirimleri Aç</string>
+    <string name="settings_test_notification">Test Bildirimi Gönder</string>
+    <string name="settings_check_upcoming_now">Yaklaşanları şimdi kontrol et</string>
+    <string name="settings_logout">Çıkış Yap</string>
+    <string name="settings_trakt_connected">✓ Trakt bağlı</string>
+    <string name="settings_trakt_disconnect_btn">Bağlantıyı Kes</string>
+    <string name="settings_trakt_import_btn">Trakt\'tan İçe Aktar</string>
+    <string name="settings_trakt_connection_title">Trakt Bağlantısı</string>
+    <string name="settings_trakt_activation_desc">trakt.tv/activate adresine git ve bu kodu gir:</string>
+    <string name="settings_trakt_waiting">Bekleniyor...</string>
+    <string name="settings_trakt_importing_title">Trakt\'tan İçe Aktarılıyor</string>
+    <string name="settings_trakt_importing_desc">İçe aktarılıyor... %1$d / %2$d</string>
+    <string name="settings_trakt_import_failed">❌ İçe aktarma başarısız</string>
+    <string name="settings_trakt_import_success">✓ İçe aktarma tamamlandı</string>
+    <string name="settings_trakt_items_added">📦 %1$d öğe eklendi</string>
+    <string name="settings_trakt_episodes_added">▶️ %1$d bölüm izlendi işareti</string>
+    <string name="settings_trakt_items_updated">🔄 %1$d öğe güncellendi</string>
+    <string name="settings_trakt_unmatched">⚠️ %1$d öğe eşleştirilemedi</string>
+    <string name="settings_share_desc">Bu kodu bilen herkes listeni görebilir.</string>
+    <string name="settings_share_list_name">Liste Adı</string>
+    <string name="settings_share_content">İçerik:</string>
+    <string name="settings_share_filter_all">Hepsi</string>
+    <string name="settings_share_filter_watchlist">Sadece İzlenecekler</string>
+    <string name="settings_share_filter_watched">Sadece İzlenenler</string>
+    <string name="settings_share_filter_movies">Sadece Filmler</string>
+    <string name="settings_share_filter_shows">Sadece Diziler</string>
+    <string name="settings_share_btn">Paylaş</string>
+    <string name="settings_open_code_label">8 Haneli Kod</string>
+    <string name="settings_open_btn">Aç</string>
+    <string name="settings_no_active_shares">Aktif paylaşımınız yok.</string>
+    <string name="settings_unnamed_list">İsimsiz Liste</string>
+    <string name="settings_share_code">Kod: %1$s</string>
+
+    <!-- Login & Register Screen -->
+    <string name="login_email">E-posta</string>
+    <string name="login_password">Şifre</string>
+    <string name="login_button">Giriş Yap</string>
+    <string name="login_button_loading">Giriş yapılıyor...</string>
+    <string name="login_register_btn">Kayıt Ol</string>
+    <string name="login_guest_btn">Misafir Modu</string>
+    <string name="register_title">Hesap Oluştur</string>
+    <string name="register_username">Kullanıcı Adı</string>
+    <string name="register_button">Kayıt Ol</string>
+    <string name="register_button_loading">Kaydediliyor...</string>
+
+    <!-- Shared List Screen -->
+    <string name="shared_list_not_found">Liste bulunamadı veya silinmiş.</string>
+    <string name="shared_list_owner">%1$s kullanıcısının listesi</string>
+    <string name="shared_list_last_updated">Son güncelleme: %1$s</string>
+    <string name="shared_list_add_all">Hepsini Ekle</string>
+
+    <!-- Trailer Screen -->
+    <string name="trailer_not_found">Video oynatılamıyor. Fragman kaldırılmış veya gizli olabilir.</string>
+    <string name="trailer_open_youtube">  YouTube\'da Aç</string>
+
+    <!-- Stats Screen -->
+    <string name="stats_title">İstatistikler</string>
+    <string name="stats_watch_summary">İzleme Özeti</string>
+    <string name="stats_total_watch_time">Toplam İzleme Süresi</string>
+    <string name="stats_time_days">%1$s gün %2$s saat</string>
+    <string name="stats_time_hours">%1$s saat %2$s dk</string>
+    <string name="stats_time_mins">%1$s dakika</string>
+    <string name="stats_in_year">%1$d Yılında</string>
+    <string name="stats_items_watched">%1$d içerik izlendi</string>
+    <string name="stats_monthly_chart">Aylık İzleme Grafiği (Son 12 Ay)</string>
+    <string name="stats_top_genres">En Çok İzlenen Türler</string>
+    <string name="stats_items_count">%1$d içerik</string>
+    <string name="stats_top_actors">En Sık Sahnede Gören Oyuncular</string>
+    <string name="stats_productions_count">%1$d yapım</string>
+    <string name="stats_scores">Puan Durumu</string>
+    <string name="stats_average_score">Ortalama Puanın: </string>
+    <string name="stats_highest_rated">En Yüksek Puan Verdiğin Yapımlar:</string>
+    <string name="stats_collection">Koleksiyon Durumu</string>
+    <string name="stats_total_records">• Toplam Kayıt: %1$d</string>
+    <string name="stats_watched">• İzlenenler: %1$d</string>
+    <string name="stats_to_watch">• İzlenecekler: %1$d</string>
+    <string name="stats_favorites">• Favoriler: %1$d</string>
+
+    <!-- Widget -->
+    <string name="widget_empty_upcoming">Bu hafta takip ettiğin bir şey yok</string>
+    <string name="widget_empty_continue">Henüz bölüm işaretlemedin</string>
+    <string name="widget_this_week">📅 Bu Hafta</string>
+    <string name="widget_continue_watching">▶️ Kaldığın Yer</string>
+
+    <!-- Notifications -->
+    <string name="notification_test_body">Bildirimler başarıyla çalışıyor.</string>
+    <string name="update_download_completed">✅ İndirme Tamamlandı</string>
+    <string name="update_ready_to_install">Güncelleme dosyası hazır. Kuruluma geçiliyor...</string>
+
+    <string name="notify_new_season_today">🎉 Yeni sezon bugün başlıyor</string>
+    <string name="notify_new_season_started">🎉 Yeni sezon başladı</string>
+    <string name="notify_new_season_body">%1$s · %2$d. Sezon</string>
+    <string name="notify_new_episode_today">📺 Bugün yeni bölüm</string>
+    <string name="notify_new_episode_started">📺 Yeni bölüm çıktı</string>
+    <string name="notify_new_episode_body">%1$s · S%2$d B%3$d</string>
+    <string name="notify_new_season_7days">📅 Yeni sezon 1 hafta sonra</string>
+    <string name="notify_new_season_7days_body">%1$s · %2$d. Sezon · %3$s</string>
+    <string name="notify_movie_today">🎬 Bugün vizyonda</string>
+    <!-- Media Card -->
+    <string name="card_you_rating">Sen: %1$s</string>
+    <string name="card_new">YENİ</string>
+    <string name="card_season_episode">S%1$s B%2$s</string>
+    <string name="card_watched">✓ İZLENDİ</string>
+    <string name="card_to_watch">🔖 İZLENECEK</string>
+    <string name="card_no_description">Açıklama bulunmuyor.</string>
+    <string name="card_go_to_details">Detaya Git</string>
+    <string name="card_in_list">✓ Listede</string>
+    <string name="card_add_to_list">+ Listeye Ekle</string>
+    <string name="auth_err_empty">E-posta ve şifre boş bırakılamaz.</string>
+    <string name="auth_err_invalid_email">Geçerli bir e-posta adresi girin.</string>
+    <string name="auth_err_fill_all">Lütfen tüm alanları doldurun.</string>
+    <string name="auth_err_user_short">Kullanıcı adı en az 3 karakter olmalı.</string>
+    <string name="auth_err_pass_short">Şifre en az 6 karakter olmalı.</string>
+    <string name="auth_err_weak_pass">Şifre çok zayıf, en az 6 karakter kullanın.</string>
+    <string name="auth_err_collision">Bu e-posta ile zaten bir hesap var.</string>
+    <string name="auth_err_invalid_creds">E-posta veya şifre hatalı.</string>
+    <string name="auth_err_too_many">Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.</string>
+    <string name="auth_err_network">İnternet bağlantısı yok, bağlantınızı kontrol edin.</string>
+    <string name="auth_err_not_enabled">Firebase\'de e-posta/şifre girişi etkin değil.</string>
+    <string name="auth_err_unknown">Bir hata oluştu: %1$s</string>
+    <string name="update_err_invalid_url">Güncelleme indirme adresi geçersiz.</string>
+    <string name="update_err_dm_failed">İndirme yöneticisi başlatılamadı.</string>
+    <string name="update_title">Watch List Güncellemesi</string>
+    <string name="update_desc">Yeni sürüm indiriliyor...</string>
+    <string name="update_err_download_failed">İndirme başarısız oldu.</string>
+    <string name="update_err_start_failed">İndirme başlatılamadı: %1$s</string>
+    <string name="update_toast_permission">Lütfen Watch List için \'Bilinmeyen Uygulamaları Yükle\' iznini verin.</string>
+    <!-- Notification Channels -->
+    <string name="notify_channel_upcoming">Yaklaşan İçerikler</string>
+    <string name="notify_channel_general">Watch List Bildirimleri</string>
+    <string name="notify_channel_general_desc">Watch List genel bildirim kanalı</string>
+    <string name="announcement_fallback_title">📢 Watch List Güncellendi</string>
+    <string name="announcement_fallback_message">Uygulamamız güncellendi! 🎉\n\nHepiniz hoş geldiniz.\nWatch List\'i daha iyi hale getirmek için çalışmalarımıza devam ediyoruz.\nYeni sürümümüzü keyifle kullanmanız dileğiyle. ❤️</string>
+    <string name="announcement_fallback_btn">Tamam</string>
+    <!-- API Key Error -->
+    <string name="err_api_key_missing">API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.</string>
+    <string name="default_user_name">Bir Watch List kullanıcısı</string>
+    <!-- Remote Command -->
+    <string name="remote_command_executed">Uzaktan komut çalıştırıldı</string>
+    <!-- ViewModel Errors -->
+    <string name="err_no_results">Sonuç bulunamadı.</string>
+    <string name="err_search_failed">Arama sırasında bir hata oluştu: %1$s</string>
+    <!-- My List -->
+    <string name="my_list_all">Hepsi</string>
+    <string name="my_list_movie">Film</string>
+    <string name="my_list_tv">Dizi</string>
+    <string name="my_list_to_watch">İzlenecekler</string>
+    <string name="my_list_watched">İzlenenler</string>
+    <string name="my_list_all_genres">Tüm Türler</string>
+    <string name="sort_tmdb_score_short">TMDB Puanı</string>
+    <string name="sort_my_score_short">Puanım</string>
+    <string name="sort_date_watched_short">İzlenme Tarihi</string>
+    <string name="sort_date_added_short">Eklenme Tarihi</string>
+    <string name="search_clear">Temizle</string>
+    <!-- Settings Tab Extras -->
+    <string name="settings_app_update">Uygulama Güncellemesi</string>
+    <string name="settings_current_version">Mevcut Sürüm: Sürüm %1$s ✨</string>
+    <string name="settings_new_version_available">Yeni sürüm mevcut: %1$s</string>
+    <string name="settings_share_my_shares">Paylaşımlarım</string>
+    <string name="settings_share_list_msg">Watch List listemi sana gönderdim! Uygulamada Ayarlar > Kod ile Liste Aç bölümüne şu kodu gir: %1$s</string>
+    <string name="settings_trakt_sync_title">Trakt.tv Senkronizasyonu</string>
+    <string name="settings_trakt_not_configured">Trakt yapılandırılmamış.</string>
+    <!-- Widget Data -->
+    <string name="widget_today">Bugün</string>
+    <string name="widget_tomorrow">Yarın</string>
+    <string name="widget_days_later">%1$d gün sonra</string>
+    <string name="widget_new_season">Yeni sezon · </string>
+    <string name="widget_season_episode">%1$sS%2$d B%3$d · %4$s</string>
+    <string name="widget_movie_release">Vizyon · %1$s</string>
+    <string name="telegram_channel">Telegram Kanalı</string>
+    <!-- Detail Screen Extra -->
+    <string name="general_back">Geri</string>
+    <string name="detail_runtime_mins"> • %1$s dk</string>
+    <string name="detail_rating_desc">Rating</string>
+    <string name="detail_status_ended">Dizi sona erdi</string>
+    <string name="detail_status_canceled">Dizi iptal edildi</string>
+    <string name="detail_personal_note">Kişisel Notunuz</string>
+    <string name="detail_description">Açıklama</string>
+    <string name="detail_no_overview">Bu içerik için bir açıklama bulunmuyor.</string>
+    <string name="detail_similar">Benzer İçerikler</string>
+    <string name="detail_movie_added">Film listenize eklendi.</string>
+    <string name="detail_tv_added">Dizi listenize eklendi.</string>
+    <string name="detail_your_rating_title">Puanın</string>
+    <string name="detail_rating_stars">%1$s Puan</string>
+    <string name="detail_rating_format">Puanın: %1$s / 10</string>
+    <string name="where_to_watch_short">Nerede İzlenir</string>
+    <string name="where_to_watch_not_found">Türkiye\'de bir platformda bulunamadı</string>
+    <string name="provider_flatrate">Abonelikle</string>
+    <string name="provider_rent">Kirala</string>
+    <string name="provider_buy">Satın Al</string>
+    <string name="detail_season_undo">Sezonu geri al</string>
+    <string name="detail_season_complete">Sezonu tamamla</string>
+    <string name="detail_next_up">Sıradaki: S%1$s B%2$s</string>
+    <string name="detail_no_rating_yet">Henüz puan yok</string>
+    <!-- HomeScreen / Login / Tabs -->
+    <string name="favorites_total_count">Toplam: %1$d</string>
+    <string name="my_list_stats">Toplam: %1$d  |  İzlenen: %2$d  |  İzlenecek: %3$d</string>
+    <string name="home_update_dialog_msg">Watch List için yeni bir güncelleme mevcut.\n\nMevcut sürüm: %1$s\nYeni sürüm: %2$s</string>
+    <string name="login_subtitle">Kataloğunu oluştur, keşfet ve izle.</string>
+    <string name="source_justwatch">Kaynak: JustWatch</string>
+    <string name="discover_because_you_watched">%1$s izlediğin için</string>
+    <!-- Trakt & Update Repository Errors -->
+    <string name="trakt_err_session_expired">Trakt oturumu süresi dolmuş, yeniden bağlan</string>
+    <string name="trakt_err_api">Trakt API Hatası: %1$d</string>
+    <string name="trakt_err_empty_response">Boş yanıt döndü</string>
+    <string name="trakt_err_unknown">Bilinmeyen Hata</string>
+    <string name="update_err_not_configured">Güncelleme sunucusu henüz yapılandırılmamış (GitHub deposu bekleniyor).</string>
+    <string name="update_err_no_apk">Yeni %1$s sürümü bulundu fakat APK indirme adresi bulunamadı.</string>
+    <string name="update_err_check_failed">Güncelleme kontrolü yapılamadı. İnternet bağlantınızı kontrol edin.</string>
+    <string name="stats_missing_movie_runtime">%1$d filmin süre bilgisi eksik</string>
 </resources>

@@ -1,6 +1,8 @@
 package com.kaan.watchlist.data.repository
 
+import android.content.Context
 import android.util.Patterns
+import com.kaan.watchlist.R
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuth
@@ -50,28 +52,30 @@ object AuthRepository {
     fun login(
         email: String,
         password: String,
+        context: Context,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         val cleanEmail = email.trim()
         if (cleanEmail.isEmpty() || password.isEmpty()) {
-            onError("E-posta ve şifre boş bırakılamaz.")
+            onError(context.getString(R.string.auth_err_empty))
             return
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
-            onError("Geçerli bir e-posta adresi girin.")
+            onError(context.getString(R.string.auth_err_invalid_email))
             return
         }
 
         auth.signInWithEmailAndPassword(cleanEmail, password)
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { e -> onError(toMessage(e)) }
+            .addOnFailureListener { e -> onError(toMessage(e, context)) }
     }
 
     fun register(
         email: String,
         username: String,
         password: String,
+        context: Context,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -80,13 +84,13 @@ object AuthRepository {
 
         when {
             cleanEmail.isEmpty() || cleanUser.isEmpty() || password.isEmpty() ->
-                return onError("Lütfen tüm alanları doldurun.")
+                return onError(context.getString(R.string.auth_err_fill_all))
             !Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches() ->
-                return onError("Geçerli bir e-posta adresi girin.")
+                return onError(context.getString(R.string.auth_err_invalid_email))
             cleanUser.length < 3 ->
-                return onError("Kullanıcı adı en az 3 karakter olmalı.")
+                return onError(context.getString(R.string.auth_err_user_short))
             password.length < 6 ->
-                return onError("Şifre en az 6 karakter olmalı.")
+                return onError(context.getString(R.string.auth_err_pass_short))
         }
 
         auth.createUserWithEmailAndPassword(cleanEmail, password)
@@ -99,7 +103,7 @@ object AuthRepository {
                     ?.addOnCompleteListener { onSuccess() }
                     ?: onSuccess()
             }
-            .addOnFailureListener { e -> onError(toMessage(e)) }
+            .addOnFailureListener { e -> onError(toMessage(e, context)) }
     }
 
     /** E-posta oturumunu kapatır; arka plan oturumu ardından otomatik olarak anonim açılır. */
@@ -108,19 +112,19 @@ object AuthRepository {
         auth.signOut()
     }
 
-    private fun toMessage(e: Exception): String = when (e) {
-        is FirebaseAuthWeakPasswordException -> "Şifre çok zayıf, en az 6 karakter kullanın."
-        is FirebaseAuthUserCollisionException -> "Bu e-posta ile zaten bir hesap var."
+    private fun toMessage(e: Exception, context: Context): String = when (e) {
+        is FirebaseAuthWeakPasswordException -> context.getString(R.string.auth_err_weak_pass)
+        is FirebaseAuthUserCollisionException -> context.getString(R.string.auth_err_collision)
         is FirebaseAuthInvalidUserException,
-        is FirebaseAuthInvalidCredentialsException -> "E-posta veya şifre hatalı."
-        is FirebaseTooManyRequestsException -> "Çok fazla deneme yapıldı, biraz sonra tekrar deneyin."
-        is FirebaseNetworkException -> "İnternet bağlantısı yok, bağlantınızı kontrol edin."
+        is FirebaseAuthInvalidCredentialsException -> context.getString(R.string.auth_err_invalid_creds)
+        is FirebaseTooManyRequestsException -> context.getString(R.string.auth_err_too_many)
+        is FirebaseNetworkException -> context.getString(R.string.auth_err_network)
         else -> if (e.message?.contains("CONFIGURATION_NOT_FOUND") == true ||
             e.message?.contains("OPERATION_NOT_ALLOWED") == true
         ) {
-            "Firebase'de e-posta/şifre girişi etkin değil."
+            context.getString(R.string.auth_err_not_enabled)
         } else {
-            "Bir hata oluştu: ${e.localizedMessage ?: "bilinmeyen hata"}"
+            context.getString(R.string.auth_err_unknown, e.localizedMessage ?: "unknown error")
         }
     }
 }

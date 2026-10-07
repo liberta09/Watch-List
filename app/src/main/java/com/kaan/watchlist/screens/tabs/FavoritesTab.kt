@@ -18,6 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,13 +42,13 @@ fun FavoritesTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
         ) {
             Text(
-                text = "Favoriler",
+                text = stringResource(R.string.home_tab_favorites),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = LightText
             )
             Text(
-                text = "Toplam: ${favorites.size}",
+                text = stringResource(R.string.favorites_total_count, favorites.size),
                 fontSize = 13.sp,
                 color = LightText.copy(alpha = 0.7f),
                 modifier = Modifier.padding(top = 4.dp)
@@ -59,7 +61,7 @@ fun FavoritesTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Henüz favori eklemediniz.", color = LightText.copy(alpha = 0.7f))
+                Text(text = stringResource(R.string.empty_favorites), color = LightText.copy(alpha = 0.7f))
             }
         } else {
             LazyVerticalGrid(

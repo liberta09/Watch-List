@@ -33,6 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -89,7 +91,7 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                         keyboardController?.show()
                     }
                 },
-            placeholder = { Text("Film veya dizi ara...") },
+            placeholder = { Text(stringResource(R.string.search_placeholder)) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = LightText) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
@@ -99,7 +101,7 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                             viewModel.clearSearch()
                         }
                     ) {
-                        Icon(Icons.Default.Clear, contentDescription = "Temizle", tint = LightText)
+                        Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.search_clear), tint = LightText)
                     }
                 }
             },

@@ -14,14 +14,13 @@ import com.kaan.watchlist.R
 
 object NotificationHelper {
     private const val CHANNEL_ID = "watchlist_notifications_v2"
-    private const val CHANNEL_NAME = "Watch List Bildirimleri"
     private const val NOTIFICATION_ID = 1001
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                description = "Watch List genel bildirim kanalı"
+            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.notify_channel_general), importance).apply {
+                description = context.getString(R.string.notify_channel_general_desc)
                 enableVibration(true)
                 enableLights(true)
             }
@@ -35,14 +34,14 @@ object NotificationHelper {
         // 1. Check if notifications are enabled for the app in System Settings
         val managerCompat = NotificationManagerCompat.from(context)
         if (!managerCompat.areNotificationsEnabled()) {
-            Toast.makeText(context, "Sistem ayarlarından uygulamanın bildirimleri kapatılmış.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.toast_notification_system_disabled), Toast.LENGTH_LONG).show()
             return false
         }
 
         // 2. Check Android 13+ (API 33) runtime permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(context, "Lütfen cihaz bildirim iznini onaylayın.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.toast_notification_approve), Toast.LENGTH_LONG).show()
                 return false
             }
         }
@@ -54,20 +53,20 @@ object NotificationHelper {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_watchlist_logo)
             .setContentTitle("Watch List")
-            .setContentText("Bildirimler başarıyla çalışıyor.")
+            .setContentText(context.getString(R.string.notification_test_body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
 
         return try {
             managerCompat.notify(NOTIFICATION_ID, builder.build())
-            Toast.makeText(context, "Test bildirimi gönderildi!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_test_notification_sent), Toast.LENGTH_SHORT).show()
             true
         } catch (e: SecurityException) {
-            Toast.makeText(context, "Bildirim izni bulunamadı.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_notification_permission_not_found), Toast.LENGTH_SHORT).show()
             false
         } catch (e: Exception) {
-            Toast.makeText(context, "Bildirim gönderilemedi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_notification_send_failed, e.localizedMessage), Toast.LENGTH_SHORT).show()
             false
         }
     }

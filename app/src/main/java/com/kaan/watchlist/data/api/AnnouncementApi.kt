@@ -16,5 +16,8 @@ data class AnnouncementDto(
     @SerializedName("id") val id: String?,
     @SerializedName("title") val title: String?,
     @SerializedName("message") val message: String?,
-    @SerializedName("buttonText") val buttonText: String?
+    @SerializedName("buttonText") val buttonText: String?,
+    @SerializedName("titleEn") val titleEn: String?,
+    @SerializedName("messageEn") val messageEn: String?,
+    @SerializedName("buttonTextEn") val buttonTextEn: String?
 )

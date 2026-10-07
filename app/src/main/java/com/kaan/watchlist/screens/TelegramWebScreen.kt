@@ -34,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.kaan.watchlist.ui.components.tvFocusable
@@ -68,7 +70,7 @@ fun TelegramWebScreen(navController: NavController) {
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Geri",
+                    contentDescription = stringResource(R.string.general_close),
                     tint = LightText
                 )
             }
@@ -76,7 +78,7 @@ fun TelegramWebScreen(navController: NavController) {
             Spacer(modifier = Modifier.width(12.dp))
 
             Text(
-                text = "Telegram Kanalı",
+                text = stringResource(R.string.telegram_channel),
                 fontSize = 22.sp,
                 color = LightText
             )
@@ -121,7 +123,7 @@ fun TelegramWebScreen(navController: NavController) {
                                 failingUrl: String?
                             ) {
                                 isLoading = false
-                                Toast.makeText(context, "Sayfa yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edin.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.toast_page_load_error), Toast.LENGTH_LONG).show()
                             }
                         }
 

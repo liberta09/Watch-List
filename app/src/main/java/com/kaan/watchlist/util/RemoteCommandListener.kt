@@ -6,6 +6,7 @@ import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import com.kaan.watchlist.R
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -64,7 +65,7 @@ object RemoteCommandListener {
         when (action) {
             "show_message", "show_toast" -> {
                 val message = command.child("message").getValue(String::class.java)
-                    ?: "Uzaktan komut çalıştırıldı"
+                    ?: context.getString(R.string.remote_command_executed)
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
             "restart_app" -> {

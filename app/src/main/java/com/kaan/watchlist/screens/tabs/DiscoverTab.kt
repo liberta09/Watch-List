@@ -39,6 +39,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,7 +88,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 onClick = { viewModel.loadHomeData() },
                 colors = ButtonDefaults.buttonColors(containerColor = BlueAccent)
             ) {
-                Text("Tekrar Dene")
+                Text(stringResource(R.string.general_retry))
             }
         }
         return
@@ -101,10 +103,10 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             if (intent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(intent)
             } else {
-                Toast.makeText(context, "Telegram'ı veya tarayıcıyı açacak bir uygulama bulunamadı.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.resources.getString(R.string.toast_telegram_not_found), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(context, "Telegram'ı veya tarayıcıyı açacak bir uygulama bulunamadı.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.resources.getString(R.string.toast_telegram_not_found), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -133,7 +135,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Geri",
+                        contentDescription = stringResource(R.string.general_back),
                         tint = LightText
                     )
                 }
@@ -141,7 +143,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = "Watch List",
+                    text = stringResource(R.string.app_name),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = BlueAccent
@@ -162,7 +164,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                             viewModel.checkForUpdates()
                             viewModel.loadHomeData()
                             if (updateStatus is UpdateStatus.UpToDate) {
-                                Toast.makeText(context, "Uygulamanız güncel.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.resources.getString(R.string.toast_app_up_to_date), Toast.LENGTH_SHORT).show()
                             }
                         },
                         modifier = Modifier.tvFocusable(
@@ -171,14 +173,14 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                                 viewModel.checkForUpdates()
                                 viewModel.loadHomeData()
                                 if (updateStatus is UpdateStatus.UpToDate) {
-                                    Toast.makeText(context, "Uygulamanız güncel.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.resources.getString(R.string.toast_app_up_to_date), Toast.LENGTH_SHORT).show()
                                 }
                             }
                         )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Güncellemeleri Kontrol Et",
+                            contentDescription = stringResource(R.string.settings_check_update),
                             tint = LightText
                         )
                     }
@@ -188,7 +190,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         
         if (upcomingForUser.isNotEmpty()) {
             item {
-                SectionTitle("📅 Takip Ettiklerinde Yakında")
+                SectionTitle("📅 " + stringResource(R.string.discover_upcoming))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -200,22 +202,22 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                             if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV) userMedia.nextEpisodeAirDate else userMedia.releaseDate
                         )
                         val daysStr = when (days) {
-                            0 -> "Bugün"
-                            1 -> "Yarın"
-                            2, 3, 4, 5, 6 -> "$days gün sonra"
+                            0 -> stringResource(R.string.widget_today)
+                            1 -> stringResource(R.string.widget_tomorrow)
+                            2, 3, 4, 5, 6 -> stringResource(R.string.widget_days_later, days)
                             else -> com.kaan.watchlist.util.DateUtils.formatShortDate(
                                 if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV) userMedia.nextEpisodeAirDate else userMedia.releaseDate
                             )
                         }
                         
-                        val topBadge = if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV && userMedia.nextEpisodeNumber == 1) "YENİ SEZON" else null
+                        val topBadge = if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV && userMedia.nextEpisodeNumber == 1) "NEW SEASON" else null
                         
                         val subtitle = if (userMedia.type == com.kaan.watchlist.domain.model.MediaType.TV) {
                             val season = userMedia.nextEpisodeSeason ?: 1
                             val ep = userMedia.nextEpisodeNumber ?: 1
-                            "S$season B$ep · $daysStr"
+                            stringResource(R.string.widget_season_episode, "", season, ep, daysStr)
                         } else {
-                            "Vizyon · $daysStr"
+                            stringResource(R.string.widget_movie_release, daysStr)
                         }
                         
                         MediaCard(
@@ -237,7 +239,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         
         if (personalRecommendations.isNotEmpty()) {
             item {
-                SectionTitle("✨ Sana Özel")
+                SectionTitle(stringResource(R.string.discover_for_you))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -248,7 +250,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                         MediaCard(
                             media = userMedia, 
                             onClick = { onMediaClick(userMedia) },
-                            subtitle = if (reason != null) "$reason izlediğin için" else null,
+                            subtitle = if (reason != null) stringResource(R.string.discover_because_you_watched, reason) else null,
                             onToggleList = { 
                                 if (!it.isInList) viewModel.addToList(it, watched = false) 
                                 else viewModel.toggleList(it) 
@@ -262,7 +264,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         
         if (myList.isNotEmpty()) {
             item {
-                SectionTitle("Listem")
+                SectionTitle(stringResource(R.string.home_tab_my_list))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -285,7 +287,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 
         if (trending.isNotEmpty()) {
             item {
-                SectionTitle("Bu Hafta Trend", onTelegramClick = onTelegramClick)
+                SectionTitle(stringResource(R.string.discover_trending), onTelegramClick = onTelegramClick)
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -308,7 +310,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 
         if (nowPlaying.isNotEmpty()) {
             item {
-                SectionTitle("Vizyondakiler")
+                SectionTitle(stringResource(R.string.discover_now_playing))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -331,7 +333,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 
         if (upcoming.isNotEmpty()) {
             item {
-                SectionTitle("Yakında")
+                SectionTitle(stringResource(R.string.discover_upcoming))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -353,7 +355,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         }
 
         item {
-            SectionTitle("Popüler Filmler")
+            SectionTitle(stringResource(R.string.discover_popular_movies))
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -374,7 +376,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         }
 
         item {
-            SectionTitle("Popüler Diziler")
+            SectionTitle(stringResource(R.string.discover_popular_tv))
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

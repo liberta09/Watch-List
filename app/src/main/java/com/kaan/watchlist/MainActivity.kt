@@ -5,7 +5,7 @@ import android.util.Log
 import android.view.InputDevice
 import android.view.MotionEvent
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -43,7 +43,7 @@ import androidx.compose.runtime.getValue
 import com.kaan.watchlist.util.UpcomingScheduler
 import android.content.Context
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val openMediaId = mutableStateOf<Int?>(null)
 
     override fun onNewIntent(intent: Intent) {
@@ -100,7 +100,7 @@ class MainActivity : ComponentActivity() {
                         is UpdateHelper.DownloadState.Downloading -> {
                             // Optionally show a small toast or overlay
                             LaunchedEffect(Unit) {
-                                Toast.makeText(this@MainActivity, "Güncelleme indiriliyor...", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@MainActivity, getString(R.string.toast_update_downloading), Toast.LENGTH_SHORT).show()
                             }
                         }
                         is UpdateHelper.DownloadState.Completed -> {
@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
                                 onDismissRequest = { },
                                 title = {
                                     Text(
-                                        text = "✅ İndirme Tamamlandı",
+                                        text = getString(R.string.update_download_completed),
                                         color = LightText,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 20.sp
@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 text = {
                                     Text(
-                                        text = "Güncelleme dosyası hazır. Kuruluma geçiliyor...",
+                                        text = getString(R.string.update_ready_to_install),
                                         color = LightText.copy(alpha = 0.85f),
                                         fontSize = 15.sp,
                                         lineHeight = 22.sp
@@ -136,7 +136,7 @@ class MainActivity : ComponentActivity() {
                                             UpdateHelper.promptInstall(this@MainActivity, state.apkFile)
                                         })
                                     ) {
-                                        Text("Kur (Install)", color = Color.White, fontWeight = FontWeight.Bold)
+                                        Text(getString(R.string.update_install), color = Color.White, fontWeight = FontWeight.Bold)
                                     }
                                 },
                                 containerColor = DarkSurface,

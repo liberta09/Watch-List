@@ -54,6 +54,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -172,7 +174,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                             .tvFocusable(shape = CircleShape, onClick = { navController.popBackStack() })
                     ) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = LightText)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.general_back), tint = LightText)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -247,14 +249,14 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             )
                             if (media.runtime != null && media.runtime > 0) {
                                 Text(
-                                    text = " • ${media.runtime} dk",
+                                    text = stringResource(R.string.detail_runtime_mins, media.runtime.toString()),
                                     fontSize = 15.sp,
                                     color = LightText.copy(alpha = 0.7f)
                                 )
                             }
                             if (media.voteAverage != null && media.voteAverage > 0) {
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Star, contentDescription = stringResource(R.string.detail_rating_desc), tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = String.format(Locale.US, "%.1f", media.voteAverage),
@@ -280,17 +282,17 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                 val e = media.nextEpisodeNumber ?: 1
                                 val date = com.kaan.watchlist.util.DateUtils.formatDisplayDate(media.nextEpisodeAirDate)
                                 val text = if (e == 1) {
-                                    "📅 Yeni sezon başlıyor: $s. Sezon · $date"
+                                    stringResource(R.string.detail_new_season_starts, s.toString(), date)
                                 } else {
-                                    "📅 Sıradaki bölüm: S$s B$e · $date"
+                                    stringResource(R.string.detail_next_episode, s.toString(), e.toString(), date)
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(text = text, fontSize = 13.sp, color = BlueAccent, fontWeight = FontWeight.Medium)
                             } else {
                                 val statusText = when (media.showStatus) {
-                                    "Ended" -> "Dizi sona erdi"
-                                    "Canceled" -> "Dizi iptal edildi"
-                                    "Returning Series" -> "Yeni sezon bekleniyor (tarih belli değil)"
+                                    "Ended" -> stringResource(R.string.detail_status_ended)
+                                    "Canceled" -> stringResource(R.string.detail_status_canceled)
+                                    "Returning Series" -> stringResource(R.string.detail_waiting_new_season)
                                     else -> null
                                 }
                                 if (statusText != null) {
@@ -303,7 +305,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             if (daysUntil != null && daysUntil >= 0) {
                                 val date = com.kaan.watchlist.util.DateUtils.formatDisplayDate(media.releaseDate)
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(text = "🎬 Vizyon tarihi: $date", fontSize = 13.sp, color = BlueAccent, fontWeight = FontWeight.Medium)
+                                Text(text = stringResource(R.string.detail_release_date, date), fontSize = 13.sp, color = BlueAccent, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
@@ -339,7 +341,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (media.isInList) "✓ LİSTEYE EKLENDİ" else "LİSTEYE EKLE")
+                        Text(if (media.isInList) stringResource(R.string.detail_added_to_list) else stringResource(R.string.detail_add_to_list))
                     }
 
                     Button(
@@ -356,7 +358,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             tint = if (media.isFavorite) Color.Red else LightText
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (media.isFavorite) "Favorilerde" else "Favoriye Ekle")
+                        Text(if (media.isFavorite) stringResource(R.string.detail_in_favorites) else stringResource(R.string.detail_add_to_favorite))
                     }
                 }
 
@@ -375,7 +377,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE50914)),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Fragmanı İzle", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.detail_watch_trailer), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(14.dp))
                 }
@@ -391,7 +393,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
 
                 // Personal Note Section
                 Text(
-                    text = "Kişisel Notunuz",
+                    text = stringResource(R.string.detail_personal_note),
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = LightText
@@ -406,7 +408,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             .fillMaxWidth()
                             .height(130.dp)
                             .tvFocusable(shape = RoundedCornerShape(8.dp)),
-                        placeholder = { Text("Notunuzu buraya yazın...") },
+                        placeholder = { Text(stringResource(R.string.detail_note_placeholder)) },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BlueAccent,
                             unfocusedBorderColor = Color.Gray,
@@ -434,7 +436,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                 noteText = currentNote ?: ""
                             })
                         ) {
-                            Text("İptal", color = Color.Gray)
+                            Text(stringResource(R.string.general_cancel), color = Color.Gray)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -459,7 +461,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                 }
                             })
                         ) {
-                            Text("Kaydet")
+                            Text(stringResource(R.string.general_save))
                         }
                     }
                 } else {
@@ -478,7 +480,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                 onClick = { viewModel.removeNote(media.id) },
                                 modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = { viewModel.removeNote(media.id) })
                             ) {
-                                Text("Notu Sil", color = Color.Red.copy(alpha = 0.8f))
+                                Text(stringResource(R.string.detail_delete_note), color = Color.Red.copy(alpha = 0.8f))
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Button(
@@ -492,7 +494,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                     isEditingNote = true
                                 })
                             ) {
-                                Text("Notu Düzenle", color = LightText)
+                                Text(stringResource(R.string.detail_edit_note), color = LightText)
                             }
                         }
                     } else {
@@ -505,7 +507,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Not Ekle", color = LightText)
+                            Text(stringResource(R.string.detail_add_note), color = LightText)
                         }
                     }
                 }
@@ -537,14 +539,14 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
 
                 // Description Section
                 Text(
-                    text = "Açıklama",
+                    text = stringResource(R.string.detail_description),
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = LightText
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = if (media.overview.isNotBlank()) media.overview else "Bu içerik için bir açıklama bulunmuyor.",
+                    text = if (media.overview.isNotBlank()) media.overview else stringResource(R.string.detail_no_overview),
                     fontSize = 14.sp,
                     color = LightText.copy(alpha = 0.8f),
                     lineHeight = 20.sp
@@ -553,7 +555,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 if (!media.director.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(14.dp))
                     Text(
-                        text = "Yönetmen",
+                        text = stringResource(R.string.director),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = LightText
@@ -569,7 +571,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 if (media.cast.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(14.dp))
                     Text(
-                        text = "Oyuncular",
+                        text = stringResource(R.string.cast),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = LightText
@@ -588,7 +590,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                 if (recommendations.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(14.dp))
                     Text(
-                        text = "Benzer İçerikler",
+                        text = stringResource(R.string.detail_similar),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = LightText
@@ -639,7 +641,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "LİSTEYE EKLENDİ",
+                            text = stringResource(R.string.detail_added_to_list),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = LightText,
@@ -647,7 +649,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = if (media.type == MediaType.MOVIE) "Film listenize eklendi." else "Dizi listenize eklendi.",
+                            text = if (media.type == MediaType.MOVIE) stringResource(R.string.detail_movie_added) else stringResource(R.string.detail_tv_added),
                             fontSize = 16.sp,
                             color = LightText.copy(alpha = 0.8f),
                             textAlign = TextAlign.Center
@@ -663,8 +665,8 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
             }
             AlertDialog(
                 onDismissRequest = { showAddToListDialog = false },
-                title = { Text("Listeye Ekle", color = LightText, fontWeight = FontWeight.Bold) },
-                text = { Text("Bu içeriği nasıl eklemek istersin?", color = LightText.copy(alpha = 0.85f)) },
+                title = { Text(stringResource(R.string.detail_dialog_add_title), color = LightText, fontWeight = FontWeight.Bold) },
+                text = { Text(stringResource(R.string.detail_dialog_add_desc), color = LightText.copy(alpha = 0.85f)) },
                 confirmButton = {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -685,7 +687,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                     showSuccessOverlay = true
                                 })
                         ) {
-                            Text("🔖 İzlenecek", color = Color.White)
+                            Text(stringResource(R.string.detail_dialog_to_watch), color = Color.White)
                         }
                         Button(
                             onClick = {
@@ -702,7 +704,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                                     showSuccessOverlay = true
                                 })
                         ) {
-                            Text("✓ İzlendi", color = Color.White)
+                            Text(stringResource(R.string.detail_dialog_watched), color = Color.White)
                         }
                     }
                 },
@@ -711,7 +713,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                         onClick = { showAddToListDialog = false },
                         modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = { showAddToListDialog = false })
                     ) {
-                        Text("İptal", color = Color.Gray)
+                        Text(stringResource(R.string.general_cancel), color = Color.Gray)
                     }
                 },
                 containerColor = DarkSurface
@@ -728,7 +730,7 @@ fun UserRatingSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Puanın",
+            text = stringResource(R.string.detail_your_rating_title),
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
             color = LightText
@@ -761,7 +763,7 @@ fun UserRatingSection(
                 ) {
                     Icon(
                         imageVector = if (isSelected) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "$i Puan",
+                        contentDescription = stringResource(R.string.detail_rating_stars, i.toString()),
                         tint = if (isSelected) Color(0xFFFFD700) else Color.Gray,
                         modifier = Modifier.size(20.dp)
                     )
@@ -770,7 +772,7 @@ fun UserRatingSection(
         }
         if (currentRating != null) {
             Text(
-                text = "Puanın: $currentRating / 10",
+                text = stringResource(R.string.detail_rating_format, currentRating.toString()),
                 fontSize = 13.sp,
                 color = BlueAccent,
                 fontWeight = FontWeight.Medium,
@@ -787,7 +789,7 @@ fun WatchProvidersSection(
     val context = androidx.compose.ui.platform.LocalContext.current
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Nerede İzlenir",
+            text = stringResource(R.string.where_to_watch_short),
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
             color = LightText
@@ -796,25 +798,25 @@ fun WatchProvidersSection(
 
         if (providers == null || (providers.flatrate.isNullOrEmpty() && providers.rent.isNullOrEmpty() && providers.buy.isNullOrEmpty())) {
             Text(
-                text = "Türkiye'de bir platformda bulunamadı",
+                text = stringResource(R.string.where_to_watch_not_found),
                 fontSize = 14.sp,
                 color = LightText.copy(alpha = 0.6f)
             )
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!providers.flatrate.isNullOrEmpty()) {
-                    ProviderCategoryRow("Abonelikle", providers.flatrate, providers.link, context)
+                    ProviderCategoryRow(stringResource(R.string.provider_flatrate), providers.flatrate, providers.link, context)
                 }
                 if (!providers.rent.isNullOrEmpty()) {
-                    ProviderCategoryRow("Kirala", providers.rent, providers.link, context)
+                    ProviderCategoryRow(stringResource(R.string.provider_rent), providers.rent, providers.link, context)
                 }
                 if (!providers.buy.isNullOrEmpty()) {
-                    ProviderCategoryRow("Satın Al", providers.buy, providers.link, context)
+                    ProviderCategoryRow(stringResource(R.string.provider_buy), providers.buy, providers.link, context)
                 }
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Kaynak: JustWatch",
+                text = stringResource(R.string.source_justwatch),
                 fontSize = 11.sp,
                 color = Color.Gray
             )
@@ -875,7 +877,7 @@ fun TvEpisodesSection(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Bölümler",
+            text = stringResource(R.string.detail_episodes),
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
             color = LightText
@@ -924,13 +926,13 @@ fun TvEpisodesSection(
             ) {
                 if (totalEps != null) {
                     Text(
-                        text = "$watchedCount / $totalEps bölüm izlendi",
+                        text = stringResource(R.string.detail_watched_count, watchedCount, totalEps),
                         fontSize = 13.sp,
                         color = LightText.copy(alpha = 0.8f)
                     )
                 } else {
                     Text(
-                        text = "$watchedCount bölüm izlendi",
+                        text = stringResource(R.string.detail_watched_count_no_total, watchedCount),
                         fontSize = 13.sp,
                         color = LightText.copy(alpha = 0.8f)
                     )
@@ -945,7 +947,7 @@ fun TvEpisodesSection(
                         }
                     ) {
                         Text(
-                            text = if (episodes.all { media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }) "Sezonu geri al" else "Sezonu tamamla",
+                            text = if (episodes.all { media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }) stringResource(R.string.detail_season_undo) else stringResource(R.string.detail_season_complete),
                             fontSize = 12.sp,
                             color = BlueAccent
                         )
@@ -969,18 +971,18 @@ fun TvEpisodesSection(
 
             // Next Episode
             val nextEpText = if (totalEps != null && watchedCount >= totalEps) {
-                "Tüm bölümler izlendi ✓"
+                stringResource(R.string.detail_all_episodes_watched)
             } else if (isSeasonLoaded && episodes.isNotEmpty()) {
                 val firstUnwatched = episodes.firstOrNull { !media.watchedEpisodes.containsKey("S${selectedSeason}_E${it.episodeNumber}") }
                 if (firstUnwatched != null) {
-                    "Sıradaki: S${selectedSeason} B${firstUnwatched.episodeNumber}"
+                    stringResource(R.string.detail_next_up, selectedSeason.toString(), firstUnwatched.episodeNumber.toString())
                 } else if (selectedSeason < totalSeasons) {
-                    "Sıradaki: S${selectedSeason + 1} B1"
+                    stringResource(R.string.detail_next_up, (selectedSeason + 1).toString(), "1")
                 } else {
-                    "Tüm bölümler izlendi ✓"
+                    stringResource(R.string.detail_all_episodes_watched)
                 }
             } else {
-                "Sıradaki: S${media.lastWatchedSeason ?: 1} B${(media.lastWatchedEpisode ?: 0) + 1}"
+                stringResource(R.string.detail_next_up, (media.lastWatchedSeason ?: 1).toString(), ((media.lastWatchedEpisode ?: 0) + 1).toString())
             }
             Text(text = nextEpText, fontSize = 12.sp, color = BlueAccent, fontWeight = FontWeight.Medium)
         }
@@ -1018,7 +1020,7 @@ fun TvEpisodesSection(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "B$epNum - ${ep.name ?: "Bölüm $epNum"}",
+                        text = stringResource(R.string.detail_episode_format, epNum, ep.name ?: stringResource(R.string.detail_episode_fallback, epNum)),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = LightText

@@ -34,6 +34,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -55,6 +56,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val dummyFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -68,6 +70,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
         AuthRepository.login(
             email = email,
             password = password,
+            context = context,
             onSuccess = {
                 isLoading = false
                 viewModel.setLoggedIn(true)
@@ -124,7 +127,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Watch List",
+                text = stringResource(R.string.app_name),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = BlueAccent
@@ -133,7 +136,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             Spacer(modifier = Modifier.height(6.dp))
             
             Text(
-                text = "Kataloğunu oluştur, keşfet ve izle.",
+                text = stringResource(R.string.login_subtitle),
                 fontSize = 15.sp,
                 color = LightText
             )
@@ -144,7 +147,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it; errorMessage = null },
-                label = { Text("E-posta") },
+                label = { Text(stringResource(R.string.login_email)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .tvFocusable(shape = RoundedCornerShape(12.dp)),
@@ -166,7 +169,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it; errorMessage = null },
-                label = { Text("Şifre") },
+                label = { Text(stringResource(R.string.login_password)) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -201,7 +204,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
                 colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = if (isLoading) "Giriş yapılıyor..." else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(text = if (isLoading) stringResource(R.string.login_button_loading) else stringResource(R.string.login_button), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -216,7 +219,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
                 colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = "Kayıt Ol", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BlueAccent)
+                Text(text = stringResource(R.string.login_register_btn), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BlueAccent)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -231,7 +234,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
                 colors = ButtonDefaults.buttonColors(containerColor = DarkSurface),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = "Misafir Modu", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = LightText)
+                Text(text = stringResource(R.string.login_guest_btn), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = LightText)
             }
         }
     }

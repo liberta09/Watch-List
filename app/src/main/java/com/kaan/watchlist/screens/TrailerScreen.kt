@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
@@ -63,7 +65,7 @@ fun TrailerScreen(navController: NavController, trailerKey: String) {
                             youTubePlayer.loadVideo(trailerKey, 0f)
                         }
                         override fun onError(youTubePlayer: YouTubePlayer, error: PlayerConstants.PlayerError) {
-                            errorText = "Oynatma hatası: ${error.name} (key: $trailerKey)"
+                            errorText = context.getString(R.string.trailer_not_found)
                         }
                     }, true, options)
                 }
@@ -88,7 +90,7 @@ fun TrailerScreen(navController: NavController, trailerKey: String) {
                 .padding(12.dp)
                 .tvFocusable(shape = CircleShape, onClick = { navController.popBackStack() })
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = Color.White)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.general_cancel), tint = Color.White)
         }
 
         Button(
@@ -101,7 +103,7 @@ fun TrailerScreen(navController: NavController, trailerKey: String) {
             shape = RoundedCornerShape(8.dp)
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White)
-            Text("  YouTube'da Aç", color = Color.White, fontSize = 13.sp)
+            Text(stringResource(R.string.trailer_open_youtube), color = Color.White, fontSize = 13.sp)
         }
     }
 }

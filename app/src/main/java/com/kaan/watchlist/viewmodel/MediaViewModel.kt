@@ -9,6 +9,7 @@ import com.kaan.watchlist.data.api.WatchProviderCountryDto
 import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.domain.model.MediaType
 import com.kaan.watchlist.domain.model.MediaItem
+import com.kaan.watchlist.R
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -26,7 +27,7 @@ class MediaViewModel(
     private val traktRepository: com.kaan.watchlist.data.repository.TraktRepository
 ) : ViewModel() {
 
-    private val updateRepository = UpdateRepository()
+    private val updateRepository by lazy { UpdateRepository(repository.context) }
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus.asStateFlow()
 
@@ -233,7 +234,7 @@ class MediaViewModel(
             _upcomingForUser.value = upcomingUserDef.await().also { list -> list.forEach { mediaCache[it.id] = it } }
 
             if (_popularMovies.value.isEmpty() && _popularTvShows.value.isEmpty()) {
-                _discoverError.value = "İçerikler yüklenemedi. Lütfen internet bağlantınızı kontrol edin."
+                _discoverError.value = repository.context.getString(R.string.toast_page_load_error)
             }
             
             _isDiscoverLoading.value = false
@@ -258,11 +259,11 @@ class MediaViewModel(
             try {
                 val results = repository.search(query)
                 if (results.isEmpty()) {
-                    _searchError.value = "Sonuç bulunamadı."
+                    _searchError.value = repository.context.getString(R.string.err_no_results)
                 }
                 _searchResults.value = results.also { list -> list.forEach { mediaCache[it.id] = it } }
             } catch (e: Exception) {
-                _searchError.value = "Arama sırasında bir hata oluştu: ${e.localizedMessage}"
+                _searchError.value = repository.context.getString(R.string.err_search_failed, e.localizedMessage ?: "")
             } finally {
                 _isSearching.value = false
             }
@@ -461,6 +462,20 @@ class MediaViewModel(
     // --- Sharing ---
     fun shareList(title: String, filter: com.kaan.watchlist.domain.model.ShareFilter, onResult: (String?) -> Unit) {
         repository.shareList(title, filter, onResult)
+    }
+
+    fun onLanguageChanged() {
+        _trending.value = emptyList()
+        _nowPlaying.value = emptyList()
+        _upcoming.value = emptyList()
+        _popularMovies.value = emptyList()
+        _popularTvShows.value = emptyList()
+        _discoverError.value = null
+        loadHomeData()
+        
+        viewModelScope.launch {
+            repository.refreshAllMediaLanguage()
+        }
     }
 
     fun fetchSharedList(code: String, onResult: (com.kaan.watchlist.domain.model.SharedList?) -> Unit) {
