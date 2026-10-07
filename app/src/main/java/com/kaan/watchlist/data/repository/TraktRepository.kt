@@ -39,7 +39,7 @@ class TraktRepository(private val context: Context, private val mediaRepository:
 
     private val tokenMutex = Mutex()
 
-    private val traktApi: TraktApi by lazy {
+    internal val traktApi: TraktApi by lazy {
         val logging = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
         }
@@ -76,6 +76,22 @@ class TraktRepository(private val context: Context, private val mediaRepository:
 
     fun isConnected(): Boolean {
         return getAccessToken() != null
+    }
+
+    fun isAutoPushEnabled(): Boolean = prefs.getBoolean("trakt_auto_push", false)
+
+    fun setAutoPush(enabled: Boolean) {
+        prefs.edit().putBoolean("trakt_auto_push", enabled).apply()
+    }
+
+    fun getLastSyncError(): String? = prefs.getString("last_sync_error", null)
+
+    fun setLastSyncError(error: String?) {
+        if (error == null) {
+            prefs.edit().remove("last_sync_error").apply()
+        } else {
+            prefs.edit().putString("last_sync_error", error).apply()
+        }
     }
 
     private fun getAccessToken(): String? = prefs.getString("access_token", null)

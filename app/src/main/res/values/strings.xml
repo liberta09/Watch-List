@@ -353,4 +353,9 @@
     <string name="update_err_no_apk">Yeni %1$s sürümü bulundu fakat APK indirme adresi bulunamadı.</string>
     <string name="update_err_check_failed">Güncelleme kontrolü yapılamadı. İnternet bağlantınızı kontrol edin.</string>
     <string name="stats_missing_movie_runtime">%1$d filmin süre bilgisi eksik</string>
+    <!-- Trakt Auto Push -->
+    <string name="settings_trakt_auto_push">Trakt\'e otomatik gönder</string>
+    <string name="settings_trakt_pending">Bekleyen: %1$d</string>
+    <string name="settings_trakt_auth_expired">Oturum süresi doldu</string>
+    <string name="settings_trakt_no_permission">İzin yok</string>
 </resources>

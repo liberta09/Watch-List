@@ -45,6 +45,76 @@ data class TraktWatchlistShow(val listed_at: String, val show: TraktShow)
 data class TraktRatedMovie(val rated_at: String, val rating: Int, val movie: TraktMovie)
 data class TraktRatedShow(val rated_at: String, val rating: Int, val show: TraktShow)
 
+// --- SYNC POST REQUEST & RESPONSE DTOs ---
+
+data class TraktSyncIds(val tmdb: Int)
+
+data class SyncMovieHistory(
+    val ids: TraktSyncIds,
+    val watched_at: String
+)
+
+data class SyncEpisodeHistory(
+    val number: Int,
+    val watched_at: String
+)
+
+data class SyncSeasonHistory(
+    val number: Int,
+    val episodes: List<SyncEpisodeHistory>
+)
+
+data class SyncShowHistory(
+    val ids: TraktSyncIds,
+    val seasons: List<SyncSeasonHistory>? = null
+)
+
+data class SyncHistoryRequest(
+    val movies: List<SyncMovieHistory>? = null,
+    val shows: List<SyncShowHistory>? = null
+)
+
+data class SyncMovieRating(
+    val ids: TraktSyncIds,
+    val rating: Int,
+    val rated_at: String
+)
+
+data class SyncShowRating(
+    val ids: TraktSyncIds,
+    val rating: Int,
+    val rated_at: String
+)
+
+data class SyncRatingsRequest(
+    val movies: List<SyncMovieRating>? = null,
+    val shows: List<SyncShowRating>? = null
+)
+
+data class SyncMovieWatchlist(
+    val ids: TraktSyncIds
+)
+
+data class SyncShowWatchlist(
+    val ids: TraktSyncIds
+)
+
+data class SyncWatchlistRequest(
+    val movies: List<SyncMovieWatchlist>? = null,
+    val shows: List<SyncShowWatchlist>? = null
+)
+
+data class SyncItemCount(
+    val movies: Int? = 0,
+    val shows: Int? = 0,
+    val episodes: Int? = 0
+)
+
+data class SyncResponse(
+    val added: SyncItemCount?,
+    val not_found: Any? = null
+)
+
 interface TraktApi {
     @POST("oauth/device/code")
     suspend fun getDeviceCode(@Body request: DeviceCodeRequest): Response<DeviceCodeResponse>
@@ -72,4 +142,13 @@ interface TraktApi {
 
     @GET("sync/ratings/shows")
     suspend fun getRatedShows(): Response<List<TraktRatedShow>>
+
+    @POST("sync/history")
+    suspend fun addHistory(@Body request: SyncHistoryRequest): Response<SyncResponse>
+
+    @POST("sync/ratings")
+    suspend fun addRatings(@Body request: SyncRatingsRequest): Response<SyncResponse>
+
+    @POST("sync/watchlist")
+    suspend fun addWatchlist(@Body request: SyncWatchlistRequest): Response<SyncResponse>
 }

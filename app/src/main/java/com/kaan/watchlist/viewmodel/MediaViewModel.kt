@@ -397,6 +397,12 @@ class MediaViewModel(
     }
 
     // --- TRAKT.TV ---
+    fun isTraktAutoPushEnabled(): Boolean = traktRepository.isAutoPushEnabled()
+    fun setTraktAutoPush(enabled: Boolean) {
+        traktRepository.setAutoPush(enabled)
+    }
+    fun getTraktLastSyncError(): String? = traktRepository.getLastSyncError()
+    suspend fun getTraktPendingCount(context: android.content.Context): Int = com.kaan.watchlist.data.repository.TraktSyncQueue.pendingCount(context)
     private val _traktConnected = MutableStateFlow(false)
     val traktConnected: StateFlow<Boolean> = _traktConnected
 

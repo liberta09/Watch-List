@@ -700,6 +700,59 @@ fun SettingsTab(
                     ) {
                         Text(stringResource(R.string.settings_trakt_import_btn), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    var autoPushEnabled by remember { mutableStateOf(viewModel.isTraktAutoPushEnabled()) }
+                    var pendingCount by remember { mutableStateOf(0) }
+                    var lastSyncError by remember { mutableStateOf(viewModel.getTraktLastSyncError()) }
+
+                    LaunchedEffect(autoPushEnabled) {
+                        pendingCount = viewModel.getTraktPendingCount(context)
+                        lastSyncError = viewModel.getTraktLastSyncError()
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_trakt_auto_push),
+                            color = LightText,
+                            fontSize = 14.sp
+                        )
+                        androidx.compose.material3.Switch(
+                            checked = autoPushEnabled,
+                            onCheckedChange = { checked ->
+                                autoPushEnabled = checked
+                                viewModel.setTraktAutoPush(checked)
+                            }
+                        )
+                    }
+
+                    if (pendingCount > 0) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.settings_trakt_pending, pendingCount),
+                            color = Color.Gray,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    if (!lastSyncError.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        val errorText = when (lastSyncError) {
+                            "AUTH_EXPIRED" -> stringResource(R.string.settings_trakt_auth_expired)
+                            "NO_PERMISSION" -> stringResource(R.string.settings_trakt_no_permission)
+                            else -> lastSyncError
+                        }
+                        Text(
+                            text = errorText ?: "",
+                            color = Color(0xFFFF6B6B),
+                            fontSize = 12.sp
+                        )
+                    }
                 }
             }
         }

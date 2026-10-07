@@ -354,4 +354,9 @@
     <string name="update_err_no_apk">New %1$s version found, but no APK download link was found.</string>
     <string name="update_err_check_failed">Could not check for updates. Please check your internet connection.</string>
     <string name="stats_missing_movie_runtime">%1$d movies missing duration info</string>
+    <!-- Trakt Auto Push -->
+    <string name="settings_trakt_auto_push">Auto-push to Trakt</string>
+    <string name="settings_trakt_pending">Pending: %1$d</string>
+    <string name="settings_trakt_auth_expired">Session expired</string>
+    <string name="settings_trakt_no_permission">No permission</string>
 </resources>

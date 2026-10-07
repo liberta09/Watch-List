@@ -26,6 +26,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -547,6 +550,16 @@ class MediaRepository(val context: Context) {
         updateFirebase()
     }
 
+    private fun enqueueTraktSync(item: SyncQueueItem) {
+        val traktRepo = TraktRepository(context, this)
+        if (traktRepo.isConnected() && traktRepo.isAutoPushEnabled() && AuthRepository.isSignedIn) {
+            CoroutineScope(Dispatchers.IO).launch {
+                TraktSyncQueue.enqueue(context, item)
+                com.kaan.watchlist.util.TraktSyncWorker.enqueue(context)
+            }
+        }
+    }
+
     fun toggleList(item: MediaItem) {
         val currentList = _myList.value.toMutableList()
         val exists = currentList.find { it.id == item.id }
@@ -559,6 +572,13 @@ class MediaRepository(val context: Context) {
         } else {
             val now = System.currentTimeMillis()
             currentList.add(item.copy(isInList = true, isWatched = false, addedAt = item.addedAt ?: now))
+            enqueueTraktSync(
+                SyncQueueItem(
+                    actionType = SyncActionType.WATCHLIST,
+                    mediaType = item.type,
+                    tmdbId = item.id
+                )
+            )
         }
         _myList.value = currentList
         saveLocalData()
@@ -597,6 +617,27 @@ class MediaRepository(val context: Context) {
 
         saveLocalData()
         updateFirebase()
+
+        if (watched) {
+            if (item.type == MediaType.MOVIE) {
+                enqueueTraktSync(
+                    SyncQueueItem(
+                        actionType = SyncActionType.WATCHED_MOVIE,
+                        mediaType = MediaType.MOVIE,
+                        tmdbId = item.id,
+                        watchedAt = now
+                    )
+                )
+            }
+        } else {
+            enqueueTraktSync(
+                SyncQueueItem(
+                    actionType = SyncActionType.WATCHLIST,
+                    mediaType = item.type,
+                    tmdbId = item.id
+                )
+            )
+        }
     }
 
     fun toggleWatchedStatus(item: MediaItem) {
@@ -626,6 +667,37 @@ class MediaRepository(val context: Context) {
 
         saveLocalData()
         updateFirebase()
+
+        if (newWatchedStatus) {
+            if (item.type == MediaType.MOVIE) {
+                enqueueTraktSync(
+                    SyncQueueItem(
+                        actionType = SyncActionType.WATCHED_MOVIE,
+                        mediaType = MediaType.MOVIE,
+                        tmdbId = item.id,
+                        watchedAt = now
+                    )
+                )
+            } else if (item.type == MediaType.TV && item.watchedEpisodes.isNotEmpty()) {
+                for ((key, epTime) in item.watchedEpisodes) {
+                    val parts = key.split("_")
+                    if (parts.size == 2 && parts[0].startsWith("S") && parts[1].startsWith("E")) {
+                        val seasonNum = parts[0].substring(1).toIntOrNull() ?: 1
+                        val epNum = parts[1].substring(1).toIntOrNull() ?: 1
+                        enqueueTraktSync(
+                            SyncQueueItem(
+                                actionType = SyncActionType.WATCHED_EPISODES,
+                                mediaType = MediaType.TV,
+                                tmdbId = item.id,
+                                season = seasonNum,
+                                episode = epNum,
+                                watchedAt = epTime
+                            )
+                        )
+                    }
+                }
+            }
+        }
     }
 
     fun setUserRating(item: MediaItem, rating: Int?) {
@@ -653,6 +725,18 @@ class MediaRepository(val context: Context) {
 
         saveLocalData()
         updateFirebase()
+
+        if (rating != null) {
+            enqueueTraktSync(
+                SyncQueueItem(
+                    actionType = SyncActionType.RATING,
+                    mediaType = item.type,
+                    tmdbId = item.id,
+                    rating = rating,
+                    ratedAt = now
+                )
+            )
+        }
     }
 
     fun setEpisodeWatched(item: MediaItem, season: Int, episode: Int, watched: Boolean) {
@@ -664,9 +748,10 @@ class MediaRepository(val context: Context) {
         val key = "S${season}_E${episode}"
         val targetItem = _myList.value.find { it.id == item.id } ?: item
         val newEpisodes = targetItem.watchedEpisodes.toMutableMap()
+        val now = System.currentTimeMillis()
 
         if (watched) {
-            newEpisodes[key] = System.currentTimeMillis()
+            newEpisodes[key] = now
         } else {
             newEpisodes.remove(key)
         }
@@ -681,6 +766,19 @@ class MediaRepository(val context: Context) {
         updateFavIfNecessary(item.id, isInList = true, updatedItem = updatedItem)
         saveLocalData()
         updateFirebase()
+
+        if (watched) {
+            enqueueTraktSync(
+                SyncQueueItem(
+                    actionType = SyncActionType.WATCHED_EPISODES,
+                    mediaType = MediaType.TV,
+                    tmdbId = item.id,
+                    season = season,
+                    episode = episode,
+                    watchedAt = now
+                )
+            )
+        }
     }
 
     fun setSeasonWatched(item: MediaItem, season: Int, episodeCount: Int, watched: Boolean) {
@@ -712,6 +810,21 @@ class MediaRepository(val context: Context) {
         updateFavIfNecessary(item.id, isInList = true, updatedItem = updatedItem)
         saveLocalData()
         updateFirebase()
+
+        if (watched) {
+            for (ep in 1..episodeCount) {
+                enqueueTraktSync(
+                    SyncQueueItem(
+                        actionType = SyncActionType.WATCHED_EPISODES,
+                        mediaType = MediaType.TV,
+                        tmdbId = item.id,
+                        season = season,
+                        episode = ep,
+                        watchedAt = now
+                    )
+                )
+            }
+        }
     }
     
     private fun updateListIfNecessary(id: Int, isFavorite: Boolean? = null, isInList: Boolean? = null, updatedItem: MediaItem? = null) {
