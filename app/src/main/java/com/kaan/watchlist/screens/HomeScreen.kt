@@ -183,7 +183,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
             },
             text = {
                 Text(
-                    text = "Watch List için yeni bir güncelleme mevcut.\n\nMevcut sürüm: $currentVer\nYeni sürüm: ${update.version}",
+                    text = stringResource(R.string.home_update_dialog_msg, currentVer, update.version),
                     color = LightText.copy(alpha = 0.85f),
                     fontSize = 15.sp,
                     lineHeight = 22.sp

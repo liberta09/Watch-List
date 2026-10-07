@@ -42,13 +42,13 @@ fun FavoritesTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
         ) {
             Text(
-                text = "Favoriler",
+                text = stringResource(R.string.home_tab_favorites),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = LightText
             )
             Text(
-                text = "Toplam: ${favorites.size}",
+                text = stringResource(R.string.favorites_total_count, favorites.size),
                 fontSize = 13.sp,
                 color = LightText.copy(alpha = 0.7f),
                 modifier = Modifier.padding(top = 4.dp)

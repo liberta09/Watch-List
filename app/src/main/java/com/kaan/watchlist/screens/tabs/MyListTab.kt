@@ -109,13 +109,13 @@ fun MyListTab(
         ) {
             Column {
                 Text(
-                    text = "Listem",
+                    text = stringResource(R.string.home_tab_my_list),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = LightText
                 )
                 Text(
-                    text = "Toplam: ${myList.size}  |  İzlenen: ${myList.count { it.isWatched }}  |  İzlenecek: ${myList.count { !it.isWatched }}",
+                    text = stringResource(R.string.my_list_stats, myList.size, myList.count { it.isWatched }, myList.count { !it.isWatched }),
                     fontSize = 13.sp,
                     color = LightText.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = 2.dp)

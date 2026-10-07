@@ -816,7 +816,7 @@ fun WatchProvidersSection(
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Kaynak: JustWatch",
+                text = stringResource(R.string.source_justwatch),
                 fontSize = 11.sp,
                 color = Color.Gray
             )

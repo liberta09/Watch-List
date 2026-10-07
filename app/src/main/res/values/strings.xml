@@ -337,4 +337,11 @@
     <string name="detail_season_complete">Sezonu tamamla</string>
     <string name="detail_next_up">Sıradaki: S%1$s B%2$s</string>
     <string name="detail_no_rating_yet">Henüz puan yok</string>
+    <!-- HomeScreen / Login / Tabs -->
+    <string name="favorites_total_count">Toplam: %1$d</string>
+    <string name="my_list_stats">Toplam: %1$d  |  İzlenen: %2$d  |  İzlenecek: %3$d</string>
+    <string name="home_update_dialog_msg">Watch List için yeni bir güncelleme mevcut.\n\nMevcut sürüm: %1$s\nYeni sürüm: %2$s</string>
+    <string name="login_subtitle">Kataloğunu oluştur, keşfet ve izle.</string>
+    <string name="source_justwatch">Kaynak: JustWatch</string>
+    <string name="discover_because_you_watched">%1$s izlediğin için</string>
 </resources>

@@ -338,4 +338,11 @@
     <string name="detail_season_complete">Complete season</string>
     <string name="detail_next_up">Up Next: S%1$s E%2$s</string>
     <string name="detail_no_rating_yet">No rating yet</string>
+    <!-- HomeScreen / Login / Tabs -->
+    <string name="favorites_total_count">Total: %1$d</string>
+    <string name="my_list_stats">Total: %1$d  |  Watched: %2$d  |  To Watch: %3$d</string>
+    <string name="home_update_dialog_msg">A new update for Watch List is available.\n\nCurrent version: %1$s\nNew version: %2$s</string>
+    <string name="login_subtitle">Build your catalog, discover and watch.</string>
+    <string name="source_justwatch">Source: JustWatch</string>
+    <string name="discover_because_you_watched">Because you watched %1$s</string>
 </resources>

@@ -64,7 +64,7 @@ class WatchListWidget : GlanceAppWidget() {
             ) {
                 // Header
                 Text(
-                    text = "Watch List",
+                    text = context.getString(R.string.app_name),
                     style = TextStyle(
                         color = ColorProvider(android.graphics.Color.parseColor("#3B82F6")),
                         fontSize = 14.sp,

@@ -127,7 +127,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Watch List",
+                text = stringResource(R.string.app_name),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = BlueAccent
@@ -136,7 +136,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
             Spacer(modifier = Modifier.height(6.dp))
             
             Text(
-                text = "Kataloğunu oluştur, keşfet ve izle.",
+                text = stringResource(R.string.login_subtitle),
                 fontSize = 15.sp,
                 color = LightText
             )

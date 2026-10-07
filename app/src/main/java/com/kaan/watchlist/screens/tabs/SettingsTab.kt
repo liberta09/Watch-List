@@ -89,7 +89,7 @@ fun SettingsTab(
         } else {
             viewModel.setNotificationsEnabled(false)
             com.kaan.watchlist.util.UpcomingScheduler.cancel(context)
-            Toast.makeText(context, "Bildirim izni reddedildi.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_notification_permission_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -222,7 +222,7 @@ fun SettingsTab(
                                 .height(48.dp)
                                 .tvFocusable(shape = RoundedCornerShape(12.dp))
                         ) {
-                            Text("Güncellemeleri Kontrol Et", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text(stringResource(R.string.settings_check_update), color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         }
                     }
                     is UpdateStatus.Checking -> {
@@ -240,7 +240,7 @@ fun SettingsTab(
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Kontrol ediliyor...", color = LightText, fontSize = 15.sp)
+                            Text(stringResource(R.string.settings_checking), color = LightText, fontSize = 15.sp)
                         }
                     }
                     is UpdateStatus.UpToDate -> {
@@ -252,7 +252,7 @@ fun SettingsTab(
                         ) {
                             Icon(Icons.Default.Check, contentDescription = null, tint = Color.Green)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Uygulamanız güncel.", color = LightText, fontSize = 15.sp)
+                            Text(stringResource(R.string.settings_up_to_date), color = LightText, fontSize = 15.sp)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
@@ -264,7 +264,7 @@ fun SettingsTab(
                                 .height(44.dp)
                                 .tvFocusable(shape = RoundedCornerShape(12.dp))
                         ) {
-                            Text("Yeniden Kontrol Et", color = LightText, fontSize = 14.sp)
+                            Text(stringResource(R.string.settings_recheck), color = LightText, fontSize = 14.sp)
                         }
                     }
                     is UpdateStatus.UpdateAvailable -> {
@@ -287,7 +287,7 @@ fun SettingsTab(
                                 .height(48.dp)
                                 .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onDownload)
                         ) {
-                            Text("Güncellemeyi İndir", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text(stringResource(R.string.settings_download_update), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         }
                     }
                     is UpdateStatus.Error -> {
@@ -306,7 +306,7 @@ fun SettingsTab(
                                 .height(44.dp)
                                 .tvFocusable(shape = RoundedCornerShape(12.dp))
                         ) {
-                            Text("Tekrar Dene", color = LightText, fontSize = 14.sp)
+                            Text(stringResource(R.string.general_retry), color = LightText, fontSize = 14.sp)
                         }
                     }
                 }
@@ -327,7 +327,7 @@ fun SettingsTab(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Bildirimleri Aç", color = LightText, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.settings_notifications_enable), color = LightText, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 Switch(
                     checked = notificationsEnabled,
                     onCheckedChange = { isChecked ->
@@ -363,7 +363,7 @@ fun SettingsTab(
                             NotificationHelper.sendTestNotification(context)
                         }
                     } else {
-                        Toast.makeText(context, "Bildirimler kapalı. Lütfen önce bildirimleri açın.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_notifications_disabled), Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
@@ -372,7 +372,7 @@ fun SettingsTab(
                     .height(50.dp)
                     .tvFocusable(shape = RoundedCornerShape(12.dp))
             ) {
-                Text(text = "Test Bildirimi Gönder", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(text = stringResource(R.string.settings_test_notification), color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             }
     
             Spacer(modifier = Modifier.height(12.dp))
@@ -380,7 +380,7 @@ fun SettingsTab(
             Button(
                 onClick = {
                     com.kaan.watchlist.util.UpcomingScheduler.checkNow(context)
-                    Toast.makeText(context, "Kontrol başlatıldı", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_check_started), Toast.LENGTH_SHORT).show()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
                 modifier = Modifier
@@ -388,7 +388,7 @@ fun SettingsTab(
                     .height(50.dp)
                     .tvFocusable(shape = RoundedCornerShape(12.dp))
             ) {
-                Text(text = "Yaklaşanları şimdi kontrol et", color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(text = stringResource(R.string.settings_check_upcoming_now), color = LightText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             }
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -407,7 +407,7 @@ fun SettingsTab(
         ) {
             Column {
                 Text(
-                    text = "Liste Paylaşımı",
+                    text = stringResource(R.string.settings_share_list),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = LightText
@@ -418,7 +418,7 @@ fun SettingsTab(
                     colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                     modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
-                    Text("Listemi Paylaş", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.settings_share_my_list), color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
@@ -426,7 +426,7 @@ fun SettingsTab(
                     colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
                     modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
-                    Text("Kod ile Liste Aç", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.settings_open_with_code), color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
@@ -446,15 +446,15 @@ fun SettingsTab(
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showShareDialog = false },
                 containerColor = DarkSurface,
-                title = { Text("Listemi Paylaş", color = LightText, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings_share_my_list), color = LightText, fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
-                        Text("Bu kodu bilen herkes listeni görebilir.", color = Color.Gray, fontSize = 12.sp)
+                        Text(stringResource(R.string.settings_share_desc), color = Color.Gray, fontSize = 12.sp)
                         Spacer(modifier = Modifier.height(16.dp))
                         androidx.compose.material3.OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
-                            label = { Text("Liste Adı", color = Color.Gray) },
+                            label = { Text(stringResource(R.string.settings_share_list_name), color = Color.Gray) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = LightText,
@@ -463,7 +463,7 @@ fun SettingsTab(
                             )
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("İçerik:", color = LightText)
+                        Text(stringResource(R.string.settings_share_content), color = LightText)
                         val filters = listOf(
                             stringResource(R.string.settings_share_filter_all) to com.kaan.watchlist.domain.model.ShareFilter.ALL,
                             stringResource(R.string.settings_share_filter_watchlist) to com.kaan.watchlist.domain.model.ShareFilter.WATCHLIST,
@@ -507,16 +507,16 @@ fun SettingsTab(
                                 val shareIntent = Intent.createChooser(sendIntent, null)
                                 context.startActivity(shareIntent)
                             } else {
-                                Toast.makeText(context, "Liste paylaşılamadı (Sadece giriş yapan kullanıcılar paylaşabilir)", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, context.getString(R.string.toast_share_list_failed), Toast.LENGTH_LONG).show()
                             }
                         }
                     }) {
-                        Text("Paylaş", color = BlueAccent)
+                        Text(stringResource(R.string.settings_share_btn), color = BlueAccent)
                     }
                 },
                 dismissButton = {
                     androidx.compose.material3.TextButton(onClick = { showShareDialog = false }) {
-                        Text("İptal", color = LightText)
+                        Text(stringResource(R.string.general_cancel), color = LightText)
                     }
                 }
             )
@@ -529,13 +529,13 @@ fun SettingsTab(
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showOpenDialog = false },
                 containerColor = DarkSurface,
-                title = { Text("Kod ile Liste Aç", color = LightText, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings_open_with_code), color = LightText, fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
                         androidx.compose.material3.OutlinedTextField(
                             value = code,
                             onValueChange = { code = it.uppercase().replace(" ", "") },
-                            label = { Text("8 Haneli Kod", color = Color.Gray) },
+                            label = { Text(stringResource(R.string.settings_open_code_label), color = Color.Gray) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = LightText,
@@ -558,17 +558,17 @@ fun SettingsTab(
                                     showOpenDialog = false
                                     onNavigateToSharedList(code)
                                 } else {
-                                    Toast.makeText(context, "Bu kod geçersiz veya paylaşım kapatılmış", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.toast_invalid_share_code), Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
                     }) {
-                        Text("Aç", color = BlueAccent)
+                        Text(stringResource(R.string.settings_open_btn), color = BlueAccent)
                     }
                 },
                 dismissButton = {
                     androidx.compose.material3.TextButton(onClick = { showOpenDialog = false }) {
-                        Text("İptal", color = LightText)
+                        Text(stringResource(R.string.general_cancel), color = LightText)
                     }
                 }
             )
@@ -589,14 +589,14 @@ fun SettingsTab(
                     if (myShares == null) {
                         CircularProgressIndicator(color = BlueAccent)
                     } else if (myShares!!.isEmpty()) {
-                        Text("Aktif paylaşımınız yok.", color = LightText)
+                        Text(stringResource(R.string.settings_no_active_shares), color = LightText)
                     } else {
                         Column(modifier = Modifier.fillMaxWidth().height(300.dp).verticalScroll(rememberScrollState())) {
                             myShares!!.forEach { share ->
                                 Box(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).background(DarkNavy, RoundedCornerShape(8.dp)).padding(8.dp)) {
                                     Column {
                                         Text(share.title.ifBlank { stringResource(R.string.settings_unnamed_list) }, color = LightText, fontWeight = FontWeight.Bold)
-                                        Text("Kod: ${share.code}", color = Color.Gray, fontSize = 12.sp)
+                                        Text(stringResource(R.string.settings_share_code, share.code), color = Color.Gray, fontSize = 12.sp)
                                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                             androidx.compose.material3.TextButton(onClick = {
                                                 val sendIntent: Intent = Intent().apply {
@@ -607,14 +607,14 @@ fun SettingsTab(
                                                 val shareIntent = Intent.createChooser(sendIntent, null)
                                                 context.startActivity(shareIntent)
                                             }) {
-                                                Text("Kopyala", color = BlueAccent, fontSize = 12.sp)
+                                                Text(stringResource(R.string.general_copy), color = BlueAccent, fontSize = 12.sp)
                                             }
                                             androidx.compose.material3.TextButton(onClick = {
                                                 viewModel.removeSharedList(share.code) {
                                                     viewModel.getMySharedLists { myShares = it }
                                                 }
                                             }) {
-                                                Text("Kapat", color = Color(0xFFFF6B6B), fontSize = 12.sp)
+                                                Text(stringResource(R.string.general_close), color = Color(0xFFFF6B6B), fontSize = 12.sp)
                                             }
                                         }
                                     }
@@ -625,7 +625,7 @@ fun SettingsTab(
                 },
                 confirmButton = {
                     androidx.compose.material3.TextButton(onClick = { showMySharesDialog = false }) {
-                        Text("Kapat", color = BlueAccent)
+                        Text(stringResource(R.string.general_close), color = BlueAccent)
                     }
                 }
             )
@@ -674,17 +674,17 @@ fun SettingsTab(
                             .height(48.dp)
                             .tvFocusable(shape = RoundedCornerShape(12.dp))
                     ) {
-                        Text("Trakt Hesabını Bağla", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(stringResource(R.string.settings_trakt_connect), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "✓ Trakt bağlı", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(text = stringResource(R.string.settings_trakt_connected), color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Spacer(modifier = Modifier.weight(1f))
                         androidx.compose.material3.TextButton(
                             onClick = { viewModel.disconnectTrakt() },
                             modifier = Modifier.tvFocusable()
                         ) {
-                            Text("Bağlantıyı Kes", color = Color(0xFFFF6B6B), fontSize = 14.sp)
+                            Text(stringResource(R.string.settings_trakt_disconnect_btn), color = Color(0xFFFF6B6B), fontSize = 14.sp)
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -698,7 +698,7 @@ fun SettingsTab(
                             .height(48.dp)
                             .tvFocusable(shape = RoundedCornerShape(12.dp))
                     ) {
-                        Text("Trakt'tan İçe Aktar", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(stringResource(R.string.settings_trakt_import_btn), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
                 }
             }
@@ -709,10 +709,10 @@ fun SettingsTab(
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { viewModel.cancelTraktAuth() },
                 containerColor = DarkSurface,
-                title = { Text("Trakt Bağlantısı", color = LightText, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings_trakt_connection_title), color = LightText, fontWeight = FontWeight.Bold) },
                 text = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        Text("trakt.tv/activate adresine git ve bu kodu gir:", color = LightText, fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Text(stringResource(R.string.settings_trakt_activation_desc), color = LightText, fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = deviceCode!!.user_code.uppercase(),
@@ -724,13 +724,13 @@ fun SettingsTab(
                         Spacer(modifier = Modifier.height(16.dp))
                         androidx.compose.material3.CircularProgressIndicator(color = BlueAccent, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Bekleniyor...", color = LightText.copy(alpha=0.7f), fontSize = 12.sp)
+                        Text(stringResource(R.string.settings_trakt_waiting), color = LightText.copy(alpha=0.7f), fontSize = 12.sp)
                     }
                 },
                 confirmButton = {},
                 dismissButton = {
                     androidx.compose.material3.TextButton(onClick = { viewModel.cancelTraktAuth() }, modifier = Modifier.tvFocusable()) {
-                        Text("İptal", color = LightText)
+                        Text(stringResource(R.string.general_cancel), color = LightText)
                     }
                 }
             )
@@ -742,10 +742,10 @@ fun SettingsTab(
                 androidx.compose.material3.AlertDialog(
                     onDismissRequest = { /* No dismiss */ },
                     containerColor = DarkSurface,
-                    title = { Text("Trakt'tan İçe Aktarılıyor", color = LightText, fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.settings_trakt_importing_title), color = LightText, fontWeight = FontWeight.Bold) },
                     text = {
                         Column {
-                            Text("İçe aktarılıyor... ${state.done} / ${state.total}", color = LightText)
+                            Text(stringResource(R.string.settings_trakt_importing_desc, state.done, state.total), color = LightText)
                             Spacer(modifier = Modifier.height(8.dp))
                             if (state.total > 0) {
                                 androidx.compose.material3.LinearProgressIndicator(
@@ -772,9 +772,9 @@ fun SettingsTab(
                     containerColor = DarkSurface,
                     title = { 
                         if (state.result.errorMessage != null) {
-                            Text("❌ İçe aktarma başarısız", color = Color(0xFFFF6B6B), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.settings_trakt_import_failed), color = Color(0xFFFF6B6B), fontWeight = FontWeight.Bold)
                         } else {
-                            Text("✓ İçe aktarma tamamlandı", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.settings_trakt_import_success), color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
                         }
                     },
                     text = {
@@ -782,18 +782,18 @@ fun SettingsTab(
                             if (state.result.errorMessage != null) {
                                 Text(state.result.errorMessage, color = LightText)
                             } else {
-                                Text("📦 ${state.result.itemsAdded} öğe eklendi", color = LightText)
-                                Text("▶️ ${state.result.episodesAdded} bölüm izlendi işareti", color = LightText)
-                                Text("🔄 ${state.result.itemsUpdated} öğe güncellendi", color = LightText)
+                                Text(stringResource(R.string.settings_trakt_items_added, state.result.itemsAdded), color = LightText)
+                                Text(stringResource(R.string.settings_trakt_episodes_added, state.result.episodesAdded), color = LightText)
+                                Text(stringResource(R.string.settings_trakt_items_updated, state.result.itemsUpdated), color = LightText)
                                 if (state.result.unmatched > 0) {
-                                    Text("⚠️ ${state.result.unmatched} öğe eşleştirilemedi", color = Color(0xFFFF6B6B))
+                                    Text(stringResource(R.string.settings_trakt_unmatched, state.result.unmatched), color = Color(0xFFFF6B6B))
                                 }
                             }
                         }
                     },
                     confirmButton = {
                         androidx.compose.material3.TextButton(onClick = { viewModel.resetTraktImportState() }, modifier = Modifier.tvFocusable()) {
-                            Text("Tamam", color = BlueAccent, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.general_ok), color = BlueAccent, fontWeight = FontWeight.Bold)
                         }
                     }
                 )
@@ -811,7 +811,7 @@ fun SettingsTab(
                 .height(50.dp)
                 .tvFocusable(shape = RoundedCornerShape(12.dp))
         ) {
-            Text(text = "Çıkış Yap", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(text = stringResource(R.string.settings_logout), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
     }
 }

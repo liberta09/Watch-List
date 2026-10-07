@@ -105,7 +105,7 @@ fun RegisterScreen(navController: NavController) {
                         onClick = { onBack() },
                         modifier = Modifier.tvFocusable(shape = CircleShape, onClick = { onBack() })
                     ) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = LightText)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.general_back), tint = LightText)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
