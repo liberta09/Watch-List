@@ -1,4 +1,101 @@
 <resources>
     <string name="app_name">Watch List</string>
     <string name="widget_description">Bu hafta çıkacaklar ve kaldığın yer</string>
+
+    <!-- Home Screen -->
+    <string name="home_tab_discover">Keşfet</string>
+    <string name="home_tab_search">Ara</string>
+    <string name="home_tab_my_list">Listem</string>
+    <string name="home_tab_favorites">Favoriler</string>
+    <string name="home_tab_settings">Ayarlar</string>
+
+    <string name="update_downloading">Güncelleme indiriliyor...</string>
+    <string name="update_available">Güncelleme Mevcut</string>
+    <string name="update_install">Kur (Install)</string>
+    <string name="update_later">Daha Sonra</string>
+    <string name="update_do_update">Güncellemeyi Yap</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_add_to_list">LİSTEYE EKLE</string>
+    <string name="detail_added_to_list">✓ LİSTEYE EKLENDİ</string>
+    <string name="detail_add_to_favorite">Favoriye Ekle</string>
+    <string name="detail_in_favorites">Favorilerde</string>
+    <string name="detail_watch_trailer">Fragmanı İzle</string>
+    <string name="detail_release_date">🎬 Vizyon tarihi: %1$s</string>
+    <string name="detail_score">Ortalama Puan: %1$s</string>
+
+    <string name="detail_note_placeholder">Notunuzu buraya yazın...</string>
+    <string name="detail_cancel">İptal</string>
+    <string name="detail_save">Kaydet</string>
+    <string name="detail_delete_note">Notu Sil</string>
+    <string name="detail_edit_note">Notu Düzenle</string>
+    <string name="detail_add_note">Not Ekle</string>
+
+    <string name="detail_dialog_add_title">Listeye Ekle</string>
+    <string name="detail_dialog_add_desc">Bu içeriği nasıl eklemek istersin?</string>
+    <string name="detail_dialog_to_watch">🔖 İzlenecek</string>
+    <string name="detail_dialog_watched">✓ İzlendi</string>
+
+    <!-- Tabs & General -->
+    <string name="tab_stats">📊 İstatistikler</string>
+    <string name="sort_by">Sırala: %1$s</string>
+    <string name="sort_date_added">Eklenme Tarihi (Yeni → Eski)</string>
+    <string name="sort_tmdb_score">TMDB Puanı (Yüksek → Düşük)</string>
+    <string name="sort_my_score">Benim Puanım (Yüksek → Düşük)</string>
+    <string name="sort_name">Ada Göre (A-Z)</string>
+    <string name="sort_date_watched">İzlenme Tarihi (Yeni → Eski)</string>
+
+    <string name="empty_list">Listeniz şu an boş.</string>
+    <string name="empty_favorites">Henüz favori eklemediniz.</string>
+
+    <!-- Search Tab -->
+    <string name="search_placeholder">Film veya dizi ara...</string>
+
+    <!-- Settings Tab -->
+    <string name="settings_language">Dil / Language</string>
+    <string name="settings_lang_system">Sistem Varsayılanı</string>
+    <string name="settings_lang_tr">Türkçe</string>
+    <string name="settings_lang_en">English</string>
+
+    <string name="settings_check_update">Güncellemeleri Kontrol Et</string>
+    <string name="settings_checking">Kontrol ediliyor...</string>
+    <string name="settings_up_to_date">Uygulamanız güncel.</string>
+    <string name="settings_recheck">Yeniden Kontrol Et</string>
+    <string name="settings_download_update">Güncellemeyi İndir</string>
+    <string name="settings_retry">Tekrar Dene</string>
+
+    <string name="settings_share_list">Liste Paylaşımı</string>
+    <string name="settings_share_my_list">Listemi Paylaş</string>
+    <string name="settings_open_with_code">Kod ile Liste Aç</string>
+    <string name="settings_my_shared_lists">Paylaşılan Listelerim</string>
+
+    <string name="settings_trakt_title">Trakt.tv</string>
+    <string name="settings_trakt_connect">Trakt Hesabını Bağla</string>
+    <string name="settings_trakt_disconnect">Trakt Bağlantısını Kes</string>
+    <string name="settings_trakt_sync">Trakt Verilerimi İçe Aktar</string>
+
+    <!-- Discover -->
+    <string name="discover_trending">Bu Hafta Trend</string>
+    <string name="discover_now_playing">Vizyondakiler</string>
+    <string name="discover_upcoming">Yakında</string>
+    <string name="discover_popular_movies">Popüler Filmler</string>
+    <string name="discover_popular_tv">Popüler Diziler</string>
+    <string name="discover_for_you">✨ Sana Özel</string>
+
+    <!-- Detail General -->
+    <string name="where_to_watch">Nereden İzleyebilirim?</string>
+    <string name="cast">Oyuncular</string>
+    <string name="director">Yönetmen</string>
+    <string name="genres">Türler</string>
+    <string name="duration">Süre</string>
+    <string name="country">Ülke</string>
+    <string name="seasons">Sezonlar</string>
+    <string name="recommendations">Önerilenler</string>
+    <string name="next_episode">Sonraki Bölüm</string>
+    <string name="my_rating">Benim Puanım</string>
+    <string name="rate">Puan Ver</string>
+
+    <!-- Season details -->
+    <string name="season_title">Sezon %1$d</string>
+    <string name="episode_title">Bölüm %1$d</string>
 </resources>

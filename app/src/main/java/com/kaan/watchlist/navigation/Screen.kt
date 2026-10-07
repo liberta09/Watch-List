@@ -17,10 +17,10 @@ sealed class Screen(val route: String) {
     }
 }
 
-sealed class BottomNavScreen(val route: String, val title: String) {
-    object Discover : BottomNavScreen("discover", "Ana Sayfa")
-    object Search : BottomNavScreen("search", "Ara")
-    object MyList : BottomNavScreen("my_list", "Listem")
-    object Favorites : BottomNavScreen("favorites", "Favoriler")
-    object Settings : BottomNavScreen("settings", "Ayarlar")
+sealed class BottomNavScreen(val route: String, val titleResId: Int) {
+    object Discover : BottomNavScreen("discover", com.kaan.watchlist.R.string.home_tab_discover)
+    object Search : BottomNavScreen("search", com.kaan.watchlist.R.string.home_tab_search)
+    object MyList : BottomNavScreen("my_list", com.kaan.watchlist.R.string.home_tab_my_list)
+    object Favorites : BottomNavScreen("favorites", com.kaan.watchlist.R.string.home_tab_favorites)
+    object Settings : BottomNavScreen("settings", com.kaan.watchlist.R.string.home_tab_settings)
 }

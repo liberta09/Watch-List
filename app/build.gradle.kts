@@ -44,8 +44,8 @@ android {
         applicationId = "com.kaan.watchlist"
         minSdk = 24
         targetSdk = 35
-        versionCode = 17
-        versionName = "1.1.19"
+        versionCode = 18
+        versionName = "1.1.20"
         
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
         buildConfigField("String", "TRAKT_CLIENT_ID", "\"$traktClientId\"")
@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)

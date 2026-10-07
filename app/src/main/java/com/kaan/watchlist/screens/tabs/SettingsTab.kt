@@ -60,6 +60,10 @@ import com.kaan.watchlist.ui.theme.LightText
 import com.kaan.watchlist.util.NotificationHelper
 import com.kaan.watchlist.util.UpdateHelper
 import com.kaan.watchlist.viewmodel.MediaViewModel
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 
 @Composable
 fun SettingsTab(
@@ -96,13 +100,91 @@ fun SettingsTab(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Ayarlar",
+            text = stringResource(R.string.home_tab_settings),
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = LightText
         )
         
         Spacer(modifier = Modifier.height(24.dp))
+        
+        // --- Language Section ---
+        var showLanguageDialog by androidx.compose.runtime.mutableStateOf(false)
+        val currentLocales = AppCompatDelegate.getApplicationLocales()
+        val currentLangCode = if (currentLocales.isEmpty) "system" else currentLocales.get(0)?.language ?: "system"
+        val currentLangLabel = when (currentLangCode) {
+            "tr" -> stringResource(R.string.settings_lang_tr)
+            "en" -> stringResource(R.string.settings_lang_en)
+            else -> stringResource(R.string.settings_lang_system)
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .padding(16.dp)
+                .clickable { showLanguageDialog = true }
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_language),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LightText
+                )
+                Text(
+                    text = currentLangLabel,
+                    fontSize = 16.sp,
+                    color = BlueAccent
+                )
+            }
+        }
+
+        if (showLanguageDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showLanguageDialog = false },
+                containerColor = DarkSurface,
+                title = { Text(stringResource(R.string.settings_language), color = LightText, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        val options = listOf(
+                            "system" to stringResource(R.string.settings_lang_system),
+                            "tr" to stringResource(R.string.settings_lang_tr),
+                            "en" to stringResource(R.string.settings_lang_en)
+                        )
+                        options.forEach { (code, label) ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        showLanguageDialog = false
+                                        val locales = if (code == "system") LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(code)
+                                        AppCompatDelegate.setApplicationLocales(locales)
+                                        // Cache temizliği ve refresh viewmodel üzerinden yapılmalı, bunu birazdan viewmodela ekleyeceğiz
+                                        viewModel.onLanguageChanged()
+                                    }
+                                    .padding(vertical = 12.dp)
+                            ) {
+                                androidx.compose.material3.RadioButton(
+                                    selected = currentLangCode == code,
+                                    onClick = null,
+                                    colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = BlueAccent)
+                                )
+                                Text(label, color = LightText, modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
+                    }
+                },
+                confirmButton = {}
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
         
         // App Update Section Card
         Box(

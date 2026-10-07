@@ -39,6 +39,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -188,7 +190,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         
         if (upcomingForUser.isNotEmpty()) {
             item {
-                SectionTitle("📅 Takip Ettiklerinde Yakında")
+                SectionTitle("📅 " + stringResource(R.string.discover_upcoming))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -237,7 +239,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         
         if (personalRecommendations.isNotEmpty()) {
             item {
-                SectionTitle("✨ Sana Özel")
+                SectionTitle(stringResource(R.string.discover_for_you))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -262,7 +264,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         
         if (myList.isNotEmpty()) {
             item {
-                SectionTitle("Listem")
+                SectionTitle(stringResource(R.string.home_tab_my_list))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -285,7 +287,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 
         if (trending.isNotEmpty()) {
             item {
-                SectionTitle("Bu Hafta Trend", onTelegramClick = onTelegramClick)
+                SectionTitle(stringResource(R.string.discover_trending), onTelegramClick = onTelegramClick)
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -308,7 +310,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 
         if (nowPlaying.isNotEmpty()) {
             item {
-                SectionTitle("Vizyondakiler")
+                SectionTitle(stringResource(R.string.discover_now_playing))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -331,7 +333,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
 
         if (upcoming.isNotEmpty()) {
             item {
-                SectionTitle("Yakında")
+                SectionTitle(stringResource(R.string.discover_upcoming))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -353,7 +355,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         }
 
         item {
-            SectionTitle("Popüler Filmler")
+            SectionTitle(stringResource(R.string.discover_popular_movies))
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -374,7 +376,7 @@ fun DiscoverTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
         }
 
         item {
-            SectionTitle("Popüler Diziler")
+            SectionTitle(stringResource(R.string.discover_popular_tv))
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

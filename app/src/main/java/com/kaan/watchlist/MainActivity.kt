@@ -5,7 +5,7 @@ import android.util.Log
 import android.view.InputDevice
 import android.view.MotionEvent
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -43,7 +43,7 @@ import androidx.compose.runtime.getValue
 import com.kaan.watchlist.util.UpcomingScheduler
 import android.content.Context
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val openMediaId = mutableStateOf<Int?>(null)
 
     override fun onNewIntent(intent: Intent) {

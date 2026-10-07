@@ -463,6 +463,20 @@ class MediaViewModel(
         repository.shareList(title, filter, onResult)
     }
 
+    fun onLanguageChanged() {
+        _trending.value = emptyList()
+        _nowPlaying.value = emptyList()
+        _upcoming.value = emptyList()
+        _popularMovies.value = emptyList()
+        _popularTvShows.value = emptyList()
+        _discoverError.value = null
+        loadHomeData()
+        
+        viewModelScope.launch {
+            repository.refreshAllMediaLanguage()
+        }
+    }
+
     fun fetchSharedList(code: String, onResult: (com.kaan.watchlist.domain.model.SharedList?) -> Unit) {
         repository.fetchSharedList(code, onResult)
     }

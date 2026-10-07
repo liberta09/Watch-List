@@ -45,6 +45,8 @@ import com.kaan.watchlist.BuildConfig
 import com.kaan.watchlist.util.UpdateHelper
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -112,6 +114,9 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
 
     if (currentAnnouncement != null) {
         val announcement = currentAnnouncement!!
+        val appLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+        val currentLang = if (appLocales.isEmpty) java.util.Locale.getDefault().language else appLocales.get(0)?.language ?: "tr"
+        val isEn = currentLang.startsWith("en")
 
         AlertDialog(
             onDismissRequest = {
@@ -119,7 +124,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
             },
             title = {
                 Text(
-                    text = announcement.title,
+                    text = announcement.getLocalizedTitle(isEn),
                     color = LightText,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -127,7 +132,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
             },
             text = {
                 Text(
-                    text = announcement.message,
+                    text = announcement.getLocalizedMessage(isEn),
                     color = LightText.copy(alpha = 0.85f),
                     fontSize = 15.sp,
                     lineHeight = 22.sp
@@ -144,7 +149,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                         viewModel.dismissAnnouncement(announcement.id)
                     })
                 ) {
-                    Text(text = announcement.buttonText, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(text = announcement.getLocalizedButtonText(isEn), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             containerColor = DarkSurface,
@@ -170,7 +175,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
             onDismissRequest = onDismissUpdate,
             title = {
                 Text(
-                    text = "🔄 Güncelleme Mevcut",
+                    text = "🔄 " + stringResource(R.string.update_available),
                     color = LightText,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -191,7 +196,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onDoUpdate)
                 ) {
-                    Text("Güncellemeyi Yap", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.update_do_update), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -199,7 +204,7 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                     onClick = onDismissUpdate,
                     modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onDismissUpdate)
                 ) {
-                    Text("Daha Sonra", color = Color.Gray)
+                    Text(stringResource(R.string.update_later), color = Color.Gray)
                 }
             },
             containerColor = DarkSurface,
@@ -245,8 +250,8 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                             scaleOnFocus = 1.08f,
                             onClick = onTabClick
                         ),
-                        icon = { Icon(item.icon, contentDescription = item.screen.title) },
-                        label = { Text(item.screen.title) },
+                        icon = { Icon(item.icon, contentDescription = stringResource(id = item.screen.titleResId)) },
+                        label = { Text(stringResource(id = item.screen.titleResId)) },
                         selected = currentRoute == item.screen.route,
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = BlueAccent,

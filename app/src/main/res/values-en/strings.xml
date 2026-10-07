@@ -1,0 +1,101 @@
+<resources>
+    <string name="app_name">Watch List</string>
+    <string name="widget_description">Upcoming releases and where you left off</string>
+
+    <!-- Home Screen -->
+    <string name="home_tab_discover">Discover</string>
+    <string name="home_tab_search">Search</string>
+    <string name="home_tab_my_list">My List</string>
+    <string name="home_tab_favorites">Favorites</string>
+    <string name="home_tab_settings">Settings</string>
+
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_available">Update Available</string>
+    <string name="update_install">Install</string>
+    <string name="update_later">Later</string>
+    <string name="update_do_update">Update Now</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_add_to_list">ADD TO LIST</string>
+    <string name="detail_added_to_list">✓ ADDED TO LIST</string>
+    <string name="detail_add_to_favorite">Add to Favorites</string>
+    <string name="detail_in_favorites">In Favorites</string>
+    <string name="detail_watch_trailer">Watch Trailer</string>
+    <string name="detail_release_date">🎬 Release Date: %1$s</string>
+    <string name="detail_score">Average Score: %1$s</string>
+
+    <string name="detail_note_placeholder">Write your note here…</string>
+    <string name="detail_cancel">Cancel</string>
+    <string name="detail_save">Save</string>
+    <string name="detail_delete_note">Delete Note</string>
+    <string name="detail_edit_note">Edit Note</string>
+    <string name="detail_add_note">Add Note</string>
+
+    <string name="detail_dialog_add_title">Add to List</string>
+    <string name="detail_dialog_add_desc">How do you want to add this?</string>
+    <string name="detail_dialog_to_watch">🔖 To Watch</string>
+    <string name="detail_dialog_watched">✓ Watched</string>
+
+    <!-- Tabs & General -->
+    <string name="tab_stats">📊 Statistics</string>
+    <string name="sort_by">Sort by: %1$s</string>
+    <string name="sort_date_added">Date Added (New → Old)</string>
+    <string name="sort_tmdb_score">TMDB Score (High → Low)</string>
+    <string name="sort_my_score">My Score (High → Low)</string>
+    <string name="sort_name">Name (A-Z)</string>
+    <string name="sort_date_watched">Date Watched (New → Old)</string>
+
+    <string name="empty_list">Your list is currently empty.</string>
+    <string name="empty_favorites">You haven\'t added any favorites yet.</string>
+
+    <!-- Search Tab -->
+    <string name="search_placeholder">Search movies or tv shows…</string>
+
+    <!-- Settings Tab -->
+    <string name="settings_language">Language / Dil</string>
+    <string name="settings_lang_system">System Default</string>
+    <string name="settings_lang_tr">Türkçe</string>
+    <string name="settings_lang_en">English</string>
+
+    <string name="settings_check_update">Check for Updates</string>
+    <string name="settings_checking">Checking…</string>
+    <string name="settings_up_to_date">App is up to date.</string>
+    <string name="settings_recheck">Check Again</string>
+    <string name="settings_download_update">Download Update</string>
+    <string name="settings_retry">Retry</string>
+
+    <string name="settings_share_list">List Sharing</string>
+    <string name="settings_share_my_list">Share My List</string>
+    <string name="settings_open_with_code">Open List with Code</string>
+    <string name="settings_my_shared_lists">My Shared Lists</string>
+
+    <string name="settings_trakt_title">Trakt.tv</string>
+    <string name="settings_trakt_connect">Connect Trakt Account</string>
+    <string name="settings_trakt_disconnect">Disconnect Trakt</string>
+    <string name="settings_trakt_sync">Import Trakt Data</string>
+
+    <!-- Discover -->
+    <string name="discover_trending">Trending This Week</string>
+    <string name="discover_now_playing">Now Playing</string>
+    <string name="discover_upcoming">Upcoming</string>
+    <string name="discover_popular_movies">Popular Movies</string>
+    <string name="discover_popular_tv">Popular TV Shows</string>
+    <string name="discover_for_you">✨ For You</string>
+
+    <!-- Detail General -->
+    <string name="where_to_watch">Where to Watch?</string>
+    <string name="cast">Cast</string>
+    <string name="director">Director</string>
+    <string name="genres">Genres</string>
+    <string name="duration">Duration</string>
+    <string name="country">Country</string>
+    <string name="seasons">Seasons</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="next_episode">Next Episode</string>
+    <string name="my_rating">My Rating</string>
+    <string name="rate">Rate</string>
+
+    <!-- Season details -->
+    <string name="season_title">Season %1$d</string>
+    <string name="episode_title">Episode %1$d</string>
+</resources>

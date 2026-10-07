@@ -54,6 +54,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -339,7 +341,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (media.isInList) "✓ LİSTEYE EKLENDİ" else "LİSTEYE EKLE")
+                        Text(if (media.isInList) stringResource(R.string.detail_added_to_list) else stringResource(R.string.detail_add_to_list))
                     }
 
                     Button(
@@ -356,7 +358,7 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
                             tint = if (media.isFavorite) Color.Red else LightText
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (media.isFavorite) "Favorilerde" else "Favoriye Ekle")
+                        Text(if (media.isFavorite) stringResource(R.string.detail_in_favorites) else stringResource(R.string.detail_add_to_favorite))
                     }
                 }
 
@@ -663,8 +665,8 @@ fun DetailScreen(navController: NavController, viewModel: MediaViewModel, mediaI
             }
             AlertDialog(
                 onDismissRequest = { showAddToListDialog = false },
-                title = { Text("Listeye Ekle", color = LightText, fontWeight = FontWeight.Bold) },
-                text = { Text("Bu içeriği nasıl eklemek istersin?", color = LightText.copy(alpha = 0.85f)) },
+                title = { Text(stringResource(R.string.detail_dialog_add_title), color = LightText, fontWeight = FontWeight.Bold) },
+                text = { Text(stringResource(R.string.detail_dialog_add_desc), color = LightText.copy(alpha = 0.85f)) },
                 confirmButton = {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

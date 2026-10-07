@@ -68,6 +68,16 @@ class MediaRepository(val context: Context) {
         "War & Politics" to "Savaş & Politika"
     )
 
+    private val currentLanguage: String
+        get() {
+            val appLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+            return if (appLocales.isEmpty) {
+                if (java.util.Locale.getDefault().language == "tr") "tr-TR" else "en-US"
+            } else {
+                if (appLocales.get(0)?.language == "tr") "tr-TR" else "en-US"
+            }
+        }
+
     private fun MediaItem.sanitized(): MediaItem {
         val g: List<String>? = genres
         val c: List<String>? = cast
@@ -374,7 +384,7 @@ class MediaRepository(val context: Context) {
 
     suspend fun getPopularMovies(): List<MediaItem> {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception("API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.")
-        val response = tmdbApi.getPopularMovies(apiKey)
+        val response = tmdbApi.getPopularMovies(apiKey, language = currentLanguage)
         return response.results.map { dto -> 
             mapDtoToMediaItem(dto, MediaType.MOVIE) 
         }
@@ -382,7 +392,7 @@ class MediaRepository(val context: Context) {
 
     suspend fun getPopularTvShows(): List<MediaItem> {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception("API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.")
-        val response = tmdbApi.getPopularTvShows(apiKey)
+        val response = tmdbApi.getPopularTvShows(apiKey, language = currentLanguage)
         return response.results.map { dto -> 
             mapDtoToMediaItem(dto, MediaType.TV) 
         }
@@ -391,7 +401,7 @@ class MediaRepository(val context: Context) {
     suspend fun getTrending(): List<MediaItem> {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
         return try {
-            val res = tmdbApi.getTrendingWeek(apiKey)
+            val res = tmdbApi.getTrendingWeek(apiKey, language = currentLanguage)
             res.results.filter { it.mediaType == "movie" || it.mediaType == "tv" }.map { dto ->
                 val type = if (dto.mediaType == "movie") MediaType.MOVIE else MediaType.TV
                 mapDtoToMediaItem(dto, type)
@@ -402,7 +412,7 @@ class MediaRepository(val context: Context) {
     suspend fun getNowPlaying(): List<MediaItem> {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
         return try {
-            val res = tmdbApi.getNowPlayingMovies(apiKey)
+            val res = tmdbApi.getNowPlayingMovies(apiKey, language = currentLanguage)
             res.results.map { dto -> mapDtoToMediaItem(dto, MediaType.MOVIE) }
         } catch (e: Exception) { emptyList() }
     }
@@ -410,7 +420,7 @@ class MediaRepository(val context: Context) {
     suspend fun getUpcoming(): List<MediaItem> {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
         return try {
-            val res = tmdbApi.getUpcomingMovies(apiKey)
+            val res = tmdbApi.getUpcomingMovies(apiKey, language = currentLanguage)
             res.results.map { dto -> mapDtoToMediaItem(dto, MediaType.MOVIE) }
         } catch (e: Exception) { emptyList() }
     }
@@ -419,9 +429,9 @@ class MediaRepository(val context: Context) {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return emptyList()
         return try {
             val res = if (type == MediaType.MOVIE) {
-                tmdbApi.getMovieRecommendations(mediaId, apiKey)
+                tmdbApi.getMovieRecommendations(mediaId, apiKey, language = currentLanguage)
             } else {
-                tmdbApi.getTvRecommendations(mediaId, apiKey)
+                tmdbApi.getTvRecommendations(mediaId, apiKey, language = currentLanguage)
             }
             res.results.take(15).map { dto -> mapDtoToMediaItem(dto, type) }
         } catch (e: Exception) { emptyList() }
@@ -430,7 +440,7 @@ class MediaRepository(val context: Context) {
     suspend fun search(query: String): List<MediaItem> {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception("API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.")
         if (query.isBlank()) return emptyList()
-        val response = tmdbApi.searchMulti(apiKey, query)
+        val response = tmdbApi.searchMulti(apiKey, query, language = currentLanguage)
         return response.results.filter { it.mediaType == "movie" || it.mediaType == "tv" }.map { dto -> 
             val type = if (dto.mediaType == "movie") MediaType.MOVIE else MediaType.TV
             mapDtoToMediaItem(dto, type)
@@ -455,8 +465,8 @@ class MediaRepository(val context: Context) {
             }
         }
 
-        var videos = fetch("tr-TR")
-        if (videos.isNullOrEmpty()) videos = fetch("en-US")
+        var videos = fetch(currentLanguage)
+        if (videos.isNullOrEmpty() && currentLanguage != "en-US") videos = fetch("en-US")
         if (videos.isNullOrEmpty()) videos = fetch(null)
 
         if (videos.isNullOrEmpty()) {
@@ -730,7 +740,7 @@ class MediaRepository(val context: Context) {
     suspend fun getTvSeasonDetails(tvId: Int, seasonNumber: Int): TvSeasonResponseDto? {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return null
         return try {
-            tmdbApi.getTvSeasonDetails(tvId, seasonNumber, apiKey)
+            tmdbApi.getTvSeasonDetails(tvId, seasonNumber, apiKey, language = currentLanguage)
         } catch (e: Exception) {
             Log.e("MediaRepository", "Error fetching tv season details: ${e.message}")
             null
@@ -780,12 +790,14 @@ class MediaRepository(val context: Context) {
         if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") return item
         return try {
             val dto = if (item.type == MediaType.MOVIE) {
-                tmdbApi.getMovieDetails(item.id, apiKey)
+                tmdbApi.getMovieDetails(item.id, apiKey, language = currentLanguage)
             } else {
-                tmdbApi.getTvDetails(item.id, apiKey)
+                tmdbApi.getTvDetails(item.id, apiKey, language = currentLanguage)
             }
             
-            val newGenres = dto.genres?.mapNotNull { it.name }?.map { genreTranslations[it] ?: it } ?: item.genres
+            val newGenres = dto.genres?.mapNotNull { it.name }?.map {
+                if (currentLanguage.startsWith("tr")) genreTranslations[it] ?: it else it
+            } ?: item.genres
             val newCountries = dto.productionCountries?.mapNotNull { it.name } ?: item.productionCountries
             val newCast = dto.credits?.cast?.take(5)?.mapNotNull { it.name } ?: item.cast
             val newDirector = dto.credits?.crew?.firstOrNull { it.job == "Director" }?.name ?: item.director
@@ -1072,5 +1084,20 @@ class MediaRepository(val context: Context) {
                 onResult(false)
             }
         }
+    }
+
+    suspend fun refreshAllMediaLanguage() = coroutineScope {
+        val allItems = (_myList.value + _favorites.value).distinctBy { it.id }
+        if (allItems.isEmpty()) return@coroutineScope
+
+        for (chunk in allItems.chunked(5)) {
+            val jobs = chunk.map { item ->
+                async { fetchMediaDetails(item, persist = false) }
+            }
+            jobs.awaitAll()
+        }
+        
+        saveLocalData()
+        updateFirebase()
     }
 }

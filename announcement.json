@@ -1,7 +1,10 @@
 {
   "enabled": true,
-  "id": "announcement_007",
-  "title": "🔗 Watch List 1.1.19",
-  "message": "Artık listeni arkadaşlarınla paylaşabilirsin! Ayarlar > Listemi Paylaş ile bir kod oluştur, arkadaşın Paylaşılan Listeler'den kodu girip listeni görsün.",
-  "buttonText": "Harika!"
+  "id": "announcement_008",
+  "title": "🌍 Watch List 1.1.20",
+  "message": "Artık Watch List İngilizce de konuşuyor! Ayarlar > Dil bölümünden Türkçe veya English seçebilirsin.",
+  "buttonText": "Harika!",
+  "titleEn": "🌍 Watch List 1.1.20",
+  "messageEn": "Watch List now speaks English! Choose Turkish or English in Settings > Language.",
+  "buttonTextEn": "Great!"
 }
