@@ -21,7 +21,6 @@ import com.kaan.watchlist.data.api.SyncShowRating
 import com.kaan.watchlist.data.api.SyncShowWatchlist
 import com.kaan.watchlist.data.api.SyncWatchlistRequest
 import com.kaan.watchlist.data.api.TraktSyncIds
-import com.kaan.watchlist.data.repository.AuthRepository
 import com.kaan.watchlist.data.repository.MediaRepository
 import com.kaan.watchlist.data.repository.SyncActionType
 import com.kaan.watchlist.data.repository.TraktPushedStore
@@ -39,7 +38,13 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
         val mediaRepository = MediaRepository(context)
         val traktRepository = TraktRepository(context, mediaRepository)
 
-        if (!traktRepository.isConnected() || !traktRepository.isAutoPushEnabled() || !AuthRepository.isSignedIn) {
+        if (!traktRepository.isConnected()) {
+            traktRepository.setLastSyncStatus("NOT_CONNECTED")
+            return Result.success()
+        }
+
+        if (!traktRepository.isAutoPushEnabled()) {
+            traktRepository.setLastSyncStatus("AUTO_PUSH_OFF")
             return Result.success()
         }
 
@@ -187,15 +192,17 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
                 if (pushedKeysToMark.isNotEmpty()) {
                     TraktPushedStore.markPushed(context, pushedKeysToMark)
                 }
-                traktRepository.setLastSyncError(null)
+                traktRepository.setLastSyncStatus("OK")
+                traktRepository.setLastSyncSuccessAt(System.currentTimeMillis())
             } else {
-                // Infinite loop protection: if 0 items succeeded in this batch, break!
                 break
             }
 
             delay(1000)
         }
 
+        traktRepository.setLastSyncStatus("OK")
+        traktRepository.setLastSyncSuccessAt(System.currentTimeMillis())
         return Result.success()
     }
 
@@ -234,7 +241,7 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
                 SyncCallResult.Error(response.code(), response.message())
             }
         } catch (e: Exception) {
-            SyncCallResult.Error(-1, e.localizedMessage)
+            SyncCallResult.Error(-1, "NETWORK_${e.javaClass.simpleName}")
         }
     }
 
@@ -243,23 +250,12 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
         traktRepository: TraktRepository
     ): Result {
         if (result is SyncCallResult.Error) {
-            when (result.code) {
-                401 -> {
-                    traktRepository.setLastSyncError("AUTH_EXPIRED")
-                    return Result.retry()
-                }
-                403 -> {
-                    traktRepository.setLastSyncError("NO_PERMISSION")
-                    return Result.retry()
-                }
-                420, 429 -> {
-                    traktRepository.setLastSyncError("RATE_LIMIT")
-                    return Result.retry()
-                }
-                else -> {
-                    traktRepository.setLastSyncError(result.message ?: "SYNC_FAILED")
-                    return Result.retry()
-                }
+            when {
+                result.code == 401 -> traktRepository.setLastSyncStatus("AUTH_EXPIRED")
+                result.code == 403 -> traktRepository.setLastSyncStatus("NO_PERMISSION")
+                result.code == 420 || result.code == 429 -> traktRepository.setLastSyncStatus("RATE_LIMIT")
+                result.code > 0 -> traktRepository.setLastSyncStatus("HTTP_${result.code}")
+                else -> traktRepository.setLastSyncStatus(result.message ?: "NETWORK_Exception")
             }
         }
         return Result.retry()

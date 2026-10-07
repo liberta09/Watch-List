@@ -354,9 +354,24 @@
     <string name="update_err_no_apk">New %1$s version found, but no APK download link was found.</string>
     <string name="update_err_check_failed">Could not check for updates. Please check your internet connection.</string>
     <string name="stats_missing_movie_runtime">%1$d movies missing duration info</string>
-    <!-- Trakt Auto Push -->
+    <!-- Trakt Auto Push & Sync Status -->
     <string name="settings_trakt_auto_push">Auto-push to Trakt</string>
     <string name="settings_trakt_pending">Pending: %1$d</string>
-    <string name="settings_trakt_auth_expired">Session expired</string>
-    <string name="settings_trakt_no_permission">No permission</string>
+    <string name="settings_trakt_last_sync_success">Last synced: %1$s</string>
+    <string name="settings_trakt_never_synced">None yet</string>
+    <string name="settings_trakt_last_status">Last status: %1$s</string>
+    <string name="settings_trakt_last_action">Last action: %1$s</string>
+    <string name="settings_trakt_sync_now">Sync Now</string>
+
+    <string name="settings_trakt_status_ok">OK</string>
+    <string name="settings_trakt_status_not_connected">Not Connected</string>
+    <string name="settings_trakt_status_auto_push_off">Auto-Push Off</string>
+    <string name="settings_trakt_auth_expired">Session Expired</string>
+    <string name="settings_trakt_no_permission">No Permission</string>
+    <string name="settings_trakt_status_rate_limit">Rate Limit Exceeded</string>
+
+    <string name="settings_trakt_enqueue_queued">Queued</string>
+    <string name="settings_trakt_enqueue_skipped_not_connected">Skipped (Not Connected)</string>
+    <string name="settings_trakt_enqueue_skipped_auto_push_off">Skipped (Auto-Push Off)</string>
+    <string name="settings_trakt_enqueue_skipped_already_pushed">Skipped (Already Pushed)</string>
 </resources>

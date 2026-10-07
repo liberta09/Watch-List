@@ -553,29 +553,39 @@ class MediaRepository(val context: Context) {
     private fun enqueueTraktSyncBatch(items: List<SyncQueueItem>) {
         if (items.isEmpty()) return
         val traktRepo = TraktRepository(context, this)
-        if (traktRepo.isConnected() && traktRepo.isAutoPushEnabled() && AuthRepository.isSignedIn) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val filteredItems = mutableListOf<SyncQueueItem>()
-                for (item in items) {
-                    val key = when (item.actionType) {
-                        SyncActionType.WATCHED_MOVIE -> TraktPushedStore.movieKey(item.tmdbId)
-                        SyncActionType.WATCHED_EPISODES -> {
-                            if (item.season != null && item.episode != null) {
-                                TraktPushedStore.episodeKey(item.tmdbId, item.season, item.episode)
-                            } else null
-                        }
-                        else -> null
+        if (!traktRepo.isConnected()) {
+            traktRepo.setLastEnqueueStatus("SKIPPED_NOT_CONNECTED")
+            return
+        }
+        if (!traktRepo.isAutoPushEnabled()) {
+            traktRepo.setLastEnqueueStatus("SKIPPED_AUTO_PUSH_OFF")
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val filteredItems = mutableListOf<SyncQueueItem>()
+            for (item in items) {
+                val key = when (item.actionType) {
+                    SyncActionType.WATCHED_MOVIE -> TraktPushedStore.movieKey(item.tmdbId)
+                    SyncActionType.WATCHED_EPISODES -> {
+                        if (item.season != null && item.episode != null) {
+                            TraktPushedStore.episodeKey(item.tmdbId, item.season, item.episode)
+                        } else null
                     }
-                    if (key == null || !TraktPushedStore.isPushed(context, key)) {
-                        filteredItems.add(item)
-                    }
+                    else -> null
                 }
-                if (filteredItems.isNotEmpty()) {
-                    for (item in filteredItems) {
-                        TraktSyncQueue.enqueue(context, item)
-                    }
-                    com.kaan.watchlist.util.TraktSyncWorker.enqueue(context)
+                if (key == null || !TraktPushedStore.isPushed(context, key)) {
+                    filteredItems.add(item)
                 }
+            }
+            if (filteredItems.isNotEmpty()) {
+                for (item in filteredItems) {
+                    TraktSyncQueue.enqueue(context, item)
+                }
+                traktRepo.setLastEnqueueStatus("QUEUED")
+                com.kaan.watchlist.util.TraktSyncWorker.enqueue(context)
+            } else {
+                traktRepo.setLastEnqueueStatus("SKIPPED_ALREADY_PUSHED")
             }
         }
     }

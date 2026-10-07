@@ -86,14 +86,22 @@ class TraktRepository(private val context: Context, private val mediaRepository:
         prefs.edit().putBoolean("trakt_auto_push", enabled).apply()
     }
 
-    fun getLastSyncError(): String? = prefs.getString("last_sync_error", null)
+    fun getLastSyncSuccessAt(): Long = prefs.getLong("last_sync_success_at", 0L)
 
-    fun setLastSyncError(error: String?) {
-        if (error == null) {
-            prefs.edit().remove("last_sync_error").apply()
-        } else {
-            prefs.edit().putString("last_sync_error", error).apply()
-        }
+    fun setLastSyncSuccessAt(timeMs: Long) {
+        prefs.edit().putLong("last_sync_success_at", timeMs).apply()
+    }
+
+    fun getLastSyncStatus(): String? = prefs.getString("last_sync_status", null)
+
+    fun setLastSyncStatus(status: String) {
+        prefs.edit().putString("last_sync_status", status).apply()
+    }
+
+    fun getLastEnqueueStatus(): String? = prefs.getString("last_enqueue_status", null)
+
+    fun setLastEnqueueStatus(status: String) {
+        prefs.edit().putString("last_enqueue_status", status).apply()
     }
 
     private fun getAccessToken(): String? = prefs.getString("access_token", null)

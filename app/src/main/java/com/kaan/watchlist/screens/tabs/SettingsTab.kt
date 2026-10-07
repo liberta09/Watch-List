@@ -66,6 +66,7 @@ import com.kaan.watchlist.viewmodel.MediaViewModel
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.delay
 import com.kaan.watchlist.R
 
 @Composable
@@ -705,11 +706,18 @@ fun SettingsTab(
 
                     var autoPushEnabled by remember { mutableStateOf(viewModel.isTraktAutoPushEnabled()) }
                     var pendingCount by remember { mutableStateOf(0) }
-                    var lastSyncError by remember { mutableStateOf(viewModel.getTraktLastSyncError()) }
+                    var lastSyncSuccessAt by remember { mutableStateOf(0L) }
+                    var lastSyncStatus by remember { mutableStateOf<String?>(null) }
+                    var lastEnqueueStatus by remember { mutableStateOf<String?>(null) }
 
-                    LaunchedEffect(autoPushEnabled) {
-                        pendingCount = viewModel.getTraktPendingCount(context)
-                        lastSyncError = viewModel.getTraktLastSyncError()
+                    LaunchedEffect(Unit) {
+                        while (true) {
+                            pendingCount = viewModel.getTraktPendingCount(context)
+                            lastSyncSuccessAt = viewModel.getTraktLastSyncSuccessAt()
+                            lastSyncStatus = viewModel.getTraktLastSyncStatus()
+                            lastEnqueueStatus = viewModel.getTraktLastEnqueueStatus()
+                            delay(2000)
+                        }
                     }
 
                     Row(
@@ -731,26 +739,83 @@ fun SettingsTab(
                         )
                     }
 
-                    if (pendingCount > 0) {
-                        Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.settings_trakt_pending, pendingCount),
+                        color = LightText.copy(alpha = 0.8f),
+                        fontSize = 12.sp
+                    )
+
+                    val lastSyncTimeStr = if (lastSyncSuccessAt > 0) {
+                        val locale = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales().let {
+                            if (it.isEmpty) java.util.Locale.getDefault() else it.get(0) ?: java.util.Locale.getDefault()
+                        }
+                        val sdf = java.text.SimpleDateFormat("dd MMM HH:mm", locale)
+                        sdf.format(java.util.Date(lastSyncSuccessAt))
+                    } else {
+                        stringResource(R.string.settings_trakt_never_synced)
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(R.string.settings_trakt_last_sync_success, lastSyncTimeStr),
+                        color = LightText.copy(alpha = 0.8f),
+                        fontSize = 12.sp
+                    )
+
+                    if (!lastSyncStatus.isNullOrBlank()) {
+                        val status = lastSyncStatus!!
+                        val (statusText, statusColor) = when {
+                            status == "OK" -> stringResource(R.string.settings_trakt_status_ok) to Color(0xFF4CAF50)
+                            status == "NOT_CONNECTED" -> stringResource(R.string.settings_trakt_status_not_connected) to Color(0xFFFF6B6B)
+                            status == "AUTO_PUSH_OFF" -> stringResource(R.string.settings_trakt_status_auto_push_off) to Color.Gray
+                            status == "AUTH_EXPIRED" -> stringResource(R.string.settings_trakt_auth_expired) to Color(0xFFFF6B6B)
+                            status == "NO_PERMISSION" -> stringResource(R.string.settings_trakt_no_permission) to Color(0xFFFF6B6B)
+                            status == "RATE_LIMIT" -> stringResource(R.string.settings_trakt_status_rate_limit) to Color(0xFFFF6B6B)
+                            status.startsWith("HTTP_") -> status to Color(0xFFFF6B6B)
+                            status.startsWith("NETWORK_") -> status to Color(0xFFFF6B6B)
+                            else -> status to Color(0xFFFF6B6B)
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = stringResource(R.string.settings_trakt_pending, pendingCount),
-                            color = Color.Gray,
+                            text = stringResource(R.string.settings_trakt_last_status, statusText),
+                            color = statusColor,
                             fontSize = 12.sp
                         )
                     }
 
-                    if (!lastSyncError.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        val errorText = when (lastSyncError) {
-                            "AUTH_EXPIRED" -> stringResource(R.string.settings_trakt_auth_expired)
-                            "NO_PERMISSION" -> stringResource(R.string.settings_trakt_no_permission)
-                            else -> lastSyncError
+                    if (!lastEnqueueStatus.isNullOrBlank()) {
+                        val enqueue = lastEnqueueStatus!!
+                        val enqueueText = when (enqueue) {
+                            "QUEUED" -> stringResource(R.string.settings_trakt_enqueue_queued)
+                            "SKIPPED_NOT_CONNECTED" -> stringResource(R.string.settings_trakt_enqueue_skipped_not_connected)
+                            "SKIPPED_AUTO_PUSH_OFF" -> stringResource(R.string.settings_trakt_enqueue_skipped_auto_push_off)
+                            "SKIPPED_ALREADY_PUSHED" -> stringResource(R.string.settings_trakt_enqueue_skipped_already_pushed)
+                            else -> enqueue
                         }
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = errorText ?: "",
-                            color = Color(0xFFFF6B6B),
+                            text = stringResource(R.string.settings_trakt_last_action, enqueueText),
+                            color = LightText.copy(alpha = 0.7f),
                             fontSize = 12.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            com.kaan.watchlist.util.TraktSyncWorker.enqueue(context)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .tvFocusable(shape = RoundedCornerShape(8.dp))
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_trakt_sync_now),
+                            color = LightText,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }

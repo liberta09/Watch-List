@@ -353,9 +353,24 @@
     <string name="update_err_no_apk">Yeni %1$s sürümü bulundu fakat APK indirme adresi bulunamadı.</string>
     <string name="update_err_check_failed">Güncelleme kontrolü yapılamadı. İnternet bağlantınızı kontrol edin.</string>
     <string name="stats_missing_movie_runtime">%1$d filmin süre bilgisi eksik</string>
-    <!-- Trakt Auto Push -->
+    <!-- Trakt Auto Push & Sync Status -->
     <string name="settings_trakt_auto_push">Trakt\'e otomatik gönder</string>
     <string name="settings_trakt_pending">Bekleyen: %1$d</string>
-    <string name="settings_trakt_auth_expired">Oturum süresi doldu</string>
-    <string name="settings_trakt_no_permission">İzin yok</string>
+    <string name="settings_trakt_last_sync_success">Son gönderim: %1$s</string>
+    <string name="settings_trakt_never_synced">Henüz yok</string>
+    <string name="settings_trakt_last_status">Son durum: %1$s</string>
+    <string name="settings_trakt_last_action">Son işlem: %1$s</string>
+    <string name="settings_trakt_sync_now">Şimdi Gönder</string>
+
+    <string name="settings_trakt_status_ok">OK</string>
+    <string name="settings_trakt_status_not_connected">Bağlantı Yok</string>
+    <string name="settings_trakt_status_auto_push_off">Otomatik Gönderim Kapalı</string>
+    <string name="settings_trakt_auth_expired">Oturum Süresi Doldu</string>
+    <string name="settings_trakt_no_permission">Erişim İzni Yok</string>
+    <string name="settings_trakt_status_rate_limit">İstek Sınırı Aşıldı</string>
+
+    <string name="settings_trakt_enqueue_queued">Kuyruğa Eklendi</string>
+    <string name="settings_trakt_enqueue_skipped_not_connected">Atlandı (Bağlantı Yok)</string>
+    <string name="settings_trakt_enqueue_skipped_auto_push_off">Atlandı (Otomatik Gönderim Kapalı)</string>
+    <string name="settings_trakt_enqueue_skipped_already_pushed">Atlandı (Zaten Gönderilmiş)</string>
 </resources>
