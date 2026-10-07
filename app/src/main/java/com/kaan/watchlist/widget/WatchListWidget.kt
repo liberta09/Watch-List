@@ -1,5 +1,6 @@
 package com.kaan.watchlist.widget
 
+import com.kaan.watchlist.R
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
@@ -80,10 +81,11 @@ class WatchListWidget : GlanceAppWidget() {
                 
                 Spacer(modifier = GlanceModifier.height(8.dp))
 
+                val context = LocalContext.current
                 // This Week Section
-                SectionHeader("📅 Bu Hafta")
+                SectionHeader(context.getString(R.string.widget_this_week))
                 if (state.thisWeek.isEmpty()) {
-                    EmptyText("Bu hafta takip ettiğin bir şey yok")
+                    EmptyText(context.getString(R.string.widget_empty_upcoming))
                 } else {
                     state.thisWeek.take(if (isSmall) 2 else 3).forEach { row ->
                         MediaRow(row)
@@ -93,9 +95,9 @@ class WatchListWidget : GlanceAppWidget() {
                 // Continue Watching Section
                 if (!isSmall) {
                     Spacer(modifier = GlanceModifier.height(12.dp))
-                    SectionHeader("▶️ Kaldığın Yer")
+                    SectionHeader(context.getString(R.string.widget_continue_watching))
                     if (state.continueWatching.isEmpty()) {
-                        EmptyText("Henüz bölüm işaretlemedin")
+                        EmptyText(context.getString(R.string.widget_empty_continue))
                     } else {
                         state.continueWatching.take(2).forEach { row ->
                             MediaRow(row)

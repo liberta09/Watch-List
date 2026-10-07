@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,26 +82,26 @@ fun SharedListScreen(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Geri",
+                    contentDescription = stringResource(R.string.general_cancel),
                     tint = LightText
                 )
             }
             Column(modifier = Modifier.padding(start = 8.dp)) {
                 if (sharedList != null) {
                     Text(
-                        text = sharedList!!.title.ifBlank { "Paylaşılan Liste" },
+                        text = sharedList!!.title.ifBlank { stringResource(R.string.settings_unnamed_list) },
                         color = LightText,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Paylaşan: ${sharedList!!.ownerName}",
+                        text = stringResource(R.string.shared_list_owner, sharedList!!.ownerName),
                         color = Color.Gray,
                         fontSize = 14.sp
                     )
                 } else {
                     Text(
-                        text = "Paylaşılan Liste",
+                        text = stringResource(R.string.settings_unnamed_list),
                         color = LightText,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -116,11 +118,11 @@ fun SharedListScreen(
                         }
                         
                         if (newItems.isEmpty()) {
-                            Toast.makeText(context, "Tüm öğeler zaten listenizde", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_already_in_list), Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         
-                        Toast.makeText(context, "${newItems.size} öğe ekleniyor...", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_adding_items, newItems.size), Toast.LENGTH_SHORT).show()
                         
                         val dummyMediaItems = newItems.map { sharedItem ->
                             com.kaan.watchlist.domain.model.MediaItem(
@@ -144,11 +146,11 @@ fun SharedListScreen(
                             viewModel.addToList(item, watched = item.isWatched)
                         }
                         
-                        Toast.makeText(context, "Eklendi!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_added), Toast.LENGTH_SHORT).show()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = BlueAccent)
                 ) {
-                    Text("Hepsini Ekle", color = Color.White)
+                    Text(stringResource(R.string.shared_list_add_all), color = Color.White)
                 }
             }
         }
@@ -161,7 +163,7 @@ fun SharedListScreen(
                 )
             } else if (error) {
                 Text(
-                    text = "Bu liste bulunamadı veya paylaşım kapatılmış.",
+                    text = stringResource(R.string.shared_list_not_found),
                     color = Color.Gray,
                     modifier = Modifier.align(Alignment.Center)
                 )

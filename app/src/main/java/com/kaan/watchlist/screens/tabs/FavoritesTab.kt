@@ -18,6 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,7 +61,7 @@ fun FavoritesTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Henüz favori eklemediniz.", color = LightText.copy(alpha = 0.7f))
+                Text(text = stringResource(R.string.empty_favorites), color = LightText.copy(alpha = 0.7f))
             }
         } else {
             LazyVerticalGrid(

@@ -40,6 +40,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -109,7 +112,7 @@ fun SettingsTab(
         Spacer(modifier = Modifier.height(24.dp))
         
         // --- Language Section ---
-        var showLanguageDialog by androidx.compose.runtime.mutableStateOf(false)
+        var showLanguageDialog by remember { mutableStateOf(false) }
         val currentLocales = AppCompatDelegate.getApplicationLocales()
         val currentLangCode = if (currentLocales.isEmpty) "system" else currentLocales.get(0)?.language ?: "system"
         val currentLangLabel = when (currentLangCode) {
@@ -392,9 +395,9 @@ fun SettingsTab(
         }
 
         // --- Paylaşım Kartı ---
-        var showShareDialog by androidx.compose.runtime.mutableStateOf(false)
-        var showOpenDialog by androidx.compose.runtime.mutableStateOf(false)
-        var showMySharesDialog by androidx.compose.runtime.mutableStateOf(false)
+        var showShareDialog by remember { mutableStateOf(false) }
+        var showOpenDialog by remember { mutableStateOf(false) }
+        var showMySharesDialog by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -437,9 +440,9 @@ fun SettingsTab(
         }
 
         if (showShareDialog) {
-            var title by androidx.compose.runtime.mutableStateOf("")
-            var filter by androidx.compose.runtime.mutableStateOf(com.kaan.watchlist.domain.model.ShareFilter.ALL)
-            var loading by androidx.compose.runtime.mutableStateOf(false)
+            var title by rememberSaveable { mutableStateOf("") }
+            var filter by remember { mutableStateOf(com.kaan.watchlist.domain.model.ShareFilter.ALL) }
+            var loading by remember { mutableStateOf(false) }
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showShareDialog = false },
                 containerColor = DarkSurface,
@@ -520,8 +523,8 @@ fun SettingsTab(
         }
 
         if (showOpenDialog) {
-            var code by androidx.compose.runtime.mutableStateOf("")
-            var loading by androidx.compose.runtime.mutableStateOf(false)
+            var code by rememberSaveable { mutableStateOf("") }
+            var loading by remember { mutableStateOf(false) }
             
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showOpenDialog = false },
@@ -572,7 +575,7 @@ fun SettingsTab(
         }
 
         if (showMySharesDialog) {
-            var myShares by androidx.compose.runtime.mutableStateOf<List<com.kaan.watchlist.domain.model.SharedListInfo>?>(null)
+            var myShares by remember { mutableStateOf<List<com.kaan.watchlist.domain.model.SharedListInfo>?>(null) }
             
             LaunchedEffect(Unit) {
                 viewModel.getMySharedLists { myShares = it }

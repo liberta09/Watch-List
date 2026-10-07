@@ -20,6 +20,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -128,7 +130,7 @@ fun MyListTab(
                         .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = onNavigateToStats)
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    Text("📊 İstatistikler", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(stringResource(R.string.tab_stats), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }
@@ -166,7 +168,7 @@ fun MyListTab(
                             "WATCHED_DESC" -> "İzlenme Tarihi"
                             else -> "Eklenme Tarihi"
                         }
-                        Text("Sırala: $sortLabel", fontSize = 12.sp, color = BlueAccent)
+                        Text(stringResource(R.string.sort_by, sortLabel), fontSize = 12.sp, color = BlueAccent)
                     }
 
                     DropdownMenu(
@@ -175,23 +177,23 @@ fun MyListTab(
                         modifier = Modifier.background(DarkSurface)
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Eklenme Tarihi (Yeni → Eski)", color = LightText, fontSize = 13.sp) },
+                            text = { Text(stringResource(R.string.sort_date_added), color = LightText, fontSize = 13.sp) },
                             onClick = { sortBy = "ADDED_DESC"; showSortMenu = false }
                         )
                         DropdownMenuItem(
-                            text = { Text("TMDB Puanı (Yüksek → Düşük)", color = LightText, fontSize = 13.sp) },
+                            text = { Text(stringResource(R.string.sort_tmdb_score), color = LightText, fontSize = 13.sp) },
                             onClick = { sortBy = "VOTE_DESC"; showSortMenu = false }
                         )
                         DropdownMenuItem(
-                            text = { Text("Benim Puanım (Yüksek → Düşük)", color = LightText, fontSize = 13.sp) },
+                            text = { Text(stringResource(R.string.sort_my_score), color = LightText, fontSize = 13.sp) },
                             onClick = { sortBy = "RATING_DESC"; showSortMenu = false }
                         )
                         DropdownMenuItem(
-                            text = { Text("Ada Göre (A-Z)", color = LightText, fontSize = 13.sp) },
+                            text = { Text(stringResource(R.string.sort_name), color = LightText, fontSize = 13.sp) },
                             onClick = { sortBy = "NAME_ASC"; showSortMenu = false }
                         )
                         DropdownMenuItem(
-                            text = { Text("İzlenme Tarihi (Yeni → Eski)", color = LightText, fontSize = 13.sp) },
+                            text = { Text(stringResource(R.string.sort_date_watched), color = LightText, fontSize = 13.sp) },
                             onClick = { sortBy = "WATCHED_DESC"; showSortMenu = false }
                         )
                     }
@@ -227,7 +229,7 @@ fun MyListTab(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Listeniz şu an boş.", color = LightText.copy(alpha = 0.7f))
+                Text(text = stringResource(R.string.empty_list), color = LightText.copy(alpha = 0.7f))
             }
         } else {
             LazyVerticalGrid(

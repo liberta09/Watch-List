@@ -43,6 +43,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -89,7 +91,14 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
     val totalMinutes = movieMinutes + tvMinutes
     val hours = totalMinutes / 60
     val mins = totalMinutes % 60
-    val durationText = "${hours} saat ${mins} dk"
+    val days = hours / 24
+    val durationText = if (days > 0) {
+        stringResource(R.string.stats_time_days, days.toString(), (hours % 24).toString())
+    } else if (hours > 0) {
+        stringResource(R.string.stats_time_hours, hours.toString(), mins.toString())
+    } else {
+        stringResource(R.string.stats_time_mins, mins.toString())
+    }
 
     // This Year Stats
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
@@ -115,7 +124,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("İstatistikler", color = LightText, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.stats_title), color = LightText, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.popBackStack() },
@@ -139,7 +148,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
         ) {
             // Özet Kartları
             item {
-                Text("İzleme Özeti", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
+                Text(stringResource(R.string.stats_watch_summary), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -158,7 +167,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         .padding(16.dp)
                 ) {
                     Column {
-                        Text("Toplam İzleme Süresi", fontSize = 13.sp, color = LightText.copy(alpha = 0.7f))
+                        Text(stringResource(R.string.stats_total_watch_time), fontSize = 13.sp, color = LightText.copy(alpha = 0.7f))
                         Text(durationText, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = BlueAccent)
                         if (missingMovieTimeCount > 0) {
                             Text(
@@ -187,8 +196,8 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("$currentYear Yılında", fontSize = 14.sp, color = LightText.copy(alpha = 0.8f))
-                            Text("${thisYearWatched.size} içerik izlendi", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
+                            Text(stringResource(R.string.stats_in_year, currentYear), fontSize = 14.sp, color = LightText.copy(alpha = 0.8f))
+                            Text(stringResource(R.string.stats_items_watched, thisYearWatched.size), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
                         }
                         Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(32.dp))
                     }
@@ -205,7 +214,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         .padding(16.dp)
                 ) {
                     Column {
-                        Text("Aylık İzleme Grafiği (Son 12 Ay)", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
+                        Text(stringResource(R.string.stats_monthly_chart), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Monthly calculation
@@ -266,7 +275,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                             .padding(16.dp)
                     ) {
                         Column {
-                            Text("En Çok İzlenen Türler", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
+                            Text(stringResource(R.string.stats_top_genres), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
                             Spacer(modifier = Modifier.height(12.dp))
 
                             genreCounts.forEach { entry ->
@@ -277,7 +286,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(entry.key, fontSize = 13.sp, color = LightText)
-                                        Text("${entry.value} içerik", fontSize = 12.sp, color = Color.Gray)
+                                        Text(stringResource(R.string.stats_items_count, entry.value), fontSize = 12.sp, color = Color.Gray)
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
                                     LinearProgressIndicator(
@@ -307,7 +316,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                             .padding(16.dp)
                     ) {
                         Column {
-                            Text("En Sık Sahnede Gören Oyuncular", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
+                            Text(stringResource(R.string.stats_top_actors), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
                             Spacer(modifier = Modifier.height(8.dp))
 
                             castCounts.forEach { entry ->
@@ -318,7 +327,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(entry.key, fontSize = 13.sp, color = LightText)
-                                    Text("${entry.value} yapım", fontSize = 12.sp, color = BlueAccent, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.stats_productions_count, entry.value), fontSize = 12.sp, color = BlueAccent, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -336,10 +345,10 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         .padding(16.dp)
                 ) {
                     Column {
-                        Text("Puan Durumu", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
+                        Text(stringResource(R.string.stats_scores), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Ortalama Puanın: ", fontSize = 13.sp, color = LightText.copy(alpha = 0.8f))
+                            Text(stringResource(R.string.stats_average_score), fontSize = 13.sp, color = LightText.copy(alpha = 0.8f))
                             Text(
                                 if (avgRating > 0) String.format(Locale.US, "%.1f / 10", avgRating) else "Henüz puan yok",
                                 fontSize = 16.sp,
@@ -350,7 +359,7 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
 
                         if (topRated.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(12.dp))
-                            Text("En Yüksek Puan Verdiğin Yapımlar:", fontSize = 12.sp, color = Color.Gray)
+                            Text(stringResource(R.string.stats_highest_rated), fontSize = 12.sp, color = Color.Gray)
                             Spacer(modifier = Modifier.height(8.dp))
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 items(topRated) { media ->
@@ -396,12 +405,12 @@ fun StatsScreen(navController: NavController, viewModel: MediaViewModel) {
                         .padding(16.dp)
                 ) {
                     Column {
-                        Text("Koleksiyon Durumu", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
+                        Text(stringResource(R.string.stats_collection), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LightText)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("• Toplam Kayıt: ${myList.size}", fontSize = 13.sp, color = LightText)
-                        Text("• İzlenenler: ${myList.count { it.isWatched }}", fontSize = 13.sp, color = LightText)
-                        Text("• İzlenecekler: ${myList.count { !it.isWatched }}", fontSize = 13.sp, color = LightText)
-                        Text("• Favoriler: ${favorites.size}", fontSize = 13.sp, color = LightText)
+                        Text(stringResource(R.string.stats_total_records, myList.size), fontSize = 13.sp, color = LightText)
+                        Text(stringResource(R.string.stats_watched, myList.count { it.isWatched }), fontSize = 13.sp, color = LightText)
+                        Text(stringResource(R.string.stats_to_watch, myList.count { !it.isWatched }), fontSize = 13.sp, color = LightText)
+                        Text(stringResource(R.string.stats_favorites, favorites.size), fontSize = 13.sp, color = LightText)
                     }
                 }
             }

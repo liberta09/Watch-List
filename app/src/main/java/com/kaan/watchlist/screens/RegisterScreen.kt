@@ -43,6 +43,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -83,7 +85,7 @@ fun RegisterScreen(navController: NavController) {
                 // Kayıttan sonra oturumu kapatıp kullanıcıyı giriş ekranına döndürüyoruz,
                 // böylece şifresiyle bir kez giriş yaparak hesabını doğrulamış olur.
                 AuthRepository.logout()
-                Toast.makeText(context, "Hesap oluşturuldu, şimdi giriş yapabilirsin.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_account_created), Toast.LENGTH_SHORT).show()
                 navController.popBackStack()
             },
             onError = { message ->
@@ -96,7 +98,7 @@ fun RegisterScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hesap Oluştur", color = LightText) },
+                title = { Text(stringResource(R.string.register_title), color = LightText) },
                 navigationIcon = {
                     IconButton(
                         onClick = { onBack() },
@@ -136,7 +138,7 @@ fun RegisterScreen(navController: NavController) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it; errorMessage = null },
-                    label = { Text("E-posta") },
+                    label = { Text(stringResource(R.string.login_email)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .tvFocusable(shape = RoundedCornerShape(12.dp)),
@@ -157,7 +159,7 @@ fun RegisterScreen(navController: NavController) {
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it; errorMessage = null },
-                    label = { Text("Kullanıcı Adı") },
+                    label = { Text(stringResource(R.string.register_username)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .tvFocusable(shape = RoundedCornerShape(12.dp)),
@@ -178,7 +180,7 @@ fun RegisterScreen(navController: NavController) {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it; errorMessage = null },
-                    label = { Text("Şifre") },
+                    label = { Text(stringResource(R.string.login_password)) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -211,7 +213,7 @@ fun RegisterScreen(navController: NavController) {
                     colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = if (isLoading) "Kaydediliyor..." else "Kayıt Ol", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(text = if (isLoading) stringResource(R.string.register_button_loading) else stringResource(R.string.register_button), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }

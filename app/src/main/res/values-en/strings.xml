@@ -98,4 +98,147 @@
     <!-- Season details -->
     <string name="season_title">Season %1$d</string>
     <string name="episode_title">Episode %1$d</string>
+
+    <!-- General -->
+    <string name="general_retry">Retry</string>
+    <string name="general_cancel">Cancel</string>
+    <string name="general_save">Save</string>
+    <string name="general_ok">OK</string>
+    <string name="general_close">Close</string>
+    <string name="general_copy">Copy</string>
+
+    <!-- Toasts -->
+    <string name="toast_update_downloading">Downloading update...</string>
+    <string name="toast_notification_permission_denied">Notification permission denied.</string>
+    <string name="toast_notifications_disabled">Notifications are disabled. Please enable them first.</string>
+    <string name="toast_check_started">Check started</string>
+    <string name="toast_share_list_failed">Failed to share list (Only logged in users can share)</string>
+    <string name="toast_invalid_share_code">This code is invalid or the share is closed</string>
+    <string name="toast_telegram_not_found">No app found to open Telegram or browser.</string>
+    <string name="toast_app_up_to_date">App is up to date.</string>
+    <string name="toast_login_required">You must sign in.</string>
+    <string name="toast_account_created">Account created, you can sign in now.</string>
+    <string name="toast_already_in_list">All items are already in your list</string>
+    <string name="toast_adding_items">Adding %1$d items...</string>
+    <string name="toast_added">Added!</string>
+    <string name="toast_page_load_error">An error occurred while loading the page. Please check your internet connection.</string>
+    <string name="toast_install_file_not_found">Installation file not found.</string>
+    <string name="toast_open_install_failed">Could not open installation screen: %1$s</string>
+    <string name="toast_test_notification_sent">Test notification sent!</string>
+    <string name="toast_notification_permission_not_found">Notification permission not found.</string>
+    <string name="toast_notification_send_failed">Failed to send notification: %1$s</string>
+    <string name="toast_notification_system_disabled">App notifications are disabled from system settings.</string>
+    <string name="toast_notification_approve">Please grant notification permission.</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_new_season_starts">📅 New season starts: Season %1$s · %2$s</string>
+    <string name="detail_next_episode">📅 Next episode: S%1$s E%2$s · %3$s</string>
+    <string name="detail_waiting_new_season">Waiting for new season (date TBA)</string>
+    <string name="detail_episodes">Episodes</string>
+    <string name="detail_watched_count">%1$d / %2$d episodes watched</string>
+    <string name="detail_watched_count_no_total">%1$d episodes watched</string>
+    <string name="detail_all_episodes_watched">All episodes watched ✓</string>
+    <string name="detail_episode_format">E%1$d - %2$s</string>
+    <string name="detail_episode_fallback">Episode %1$d</string>
+
+    <!-- Settings Tab -->
+    <string name="settings_notifications_title">Notifications</string>
+    <string name="settings_notifications_enable">Enable Notifications</string>
+    <string name="settings_test_notification">Send Test Notification</string>
+    <string name="settings_check_upcoming_now">Check upcoming now</string>
+    <string name="settings_logout">Sign Out</string>
+    <string name="settings_trakt_connected">✓ Trakt connected</string>
+    <string name="settings_trakt_disconnect_btn">Disconnect</string>
+    <string name="settings_trakt_import_btn">Import from Trakt</string>
+    <string name="settings_trakt_connection_title">Trakt Connection</string>
+    <string name="settings_trakt_activation_desc">Go to trakt.tv/activate and enter this code:</string>
+    <string name="settings_trakt_waiting">Waiting...</string>
+    <string name="settings_trakt_importing_title">Importing from Trakt</string>
+    <string name="settings_trakt_importing_desc">Importing... %1$d / %2$d</string>
+    <string name="settings_trakt_import_failed">❌ Import failed</string>
+    <string name="settings_trakt_import_success">✓ Import completed</string>
+    <string name="settings_trakt_items_added">📦 %1$d items added</string>
+    <string name="settings_trakt_episodes_added">▶️ %1$d episodes marked as watched</string>
+    <string name="settings_trakt_items_updated">🔄 %1$d items updated</string>
+    <string name="settings_trakt_unmatched">⚠️ %1$d items unmatched</string>
+    <string name="settings_share_desc">Anyone with this code can see your list.</string>
+    <string name="settings_share_list_name">List Name</string>
+    <string name="settings_share_content">Content:</string>
+    <string name="settings_share_filter_all">All</string>
+    <string name="settings_share_filter_watchlist">To Watch Only</string>
+    <string name="settings_share_filter_watched">Watched Only</string>
+    <string name="settings_share_filter_movies">Movies Only</string>
+    <string name="settings_share_filter_shows">Shows Only</string>
+    <string name="settings_share_btn">Share</string>
+    <string name="settings_open_code_label">8-Digit Code</string>
+    <string name="settings_open_btn">Open</string>
+    <string name="settings_no_active_shares">You have no active shares.</string>
+    <string name="settings_unnamed_list">Unnamed List</string>
+    <string name="settings_share_code">Code: %1$s</string>
+
+    <!-- Login & Register Screen -->
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_button">Sign In</string>
+    <string name="login_button_loading">Signing in...</string>
+    <string name="login_register_btn">Sign Up</string>
+    <string name="login_guest_btn">Guest Mode</string>
+    <string name="register_title">Create Account</string>
+    <string name="register_username">Username</string>
+    <string name="register_button">Sign Up</string>
+    <string name="register_button_loading">Registering...</string>
+
+    <!-- Shared List Screen -->
+    <string name="shared_list_not_found">List not found or deleted.</string>
+    <string name="shared_list_owner">%1$s\'s list</string>
+    <string name="shared_list_last_updated">Last updated: %1$s</string>
+    <string name="shared_list_add_all">Add All</string>
+
+    <!-- Trailer Screen -->
+    <string name="trailer_not_found">Video cannot be played. Trailer might be removed or private.</string>
+    <string name="trailer_open_youtube">  Open in YouTube</string>
+
+    <!-- Stats Screen -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_watch_summary">Watch Summary</string>
+    <string name="stats_total_watch_time">Total Watch Time</string>
+    <string name="stats_time_days">%1$s days %2$s hours</string>
+    <string name="stats_time_hours">%1$s hours %2$s mins</string>
+    <string name="stats_time_mins">%1$s minutes</string>
+    <string name="stats_in_year">In %1$d</string>
+    <string name="stats_items_watched">%1$d items watched</string>
+    <string name="stats_monthly_chart">Monthly Watch Chart (Last 12 Months)</string>
+    <string name="stats_top_genres">Top Genres Watched</string>
+    <string name="stats_items_count">%1$d items</string>
+    <string name="stats_top_actors">Most Seen Actors</string>
+    <string name="stats_productions_count">%1$d productions</string>
+    <string name="stats_scores">Ratings</string>
+    <string name="stats_average_score">Average Score: </string>
+    <string name="stats_highest_rated">Highest Rated Productions:</string>
+    <string name="stats_collection">Collection</string>
+    <string name="stats_total_records">• Total Records: %1$d</string>
+    <string name="stats_watched">• Watched: %1$d</string>
+    <string name="stats_to_watch">• To Watch: %1$d</string>
+    <string name="stats_favorites">• Favorites: %1$d</string>
+
+    <!-- Widget -->
+    <string name="widget_empty_upcoming">Nothing upcoming this week</string>
+    <string name="widget_empty_continue">You haven\'t marked any episodes</string>
+    <string name="widget_this_week">📅 This Week</string>
+    <string name="widget_continue_watching">▶️ Continue Watching</string>
+
+    <!-- Notifications -->
+    <string name="notification_test_body">Notifications are working successfully.</string>
+    <string name="update_download_completed">✅ Download Completed</string>
+    <string name="update_ready_to_install">Update file is ready. Starting installation...</string>
+
+    <string name="notify_new_season_today">🎉 New season starts today</string>
+    <string name="notify_new_season_started">🎉 New season has started</string>
+    <string name="notify_new_season_body">%1$s · Season %2$d</string>
+    <string name="notify_new_episode_today">📺 New episode today</string>
+    <string name="notify_new_episode_started">📺 New episode is out</string>
+    <string name="notify_new_episode_body">%1$s · S%2$d E%3$d</string>
+    <string name="notify_new_season_7days">📅 New season in 1 week</string>
+    <string name="notify_new_season_7days_body">%1$s · Season %2$d · %3$s</string>
+    <string name="notify_movie_today">🎬 Out today</string>
 </resources>

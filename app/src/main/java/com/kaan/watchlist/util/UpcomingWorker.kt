@@ -18,6 +18,7 @@ import com.google.gson.reflect.TypeToken
 import com.kaan.watchlist.BuildConfig
 import com.kaan.watchlist.MainActivity
 import com.kaan.watchlist.R
+import java.text.SimpleDateFormat
 import com.kaan.watchlist.data.api.TmdbApi
 import com.kaan.watchlist.data.api.MediaDetailsDto
 import com.kaan.watchlist.domain.model.MediaItem
@@ -27,7 +28,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -68,9 +68,11 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
             return@coroutineScope Result.success()
         }
 
-        val trLocale = Locale("tr")
-        val formatter = SimpleDateFormat("yyyy-MM-dd", trLocale)
-        val displayFormatter = SimpleDateFormat("d MMMM yyyy", trLocale)
+        val defaultLocale = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales().let {
+            if (it.isEmpty) Locale.getDefault() else it.get(0) ?: Locale.getDefault()
+        }
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val displayFormatter = SimpleDateFormat("d MMMM yyyy", defaultLocale)
 
         val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, 0)
@@ -141,17 +143,17 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
                             notifyKey = "${item.id}_${airDateStr}_tv_today"
                             
                             if (e == 1) {
-                                notifyTitle = if (airDate.time == todayMs) "🎉 Yeni sezon bugün başlıyor" else "🎉 Yeni sezon başladı"
-                                notifyBody = "$name · $s. Sezon"
+                                notifyTitle = if (airDate.time == todayMs) context.getString(R.string.notify_new_season_today) else context.getString(R.string.notify_new_season_started)
+                                notifyBody = context.getString(R.string.notify_new_season_body, name, s)
                             } else if (!isDaily) {
-                                notifyTitle = if (airDate.time == todayMs) "📺 Bugün yeni bölüm" else "📺 Yeni bölüm çıktı"
-                                notifyBody = "$name · S$s B$e"
+                                notifyTitle = if (airDate.time == todayMs) context.getString(R.string.notify_new_episode_today) else context.getString(R.string.notify_new_episode_started)
+                                notifyBody = context.getString(R.string.notify_new_episode_body, name, s, e)
                             }
                         } else if (airDate.time == sevenDaysMs && e == 1) {
                             notifyKey = "${item.id}_${airDateStr}_tv_7days"
                             val d = displayFormatter.format(airDate)
-                            notifyTitle = "📅 Yeni sezon 1 hafta sonra"
-                            notifyBody = "$name · $s. Sezon · $d"
+                            notifyTitle = context.getString(R.string.notify_new_season_7days)
+                            notifyBody = context.getString(R.string.notify_new_season_7days_body, name, s, d)
                         }
                     }
                 }
@@ -163,7 +165,7 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
                     val relDate = formatter.parse(releaseDateStr)
                     if (relDate != null && relDate.time == todayMs) {
                         notifyKey = "${item.id}_${releaseDateStr}_movie_today"
-                        notifyTitle = "🎬 Bugün vizyonda"
+                        notifyTitle = context.getString(R.string.notify_movie_today)
                         notifyBody = name
                     }
                 }
