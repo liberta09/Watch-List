@@ -39,6 +39,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,7 +65,8 @@ import com.kaan.watchlist.viewmodel.MediaViewModel
 fun SettingsTab(
     viewModel: MediaViewModel,
     onLogout: () -> Unit,
-    onOpenTelegramWeb: (() -> Unit)? = null
+    onOpenTelegramWeb: (() -> Unit)? = null,
+    onNavigateToSharedList: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
@@ -305,6 +308,245 @@ fun SettingsTab(
             
             Spacer(modifier = Modifier.height(24.dp))
         }
+
+        // --- Paylaşım Kartı ---
+        var showShareDialog by androidx.compose.runtime.mutableStateOf(false)
+        var showOpenDialog by androidx.compose.runtime.mutableStateOf(false)
+        var showMySharesDialog by androidx.compose.runtime.mutableStateOf(false)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .padding(16.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Liste Paylaşımı",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LightText
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { showShareDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) {
+                    Text("Listemi Paylaş", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { showOpenDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) {
+                    Text("Kod ile Liste Aç", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { showMySharesDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) {
+                    Text("Paylaşımlarım", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        if (showShareDialog) {
+            var title by androidx.compose.runtime.mutableStateOf("")
+            var filter by androidx.compose.runtime.mutableStateOf(com.kaan.watchlist.domain.model.ShareFilter.ALL)
+            var loading by androidx.compose.runtime.mutableStateOf(false)
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showShareDialog = false },
+                containerColor = DarkSurface,
+                title = { Text("Listemi Paylaş", color = LightText, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text("Bu kodu bilen herkes listeni görebilir.", color = Color.Gray, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        androidx.compose.material3.OutlinedTextField(
+                            value = title,
+                            onValueChange = { title = it },
+                            label = { Text("Liste Adı", color = Color.Gray) },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = LightText,
+                                unfocusedTextColor = LightText,
+                                focusedBorderColor = BlueAccent
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("İçerik:", color = LightText)
+                        val filters = listOf(
+                            "Hepsi" to com.kaan.watchlist.domain.model.ShareFilter.ALL,
+                            "Sadece İzlenecekler" to com.kaan.watchlist.domain.model.ShareFilter.WATCHLIST,
+                            "Sadece İzlenenler" to com.kaan.watchlist.domain.model.ShareFilter.WATCHED,
+                            "Sadece Filmler" to com.kaan.watchlist.domain.model.ShareFilter.MOVIES,
+                            "Sadece Diziler" to com.kaan.watchlist.domain.model.ShareFilter.SHOWS
+                        )
+                        filters.forEach { (label, enumValue) ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { filter = enumValue }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                androidx.compose.material3.RadioButton(
+                                    selected = filter == enumValue,
+                                    onClick = { filter = enumValue },
+                                    colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = BlueAccent)
+                                )
+                                Text(label, color = LightText, modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
+                        if (loading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = BlueAccent)
+                        }
+                    }
+                },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        loading = true
+                        viewModel.shareList(title, filter) { code ->
+                            loading = false
+                            showShareDialog = false
+                            if (code != null) {
+                                val sendIntent: Intent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, "Watch List listemi sana gönderdim! Uygulamada Ayarlar > Kod ile Liste Aç bölümüne şu kodu gir: $code")
+                                    type = "text/plain"
+                                }
+                                val shareIntent = Intent.createChooser(sendIntent, null)
+                                context.startActivity(shareIntent)
+                            } else {
+                                Toast.makeText(context, "Hata oluştu", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }) {
+                        Text("Paylaş", color = BlueAccent)
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = { showShareDialog = false }) {
+                        Text("İptal", color = LightText)
+                    }
+                }
+            )
+        }
+
+        if (showOpenDialog) {
+            var code by androidx.compose.runtime.mutableStateOf("")
+            var loading by androidx.compose.runtime.mutableStateOf(false)
+            
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showOpenDialog = false },
+                containerColor = DarkSurface,
+                title = { Text("Kod ile Liste Aç", color = LightText, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        androidx.compose.material3.OutlinedTextField(
+                            value = code,
+                            onValueChange = { code = it.uppercase().replace(" ", "") },
+                            label = { Text("8 Haneli Kod", color = Color.Gray) },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = LightText,
+                                unfocusedTextColor = LightText,
+                                focusedBorderColor = BlueAccent
+                            )
+                        )
+                        if (loading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp), color = BlueAccent)
+                        }
+                    }
+                },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        if (code.length == 8) {
+                            loading = true
+                            viewModel.fetchSharedList(code) { list ->
+                                loading = false
+                                if (list != null) {
+                                    showOpenDialog = false
+                                    onNavigateToSharedList(code)
+                                } else {
+                                    Toast.makeText(context, "Bu kod geçersiz veya paylaşım kapatılmış", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }) {
+                        Text("Aç", color = BlueAccent)
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = { showOpenDialog = false }) {
+                        Text("İptal", color = LightText)
+                    }
+                }
+            )
+        }
+
+        if (showMySharesDialog) {
+            var myShares by androidx.compose.runtime.mutableStateOf<List<com.kaan.watchlist.domain.model.SharedListInfo>?>(null)
+            
+            LaunchedEffect(Unit) {
+                viewModel.getMySharedLists { myShares = it }
+            }
+            
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showMySharesDialog = false },
+                containerColor = DarkSurface,
+                title = { Text("Paylaşımlarım", color = LightText, fontWeight = FontWeight.Bold) },
+                text = {
+                    if (myShares == null) {
+                        CircularProgressIndicator(color = BlueAccent)
+                    } else if (myShares!!.isEmpty()) {
+                        Text("Aktif paylaşımınız yok.", color = LightText)
+                    } else {
+                        Column(modifier = Modifier.fillMaxWidth().height(300.dp).verticalScroll(rememberScrollState())) {
+                            myShares!!.forEach { share ->
+                                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).background(DarkNavy, RoundedCornerShape(8.dp)).padding(8.dp)) {
+                                    Column {
+                                        Text(share.title.ifBlank { "İsimsiz Liste" }, color = LightText, fontWeight = FontWeight.Bold)
+                                        Text("Kod: ${share.code}", color = Color.Gray, fontSize = 12.sp)
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            androidx.compose.material3.TextButton(onClick = {
+                                                val sendIntent: Intent = Intent().apply {
+                                                    action = Intent.ACTION_SEND
+                                                    putExtra(Intent.EXTRA_TEXT, "Watch List listemi sana gönderdim! Uygulamada Ayarlar > Kod ile Liste Aç bölümüne şu kodu gir: ${share.code}")
+                                                    type = "text/plain"
+                                                }
+                                                val shareIntent = Intent.createChooser(sendIntent, null)
+                                                context.startActivity(shareIntent)
+                                            }) {
+                                                Text("Kopyala", color = BlueAccent, fontSize = 12.sp)
+                                            }
+                                            androidx.compose.material3.TextButton(onClick = {
+                                                viewModel.removeSharedList(share.code) {
+                                                    viewModel.getMySharedLists { myShares = it }
+                                                }
+                                            }) {
+                                                Text("Kapat", color = Color(0xFFFF6B6B), fontSize = 12.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = { showMySharesDialog = false }) {
+                        Text("Kapat", color = BlueAccent)
+                    }
+                }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
         
         // --- Trakt.tv Card ---
         val traktConfigured = viewModel.traktConfigured

@@ -74,5 +74,12 @@ fun SetupNavGraph(
             val videoId = backStackEntry.arguments?.getString("videoId") ?: ""
             TrailerScreen(navController = navController, trailerKey = videoId)
         }
+        composable(
+            route = Screen.SharedList.route,
+            arguments = listOf(navArgument("code") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val code = backStackEntry.arguments?.getString("code") ?: ""
+            com.kaan.watchlist.screens.SharedListScreen(navController = navController, viewModel = sharedViewModel, code = code)
+        }
     }
 }
