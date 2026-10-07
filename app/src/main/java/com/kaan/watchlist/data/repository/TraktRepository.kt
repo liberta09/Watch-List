@@ -22,6 +22,8 @@ import com.kaan.watchlist.data.api.DeviceCodeResponse
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
 data class ImportResult(
     val itemsAdded: Int,
@@ -108,6 +110,10 @@ class TraktRepository(private val context: Context, private val mediaRepository:
 
     fun disconnect() {
         prefs.edit().clear().apply()
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            TraktSyncQueue.clear(context)
+            TraktPushedStore.clear(context)
+        }
     }
 
     suspend fun startDeviceAuth(): DeviceCodeResponse? {
@@ -245,9 +251,12 @@ class TraktRepository(private val context: Context, private val mediaRepository:
         sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
         fun parseDate(dateStr: String?): Long? = try { dateStr?.let { sdf.parse(it)?.time } } catch (e: Exception) { null }
 
+        val pushedKeys = mutableListOf<String>()
+
         watchedMovies.forEach { item: com.kaan.watchlist.data.api.TraktWatchedMovie ->
             val tmdbId = item.movie.ids.tmdb?.toInt()
             if (tmdbId == null) { unmatchedCount++; return@forEach }
+            pushedKeys.add(TraktPushedStore.movieKey(tmdbId))
             val builder = getOrPut(com.kaan.watchlist.domain.model.MediaType.MOVIE, tmdbId, item.movie.title, item.movie.year)
             builder.isWatched = true
             builder.watchedAt = parseDate(item.last_watched_at)
@@ -264,6 +273,7 @@ class TraktRepository(private val context: Context, private val mediaRepository:
             
             item.seasons?.forEach { season: com.kaan.watchlist.data.api.TraktWatchedSeason ->
                 season.episodes?.forEach { episode: com.kaan.watchlist.data.api.TraktWatchedEpisode ->
+                    pushedKeys.add(TraktPushedStore.episodeKey(tmdbId, season.number, episode.number))
                     val epTime = parseDate(episode.last_watched_at) ?: System.currentTimeMillis()
                     builder.watchedEpisodes["S${season.number}_E${episode.number}"] = epTime
                     totalEpisodesAdded++
@@ -279,6 +289,10 @@ class TraktRepository(private val context: Context, private val mediaRepository:
                 builder.lastWatchedSeason = lastS
                 builder.lastWatchedEpisode = lastE
             }
+        }
+
+        if (pushedKeys.isNotEmpty()) {
+            TraktPushedStore.markPushed(context, pushedKeys)
         }
 
         watchlistMovies.forEach { item: com.kaan.watchlist.data.api.TraktWatchlistMovie ->

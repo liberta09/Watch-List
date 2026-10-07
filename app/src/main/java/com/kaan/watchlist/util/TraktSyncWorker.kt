@@ -24,7 +24,7 @@ import com.kaan.watchlist.data.api.TraktSyncIds
 import com.kaan.watchlist.data.repository.AuthRepository
 import com.kaan.watchlist.data.repository.MediaRepository
 import com.kaan.watchlist.data.repository.SyncActionType
-import com.kaan.watchlist.data.repository.SyncQueueItem
+import com.kaan.watchlist.data.repository.TraktPushedStore
 import com.kaan.watchlist.data.repository.TraktRepository
 import com.kaan.watchlist.data.repository.TraktSyncQueue
 import com.kaan.watchlist.domain.model.MediaType
@@ -48,6 +48,7 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
             if (batch.isEmpty()) break
 
             val successIds = mutableListOf<String>()
+            val pushedKeysToMark = mutableListOf<String>()
 
             // 1. Process History items (Movies & Episodes)
             val historyItems = batch.filter {
@@ -92,9 +93,18 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
                 val result = executeSyncCall(traktRepository) {
                     traktRepository.traktApi.addHistory(request)
                 }
+
                 if (result is SyncCallResult.Success) {
                     successIds.addAll(historyItems.map { it.id })
+                    historyItems.forEach {
+                        if (it.actionType == SyncActionType.WATCHED_MOVIE) {
+                            pushedKeysToMark.add(TraktPushedStore.movieKey(it.tmdbId))
+                        } else if (it.actionType == SyncActionType.WATCHED_EPISODES && it.season != null && it.episode != null) {
+                            pushedKeysToMark.add(TraktPushedStore.episodeKey(it.tmdbId, it.season, it.episode))
+                        }
+                    }
                 } else {
+                    cleanUpPartialSuccess(successIds, pushedKeysToMark)
                     return handleFailedResult(result, traktRepository)
                 }
             }
@@ -132,9 +142,11 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
                 val result = executeSyncCall(traktRepository) {
                     traktRepository.traktApi.addRatings(request)
                 }
+
                 if (result is SyncCallResult.Success) {
                     successIds.addAll(ratingItems.map { it.id })
                 } else {
+                    cleanUpPartialSuccess(successIds, pushedKeysToMark)
                     return handleFailedResult(result, traktRepository)
                 }
             }
@@ -160,20 +172,43 @@ class TraktSyncWorker(private val context: Context, workerParams: WorkerParamete
                 val result = executeSyncCall(traktRepository) {
                     traktRepository.traktApi.addWatchlist(request)
                 }
+
                 if (result is SyncCallResult.Success) {
                     successIds.addAll(watchlistItems.map { it.id })
                 } else {
+                    cleanUpPartialSuccess(successIds, pushedKeysToMark)
                     return handleFailedResult(result, traktRepository)
                 }
             }
 
+            // Clean up successful items in this batch iteration
             if (successIds.isNotEmpty()) {
                 TraktSyncQueue.removeBatch(context, successIds)
+                if (pushedKeysToMark.isNotEmpty()) {
+                    TraktPushedStore.markPushed(context, pushedKeysToMark)
+                }
                 traktRepository.setLastSyncError(null)
+            } else {
+                // Infinite loop protection: if 0 items succeeded in this batch, break!
+                break
             }
+
+            delay(1000)
         }
 
         return Result.success()
+    }
+
+    private suspend fun cleanUpPartialSuccess(
+        successIds: List<String>,
+        pushedKeysToMark: List<String>
+    ) {
+        if (successIds.isNotEmpty()) {
+            TraktSyncQueue.removeBatch(context, successIds)
+            if (pushedKeysToMark.isNotEmpty()) {
+                TraktPushedStore.markPushed(context, pushedKeysToMark)
+            }
+        }
     }
 
     private sealed class SyncCallResult {

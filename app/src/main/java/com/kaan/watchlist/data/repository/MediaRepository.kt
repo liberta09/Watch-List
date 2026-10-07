@@ -550,14 +550,38 @@ class MediaRepository(val context: Context) {
         updateFirebase()
     }
 
-    private fun enqueueTraktSync(item: SyncQueueItem) {
+    private fun enqueueTraktSyncBatch(items: List<SyncQueueItem>) {
+        if (items.isEmpty()) return
         val traktRepo = TraktRepository(context, this)
         if (traktRepo.isConnected() && traktRepo.isAutoPushEnabled() && AuthRepository.isSignedIn) {
             CoroutineScope(Dispatchers.IO).launch {
-                TraktSyncQueue.enqueue(context, item)
-                com.kaan.watchlist.util.TraktSyncWorker.enqueue(context)
+                val filteredItems = mutableListOf<SyncQueueItem>()
+                for (item in items) {
+                    val key = when (item.actionType) {
+                        SyncActionType.WATCHED_MOVIE -> TraktPushedStore.movieKey(item.tmdbId)
+                        SyncActionType.WATCHED_EPISODES -> {
+                            if (item.season != null && item.episode != null) {
+                                TraktPushedStore.episodeKey(item.tmdbId, item.season, item.episode)
+                            } else null
+                        }
+                        else -> null
+                    }
+                    if (key == null || !TraktPushedStore.isPushed(context, key)) {
+                        filteredItems.add(item)
+                    }
+                }
+                if (filteredItems.isNotEmpty()) {
+                    for (item in filteredItems) {
+                        TraktSyncQueue.enqueue(context, item)
+                    }
+                    com.kaan.watchlist.util.TraktSyncWorker.enqueue(context)
+                }
             }
         }
+    }
+
+    private fun enqueueTraktSync(item: SyncQueueItem) {
+        enqueueTraktSyncBatch(listOf(item))
     }
 
     fun toggleList(item: MediaItem) {
@@ -678,24 +702,6 @@ class MediaRepository(val context: Context) {
                         watchedAt = now
                     )
                 )
-            } else if (item.type == MediaType.TV && item.watchedEpisodes.isNotEmpty()) {
-                for ((key, epTime) in item.watchedEpisodes) {
-                    val parts = key.split("_")
-                    if (parts.size == 2 && parts[0].startsWith("S") && parts[1].startsWith("E")) {
-                        val seasonNum = parts[0].substring(1).toIntOrNull() ?: 1
-                        val epNum = parts[1].substring(1).toIntOrNull() ?: 1
-                        enqueueTraktSync(
-                            SyncQueueItem(
-                                actionType = SyncActionType.WATCHED_EPISODES,
-                                mediaType = MediaType.TV,
-                                tmdbId = item.id,
-                                season = seasonNum,
-                                episode = epNum,
-                                watchedAt = epTime
-                            )
-                        )
-                    }
-                }
             }
         }
     }
@@ -812,17 +818,24 @@ class MediaRepository(val context: Context) {
         updateFirebase()
 
         if (watched) {
+            val syncItems = mutableListOf<SyncQueueItem>()
             for (ep in 1..episodeCount) {
-                enqueueTraktSync(
-                    SyncQueueItem(
-                        actionType = SyncActionType.WATCHED_EPISODES,
-                        mediaType = MediaType.TV,
-                        tmdbId = item.id,
-                        season = season,
-                        episode = ep,
-                        watchedAt = now
+                val epKey = "S${season}_E${ep}"
+                if (!targetItem.watchedEpisodes.containsKey(epKey)) {
+                    syncItems.add(
+                        SyncQueueItem(
+                            actionType = SyncActionType.WATCHED_EPISODES,
+                            mediaType = MediaType.TV,
+                            tmdbId = item.id,
+                            season = season,
+                            episode = ep,
+                            watchedAt = now
+                        )
                     )
-                )
+                }
+            }
+            if (syncItems.isNotEmpty()) {
+                enqueueTraktSyncBatch(syncItems)
             }
         }
     }
