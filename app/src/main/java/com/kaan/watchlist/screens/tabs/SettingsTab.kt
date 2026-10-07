@@ -198,14 +198,14 @@ fun SettingsTab(
         ) {
             Column {
                 Text(
-                    text = "Uygulama Güncellemesi",
+                    text = stringResource(R.string.settings_app_update),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = LightText
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Mevcut Sürüm: Sürüm ${BuildConfig.VERSION_NAME} ✨",
+                    text = stringResource(R.string.settings_current_version, BuildConfig.VERSION_NAME),
                     fontSize = 14.sp,
                     color = LightText.copy(alpha = 0.7f)
                 )
@@ -269,7 +269,7 @@ fun SettingsTab(
                     }
                     is UpdateStatus.UpdateAvailable -> {
                         Text(
-                            text = "Yeni sürüm mevcut: ${status.version}",
+                            text = stringResource(R.string.settings_new_version_available, status.version),
                             color = BlueAccent,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
@@ -434,7 +434,7 @@ fun SettingsTab(
                     colors = ButtonDefaults.buttonColors(containerColor = DarkNavy),
                     modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
-                    Text("Paylaşımlarım", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.settings_share_my_shares), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -465,11 +465,11 @@ fun SettingsTab(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("İçerik:", color = LightText)
                         val filters = listOf(
-                            "Hepsi" to com.kaan.watchlist.domain.model.ShareFilter.ALL,
-                            "Sadece İzlenecekler" to com.kaan.watchlist.domain.model.ShareFilter.WATCHLIST,
-                            "Sadece İzlenenler" to com.kaan.watchlist.domain.model.ShareFilter.WATCHED,
-                            "Sadece Filmler" to com.kaan.watchlist.domain.model.ShareFilter.MOVIES,
-                            "Sadece Diziler" to com.kaan.watchlist.domain.model.ShareFilter.SHOWS
+                            stringResource(R.string.settings_share_filter_all) to com.kaan.watchlist.domain.model.ShareFilter.ALL,
+                            stringResource(R.string.settings_share_filter_watchlist) to com.kaan.watchlist.domain.model.ShareFilter.WATCHLIST,
+                            stringResource(R.string.settings_share_filter_watched) to com.kaan.watchlist.domain.model.ShareFilter.WATCHED,
+                            stringResource(R.string.settings_share_filter_movies) to com.kaan.watchlist.domain.model.ShareFilter.MOVIES,
+                            stringResource(R.string.settings_share_filter_shows) to com.kaan.watchlist.domain.model.ShareFilter.SHOWS
                         )
                         filters.forEach { (label, enumValue) ->
                             Row(
@@ -501,7 +501,7 @@ fun SettingsTab(
                             if (code != null) {
                                 val sendIntent: Intent = Intent().apply {
                                     action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_TEXT, "Watch List listemi sana gönderdim! Uygulamada Ayarlar > Kod ile Liste Aç bölümüne şu kodu gir: $code")
+                                    putExtra(Intent.EXTRA_TEXT, context.resources.getString(R.string.settings_share_list_msg, code))
                                     type = "text/plain"
                                 }
                                 val shareIntent = Intent.createChooser(sendIntent, null)
@@ -584,7 +584,7 @@ fun SettingsTab(
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showMySharesDialog = false },
                 containerColor = DarkSurface,
-                title = { Text("Paylaşımlarım", color = LightText, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings_share_my_shares), color = LightText, fontWeight = FontWeight.Bold) },
                 text = {
                     if (myShares == null) {
                         CircularProgressIndicator(color = BlueAccent)
@@ -595,13 +595,13 @@ fun SettingsTab(
                             myShares!!.forEach { share ->
                                 Box(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).background(DarkNavy, RoundedCornerShape(8.dp)).padding(8.dp)) {
                                     Column {
-                                        Text(share.title.ifBlank { "İsimsiz Liste" }, color = LightText, fontWeight = FontWeight.Bold)
+                                        Text(share.title.ifBlank { stringResource(R.string.settings_unnamed_list) }, color = LightText, fontWeight = FontWeight.Bold)
                                         Text("Kod: ${share.code}", color = Color.Gray, fontSize = 12.sp)
                                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                             androidx.compose.material3.TextButton(onClick = {
                                                 val sendIntent: Intent = Intent().apply {
                                                     action = Intent.ACTION_SEND
-                                                    putExtra(Intent.EXTRA_TEXT, "Watch List listemi sana gönderdim! Uygulamada Ayarlar > Kod ile Liste Aç bölümüne şu kodu gir: ${share.code}")
+                                                    putExtra(Intent.EXTRA_TEXT, context.resources.getString(R.string.settings_share_list_msg, share.code))
                                                     type = "text/plain"
                                                 }
                                                 val shareIntent = Intent.createChooser(sendIntent, null)
@@ -651,7 +651,7 @@ fun SettingsTab(
         ) {
             Column {
                 Text(
-                    text = "Trakt.tv Senkronizasyonu",
+                    text = stringResource(R.string.settings_trakt_sync_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = LightText
@@ -660,7 +660,7 @@ fun SettingsTab(
 
                 if (!traktConfigured) {
                     Text(
-                        text = "Trakt yapılandırılmamış.",
+                        text = stringResource(R.string.settings_trakt_not_configured),
                         color = Color.Gray,
                         fontSize = 14.sp
                     )

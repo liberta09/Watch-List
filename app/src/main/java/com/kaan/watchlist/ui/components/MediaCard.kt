@@ -37,6 +37,8 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import com.kaan.watchlist.domain.model.MediaType
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.kaan.watchlist.R
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.AlertDialog
@@ -125,7 +127,7 @@ fun MediaCard(
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                         ) {
                             Text(
-                                text = "Sen: ${media.userRating}",
+                                text = stringResource(R.string.card_you_rating, media.userRating),
                                 color = Color.White,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
@@ -165,7 +167,7 @@ fun MediaCard(
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                         ) {
                             Text(
-                                text = "YENİ",
+                                text = stringResource(R.string.card_new),
                                 color = Color.White,
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.ExtraBold
@@ -204,7 +206,7 @@ fun MediaCard(
             // Latest watched episode for TV shows
             if (media.type == MediaType.TV && (media.lastWatchedSeason != null && media.lastWatchedEpisode != null)) {
                 Text(
-                    text = "S${media.lastWatchedSeason} B${media.lastWatchedEpisode}",
+                    text = stringResource(R.string.card_season_episode, media.lastWatchedSeason, media.lastWatchedEpisode),
                     color = BlueAccent,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -224,7 +226,7 @@ fun MediaCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (media.isWatched) "✓ İZLENDİ" else "🔖 İZLENECEK",
+                        text = if (media.isWatched) stringResource(R.string.card_watched) else stringResource(R.string.card_to_watch),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -241,7 +243,7 @@ fun MediaCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (media.isWatched) "✓ İZLENDİ" else "🔖 İZLENECEK",
+                        text = if (media.isWatched) stringResource(R.string.card_watched) else stringResource(R.string.card_to_watch),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -303,7 +305,7 @@ fun MediaCard(
             },
             text = {
                 Text(
-                    text = if (media.overview.isNotBlank()) media.overview else "Açıklama bulunmuyor.",
+                    text = if (media.overview.isNotBlank()) media.overview else stringResource(R.string.card_no_description),
                     color = LightText.copy(alpha = 0.85f),
                     fontSize = 13.sp,
                     maxLines = 4,
@@ -329,7 +331,7 @@ fun MediaCard(
                                 onClick()
                             })
                     ) {
-                        Text("Detaya Git", fontSize = 13.sp)
+                        Text(stringResource(R.string.card_go_to_details), fontSize = 13.sp)
                     }
 
                     if (onToggleList != null) {
@@ -343,7 +345,7 @@ fun MediaCard(
                                 .weight(1f)
                                 .tvFocusable(shape = RoundedCornerShape(8.dp), onClick = { onToggleList(media) })
                         ) {
-                            Text(if (media.isInList) "✓ Listede" else "+ Listeye Ekle", fontSize = 13.sp)
+                            Text(if (media.isInList) stringResource(R.string.card_in_list) else stringResource(R.string.card_add_to_list), fontSize = 13.sp)
                         }
                     }
                 }

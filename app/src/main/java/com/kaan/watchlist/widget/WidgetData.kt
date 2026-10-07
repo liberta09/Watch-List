@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.kaan.watchlist.domain.model.MediaItem
+import com.kaan.watchlist.R
 import com.kaan.watchlist.domain.model.MediaType
 import com.kaan.watchlist.util.DateUtils
 
@@ -50,18 +51,18 @@ object WidgetData {
             val dateStr = if (media.type == MediaType.TV) media.nextEpisodeAirDate else media.releaseDate
             val days = DateUtils.getDaysUntil(dateStr)
             val timeStr = when (days) {
-                0 -> "Bugün"
-                1 -> "Yarın"
-                else -> "$days gün sonra"
+                0 -> context.getString(R.string.widget_today)
+                1 -> context.getString(R.string.widget_tomorrow)
+                else -> context.getString(R.string.widget_days_later, days ?: 0)
             }
             
             val subtitle = if (media.type == MediaType.TV) {
                 val s = media.nextEpisodeSeason ?: 1
                 val e = media.nextEpisodeNumber ?: 1
-                val prefix = if (e == 1) "Yeni sezon · " else ""
-                "${prefix}S$s B$e · $timeStr"
+                val prefix = if (e == 1) context.getString(R.string.widget_new_season) else ""
+                context.getString(R.string.widget_season_episode, prefix, s, e, timeStr)
             } else {
-                "Vizyon · $timeStr"
+                context.getString(R.string.widget_movie_release, timeStr)
             }
             WidgetRow(media.id, media.title, subtitle)
         }

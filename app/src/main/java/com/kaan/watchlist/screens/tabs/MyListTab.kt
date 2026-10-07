@@ -142,7 +142,7 @@ fun MyListTab(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Type Filter Chips
-                val types = listOf("ALL" to "Hepsi", "MOVIE" to "Film", "TV" to "Dizi")
+                val types = listOf("ALL" to stringResource(R.string.my_list_all), "MOVIE" to stringResource(R.string.my_list_movie), "TV" to stringResource(R.string.my_list_tv))
                 types.forEach { (key, label) ->
                     val isSelected = filterType == key
                     androidx.compose.foundation.layout.Box(
@@ -162,11 +162,11 @@ fun MyListTab(
                 androidx.compose.foundation.layout.Box {
                     TextButton(onClick = { showSortMenu = true }) {
                         val sortLabel = when (sortBy) {
-                            "VOTE_DESC" -> "TMDB Puanı"
-                            "RATING_DESC" -> "Puanım"
+                            "VOTE_DESC" -> stringResource(R.string.sort_tmdb_score_short)
+                            "RATING_DESC" -> stringResource(R.string.sort_my_score_short)
                             "NAME_ASC" -> "A-Z"
-                            "WATCHED_DESC" -> "İzlenme Tarihi"
-                            else -> "Eklenme Tarihi"
+                            "WATCHED_DESC" -> stringResource(R.string.sort_date_watched_short)
+                            else -> stringResource(R.string.sort_date_added_short)
                         }
                         Text(stringResource(R.string.sort_by, sortLabel), fontSize = 12.sp, color = BlueAccent)
                     }
@@ -208,7 +208,7 @@ fun MyListTab(
                 ) {
                     items(allGenres) { genre ->
                         val isSelected = filterGenre == genre
-                        val label = if (genre == "ALL") "Tüm Türler" else genre
+                        val label = if (genre == "ALL") stringResource(R.string.my_list_all_genres) else genre
                         androidx.compose.foundation.layout.Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
@@ -242,7 +242,7 @@ fun MyListTab(
                 if (toWatch.isNotEmpty()) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Text(
-                            text = "İzlenecekler",
+                            text = stringResource(R.string.my_list_to_watch),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = LightText,
@@ -267,7 +267,7 @@ fun MyListTab(
                 if (watched.isNotEmpty()) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Text(
-                            text = "İzlenenler",
+                            text = stringResource(R.string.my_list_watched),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = LightText,

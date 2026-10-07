@@ -241,4 +241,77 @@
     <string name="notify_new_season_7days">📅 New season in 1 week</string>
     <string name="notify_new_season_7days_body">%1$s · Season %2$d · %3$s</string>
     <string name="notify_movie_today">🎬 Out today</string>
+    <!-- Media Card -->
+    <string name="card_you_rating">You: %1$s</string>
+    <string name="card_new">NEW</string>
+    <string name="card_season_episode">S%1$s E%2$s</string>
+    <string name="card_watched">✓ WATCHED</string>
+    <string name="card_to_watch">🔖 TO WATCH</string>
+    <string name="card_no_description">No description available.</string>
+    <string name="card_go_to_details">Go to Details</string>
+    <string name="card_in_list">✓ In List</string>
+    <string name="card_add_to_list">+ Add to List</string>
+    <string name="auth_err_empty">Email and password cannot be empty.</string>
+    <string name="auth_err_invalid_email">Please enter a valid email address.</string>
+    <string name="auth_err_fill_all">Please fill in all fields.</string>
+    <string name="auth_err_user_short">Username must be at least 3 characters.</string>
+    <string name="auth_err_pass_short">Password must be at least 6 characters.</string>
+    <string name="auth_err_weak_pass">Password is too weak, use at least 6 characters.</string>
+    <string name="auth_err_collision">An account with this email already exists.</string>
+    <string name="auth_err_invalid_creds">Incorrect email or password.</string>
+    <string name="auth_err_too_many">Too many attempts, please try again later.</string>
+    <string name="auth_err_network">No internet connection, please check your network.</string>
+    <string name="auth_err_not_enabled">Email/password sign-in is not enabled in Firebase.</string>
+    <string name="auth_err_unknown">An error occurred: %1$s</string>
+    <string name="update_err_invalid_url">Update download URL is invalid.</string>
+    <string name="update_err_dm_failed">Download manager could not be started.</string>
+    <string name="update_title">Watch List Update</string>
+    <string name="update_desc">Downloading new version...</string>
+    <string name="update_err_download_failed">Download failed.</string>
+    <string name="update_err_start_failed">Could not start download: %1$s</string>
+    <string name="update_toast_permission">Please grant \'Install Unknown Apps\' permission for Watch List.</string>
+    <!-- Notification Channels -->
+    <string name="notify_channel_upcoming">Upcoming Releases</string>
+    <string name="notify_channel_general">Watch List Notifications</string>
+    <string name="notify_channel_general_desc">Watch List general notification channel</string>
+    <!-- Announcement -->
+    <string name="announcement_fallback_title">📢 Watch List Updated</string>
+    <string name="announcement_fallback_message">Our app has been updated! 🎉\n\nWelcome everyone.\nWe continue to work on making Watch List better.\nWe hope you enjoy using the new version. ❤️</string>
+    <string name="announcement_fallback_btn">OK</string>
+    <!-- API Key Error -->
+    <string name="err_api_key_missing">API Key is missing or invalid. Please update local.properties.</string>
+    <string name="default_user_name">A Watch List user</string>
+    <!-- Remote Command -->
+    <string name="remote_command_executed">Remote command executed</string>
+    <!-- ViewModel Errors -->
+    <string name="err_no_results">No results found.</string>
+    <string name="err_search_failed">An error occurred during search: %1$s</string>
+    <!-- My List -->
+    <string name="my_list_all">All</string>
+    <string name="my_list_movie">Movie</string>
+    <string name="my_list_tv">TV Show</string>
+    <string name="my_list_to_watch">To Watch</string>
+    <string name="my_list_watched">Watched</string>
+    <string name="my_list_all_genres">All Genres</string>
+    <string name="sort_tmdb_score_short">TMDB Score</string>
+    <string name="sort_my_score_short">My Score</string>
+    <string name="sort_date_watched_short">Watch Date</string>
+    <string name="sort_date_added_short">Add Date</string>
+    <string name="search_clear">Clear</string>
+    <!-- Settings Tab Extras -->
+    <string name="settings_app_update">App Update</string>
+    <string name="settings_current_version">Current Version: Version %1$s ✨</string>
+    <string name="settings_new_version_available">New version available: %1$s</string>
+    <string name="settings_share_my_shares">My Shares</string>
+    <string name="settings_share_list_msg">I sent you my Watch List! In the app, go to Settings > Open List with Code and enter this code: %1$s</string>
+    <string name="settings_trakt_sync_title">Trakt.tv Sync</string>
+    <string name="settings_trakt_not_configured">Trakt is not configured.</string>
+    <!-- Widget Data -->
+    <string name="widget_today">Today</string>
+    <string name="widget_tomorrow">Tomorrow</string>
+    <string name="widget_days_later">in %1$d days</string>
+    <string name="widget_new_season">New season · </string>
+    <string name="widget_season_episode">%1$sS%2$d E%3$d · %4$s</string>
+    <string name="widget_movie_release">Release · %1$s</string>
+    <string name="telegram_channel">Telegram Channel</string>
 </resources>

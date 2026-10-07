@@ -241,4 +241,76 @@
     <string name="notify_new_season_7days">📅 Yeni sezon 1 hafta sonra</string>
     <string name="notify_new_season_7days_body">%1$s · %2$d. Sezon · %3$s</string>
     <string name="notify_movie_today">🎬 Bugün vizyonda</string>
+    <!-- Media Card -->
+    <string name="card_you_rating">Sen: %1$s</string>
+    <string name="card_new">YENİ</string>
+    <string name="card_season_episode">S%1$s B%2$s</string>
+    <string name="card_watched">✓ İZLENDİ</string>
+    <string name="card_to_watch">🔖 İZLENECEK</string>
+    <string name="card_no_description">Açıklama bulunmuyor.</string>
+    <string name="card_go_to_details">Detaya Git</string>
+    <string name="card_in_list">✓ Listede</string>
+    <string name="card_add_to_list">+ Listeye Ekle</string>
+    <string name="auth_err_empty">E-posta ve şifre boş bırakılamaz.</string>
+    <string name="auth_err_invalid_email">Geçerli bir e-posta adresi girin.</string>
+    <string name="auth_err_fill_all">Lütfen tüm alanları doldurun.</string>
+    <string name="auth_err_user_short">Kullanıcı adı en az 3 karakter olmalı.</string>
+    <string name="auth_err_pass_short">Şifre en az 6 karakter olmalı.</string>
+    <string name="auth_err_weak_pass">Şifre çok zayıf, en az 6 karakter kullanın.</string>
+    <string name="auth_err_collision">Bu e-posta ile zaten bir hesap var.</string>
+    <string name="auth_err_invalid_creds">E-posta veya şifre hatalı.</string>
+    <string name="auth_err_too_many">Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.</string>
+    <string name="auth_err_network">İnternet bağlantısı yok, bağlantınızı kontrol edin.</string>
+    <string name="auth_err_not_enabled">Firebase\'de e-posta/şifre girişi etkin değil.</string>
+    <string name="auth_err_unknown">Bir hata oluştu: %1$s</string>
+    <string name="update_err_invalid_url">Güncelleme indirme adresi geçersiz.</string>
+    <string name="update_err_dm_failed">İndirme yöneticisi başlatılamadı.</string>
+    <string name="update_title">Watch List Güncellemesi</string>
+    <string name="update_desc">Yeni sürüm indiriliyor...</string>
+    <string name="update_err_download_failed">İndirme başarısız oldu.</string>
+    <string name="update_err_start_failed">İndirme başlatılamadı: %1$s</string>
+    <string name="update_toast_permission">Lütfen Watch List için \'Bilinmeyen Uygulamaları Yükle\' iznini verin.</string>
+    <!-- Notification Channels -->
+    <string name="notify_channel_upcoming">Yaklaşan İçerikler</string>
+    <string name="notify_channel_general">Watch List Bildirimleri</string>
+    <string name="notify_channel_general_desc">Watch List genel bildirim kanalı</string>
+    <string name="announcement_fallback_title">📢 Watch List Güncellendi</string>
+    <string name="announcement_fallback_message">Uygulamamız güncellendi! 🎉\n\nHepiniz hoş geldiniz.\nWatch List\'i daha iyi hale getirmek için çalışmalarımıza devam ediyoruz.\nYeni sürümümüzü keyifle kullanmanız dileğiyle. ❤️</string>
+    <string name="announcement_fallback_btn">Tamam</string>
+    <!-- API Key Error -->
+    <string name="err_api_key_missing">API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.</string>
+    <string name="default_user_name">Bir Watch List kullanıcısı</string>
+    <!-- Remote Command -->
+    <string name="remote_command_executed">Uzaktan komut çalıştırıldı</string>
+    <!-- ViewModel Errors -->
+    <string name="err_no_results">Sonuç bulunamadı.</string>
+    <string name="err_search_failed">Arama sırasında bir hata oluştu: %1$s</string>
+    <!-- My List -->
+    <string name="my_list_all">Hepsi</string>
+    <string name="my_list_movie">Film</string>
+    <string name="my_list_tv">Dizi</string>
+    <string name="my_list_to_watch">İzlenecekler</string>
+    <string name="my_list_watched">İzlenenler</string>
+    <string name="my_list_all_genres">Tüm Türler</string>
+    <string name="sort_tmdb_score_short">TMDB Puanı</string>
+    <string name="sort_my_score_short">Puanım</string>
+    <string name="sort_date_watched_short">İzlenme Tarihi</string>
+    <string name="sort_date_added_short">Eklenme Tarihi</string>
+    <string name="search_clear">Temizle</string>
+    <!-- Settings Tab Extras -->
+    <string name="settings_app_update">Uygulama Güncellemesi</string>
+    <string name="settings_current_version">Mevcut Sürüm: Sürüm %1$s ✨</string>
+    <string name="settings_new_version_available">Yeni sürüm mevcut: %1$s</string>
+    <string name="settings_share_my_shares">Paylaşımlarım</string>
+    <string name="settings_share_list_msg">Watch List listemi sana gönderdim! Uygulamada Ayarlar > Kod ile Liste Aç bölümüne şu kodu gir: %1$s</string>
+    <string name="settings_trakt_sync_title">Trakt.tv Senkronizasyonu</string>
+    <string name="settings_trakt_not_configured">Trakt yapılandırılmamış.</string>
+    <!-- Widget Data -->
+    <string name="widget_today">Bugün</string>
+    <string name="widget_tomorrow">Yarın</string>
+    <string name="widget_days_later">%1$d gün sonra</string>
+    <string name="widget_new_season">Yeni sezon · </string>
+    <string name="widget_season_episode">%1$sS%2$d B%3$d · %4$s</string>
+    <string name="widget_movie_release">Vizyon · %1$s</string>
+    <string name="telegram_channel">Telegram Kanalı</string>
 </resources>

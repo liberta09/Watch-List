@@ -78,7 +78,7 @@ fun TelegramWebScreen(navController: NavController) {
             Spacer(modifier = Modifier.width(12.dp))
 
             Text(
-                text = "Telegram Kanalı",
+                text = stringResource(R.string.telegram_channel),
                 fontSize = 22.sp,
                 color = LightText
             )

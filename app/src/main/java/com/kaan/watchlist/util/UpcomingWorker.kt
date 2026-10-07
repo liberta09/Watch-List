@@ -189,7 +189,7 @@ class UpcomingWorker(private val context: Context, workerParams: WorkerParameter
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Yaklaşan İçerikler", NotificationManager.IMPORTANCE_DEFAULT)
+            val channel = NotificationChannel(channelId, context.getString(R.string.notify_channel_upcoming), NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }
 

@@ -80,6 +80,7 @@ fun RegisterScreen(navController: NavController) {
             email = email,
             username = username,
             password = password,
+            context = context,
             onSuccess = {
                 isLoading = false
                 // Kayıttan sonra oturumu kapatıp kullanıcıyı giriş ekranına döndürüyoruz,

@@ -14,14 +14,13 @@ import com.kaan.watchlist.R
 
 object NotificationHelper {
     private const val CHANNEL_ID = "watchlist_notifications_v2"
-    private const val CHANNEL_NAME = "Watch List Bildirimleri"
     private const val NOTIFICATION_ID = 1001
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                description = "Watch List genel bildirim kanalı"
+            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.notify_channel_general), importance).apply {
+                description = context.getString(R.string.notify_channel_general_desc)
                 enableVibration(true)
                 enableLights(true)
             }

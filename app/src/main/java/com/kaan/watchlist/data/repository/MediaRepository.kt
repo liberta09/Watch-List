@@ -3,6 +3,7 @@ package com.kaan.watchlist.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.kaan.watchlist.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -383,7 +384,7 @@ class MediaRepository(val context: Context) {
     }
 
     suspend fun getPopularMovies(): List<MediaItem> {
-        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception("API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.")
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception(context.getString(R.string.err_api_key_missing))
         val response = tmdbApi.getPopularMovies(apiKey, language = currentLanguage)
         return response.results.map { dto -> 
             mapDtoToMediaItem(dto, MediaType.MOVIE) 
@@ -391,7 +392,7 @@ class MediaRepository(val context: Context) {
     }
 
     suspend fun getPopularTvShows(): List<MediaItem> {
-        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception("API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.")
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception(context.getString(R.string.err_api_key_missing))
         val response = tmdbApi.getPopularTvShows(apiKey, language = currentLanguage)
         return response.results.map { dto -> 
             mapDtoToMediaItem(dto, MediaType.TV) 
@@ -438,7 +439,7 @@ class MediaRepository(val context: Context) {
     }
 
     suspend fun search(query: String): List<MediaItem> {
-        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception("API Key bulunamadı veya geçersiz. Lütfen local.properties dosyasını güncelleyin.")
+        if (apiKey.isBlank() || apiKey == "BURAYA_KULLANICININ_TMDB_API_KEY_DEGERI_GELECEK") throw Exception(context.getString(R.string.err_api_key_missing))
         if (query.isBlank()) return emptyList()
         val response = tmdbApi.searchMulti(apiKey, query, language = currentLanguage)
         return response.results.filter { it.mediaType == "movie" || it.mediaType == "tv" }.map { dto -> 
@@ -957,7 +958,7 @@ class MediaRepository(val context: Context) {
         val now = System.currentTimeMillis()
         val sharedList = com.kaan.watchlist.domain.model.SharedList(
             ownerUid = user.uid,
-            ownerName = user.displayName ?: "Bir Watch List kullanıcısı",
+            ownerName = user.displayName ?: context.getString(R.string.default_user_name),
             title = title,
             createdAt = now,
             updatedAt = now,

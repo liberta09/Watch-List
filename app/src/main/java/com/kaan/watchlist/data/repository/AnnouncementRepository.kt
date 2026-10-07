@@ -5,12 +5,14 @@ import android.content.SharedPreferences
 import com.kaan.watchlist.data.api.AnnouncementApi
 import com.kaan.watchlist.domain.model.Announcement
 import com.kaan.watchlist.util.UpdateConfig
+import com.kaan.watchlist.R
+import java.util.Locale
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-class AnnouncementRepository(context: Context) {
+class AnnouncementRepository(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("watchlist_prefs", Context.MODE_PRIVATE)
 
     private val announcementApi: AnnouncementApi by lazy {
@@ -43,13 +45,21 @@ class AnnouncementRepository(context: Context) {
             val dto = announcementApi.getAnnouncement(url)
             val id = dto.id ?: "announcement_001"
             val enabled = dto.enabled ?: true
+            
+            val isEnglish = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales().let {
+                if (it.isEmpty) Locale.getDefault().language == "en" else it.get(0)?.language == "en"
+            }
+            
+            val finalTitle = if (isEnglish && !dto.titleEn.isNullOrBlank()) dto.titleEn else dto.title
+            val finalMessage = if (isEnglish && !dto.messageEn.isNullOrBlank()) dto.messageEn else dto.message
+            val finalButton = if (isEnglish && !dto.buttonTextEn.isNullOrBlank()) dto.buttonTextEn else dto.buttonText
 
             if (enabled && id != lastDismissedId) {
                 Announcement(
                     id = id,
-                    title = dto.title ?: "📢 Watch List Güncellendi",
-                    message = dto.message ?: "Uygulamamız güncellendi! 🎉\n\nHepiniz hoş geldiniz.\nWatch List'i daha iyi hale getirmek için çalışmalarımıza devam ediyoruz.\nYeni sürümümüzü keyifle kullanmanız dileğiyle. ❤️",
-                    buttonText = dto.buttonText ?: "Tamam"
+                    title = finalTitle ?: context.getString(R.string.announcement_fallback_title),
+                    message = finalMessage ?: context.getString(R.string.announcement_fallback_message),
+                    buttonText = finalButton ?: context.getString(R.string.announcement_fallback_btn)
                 )
             } else {
                 null
@@ -60,9 +70,9 @@ class AnnouncementRepository(context: Context) {
             if (fallbackId != lastDismissedId) {
                 Announcement(
                     id = fallbackId,
-                    title = "📢 Watch List Güncellendi",
-                    message = "Uygulamamız güncellendi! 🎉\n\nHepiniz hoş geldiniz.\nWatch List'i daha iyi hale getirmek için çalışmalarımıza devam ediyoruz.\nYeni sürümümüzü keyifle kullanmanız dileğiyle. ❤️",
-                    buttonText = "Tamam"
+                    title = context.getString(R.string.announcement_fallback_title),
+                    message = context.getString(R.string.announcement_fallback_message),
+                    buttonText = context.getString(R.string.announcement_fallback_btn)
                 )
             } else {
                 null

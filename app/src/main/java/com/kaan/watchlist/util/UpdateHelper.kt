@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import com.kaan.watchlist.R
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +41,7 @@ object UpdateHelper {
     fun downloadAndInstallApk(context: Context, downloadUrl: String, fileName: String = "WatchList_Update.apk") {
         if (downloadUrl.isBlank()) {
             Log.d("UpdateDebug", "State değişti: Error (Geçersiz URL)")
-            _downloadState.value = DownloadState.Error("Güncelleme indirme adresi geçersiz.")
+            _downloadState.value = DownloadState.Error(context.getString(R.string.update_err_invalid_url))
             return
         }
 
@@ -53,13 +54,13 @@ object UpdateHelper {
             val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager
             if (downloadManager == null) {
                 Log.d("UpdateDebug", "State değişti: Error (İndirme yöneticisi başlatılamadı)")
-                _downloadState.value = DownloadState.Error("İndirme yöneticisi başlatılamadı.")
+                _downloadState.value = DownloadState.Error(context.getString(R.string.update_err_dm_failed))
                 return
             }
 
             val request = DownloadManager.Request(Uri.parse(downloadUrl)).apply {
-                setTitle("Watch List Güncellemesi")
-                setDescription("Yeni sürüm indiriliyor...")
+                setTitle(context.getString(R.string.update_title))
+                setDescription(context.getString(R.string.update_desc))
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 setDestinationInExternalFilesDir(context, null, fileName)
                 setMimeType("application/vnd.android.package-archive")
@@ -100,7 +101,7 @@ object UpdateHelper {
                             } else {
                                 if (isAppInForeground) {
                                     Log.d("UpdateDebug", "State değişti: Error (İndirme başarısız oldu)")
-                                    _downloadState.value = DownloadState.Error("İndirme başarısız oldu.")
+                                    _downloadState.value = DownloadState.Error(recvContext?.getString(R.string.update_err_download_failed) ?: "Download failed.")
                                 }
                             }
                             cursor.close()
@@ -120,13 +121,13 @@ object UpdateHelper {
         } catch (e: Exception) {
             Log.e("UpdateDebug", "Hata: İndirme başlatılamadı", e)
             Log.d("UpdateDebug", "State değişti: Error")
-            _downloadState.value = DownloadState.Error("İndirme başlatılamadı: ${e.localizedMessage}")
+            _downloadState.value = DownloadState.Error(context.getString(R.string.update_err_start_failed, e.localizedMessage ?: ""))
         }
     }
 
     fun promptInstall(context: Context, apkFile: File) {
         if (!apkFile.exists()) {
-            Toast.makeText(context, "Kurulum dosyası bulunamadı.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_install_file_not_found), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -135,7 +136,7 @@ object UpdateHelper {
             pendingInstallFile = apkFile
             Toast.makeText(
                 context,
-                "Lütfen Watch List için 'Bilinmeyen Uygulamaları Yükle' iznini verin.",
+                context.getString(R.string.update_toast_permission),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -180,7 +181,7 @@ object UpdateHelper {
             context.startActivity(installIntent)
         } catch (e: Exception) {
             Log.e("UpdateDebug", "Hata: Kurulum ekranı açılamadı", e)
-            Toast.makeText(context, "Kurulum ekranı açılamadı: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.toast_open_install_failed, e.localizedMessage ?: ""), Toast.LENGTH_LONG).show()
         }
     }
 

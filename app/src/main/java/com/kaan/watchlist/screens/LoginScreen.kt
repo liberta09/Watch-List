@@ -56,6 +56,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val dummyFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -69,6 +70,7 @@ fun LoginScreen(navController: NavController, viewModel: MediaViewModel) {
         AuthRepository.login(
             email = email,
             password = password,
+            context = context,
             onSuccess = {
                 isLoading = false
                 viewModel.setLoggedIn(true)

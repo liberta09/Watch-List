@@ -101,7 +101,7 @@ fun SearchTab(viewModel: MediaViewModel, onMediaClick: (MediaItem) -> Unit) {
                             viewModel.clearSearch()
                         }
                     ) {
-                        Icon(Icons.Default.Clear, contentDescription = "Temizle", tint = LightText)
+                        Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.search_clear), tint = LightText)
                     }
                 }
             },
