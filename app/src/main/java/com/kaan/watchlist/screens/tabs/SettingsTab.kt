@@ -422,7 +422,7 @@ fun SettingsTab(
                                 val shareIntent = Intent.createChooser(sendIntent, null)
                                 context.startActivity(shareIntent)
                             } else {
-                                Toast.makeText(context, "Hata oluştu", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Liste paylaşılamadı (Sadece giriş yapan kullanıcılar paylaşabilir)", Toast.LENGTH_LONG).show()
                             }
                         }
                     }) {

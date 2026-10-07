@@ -36,6 +36,14 @@
           ".write": "auth != null && data.exists() && newData.val() === true"
         }
       }
+    },
+
+    "shared": {
+      "$code": {
+        ".read": true,
+        ".write": "auth != null && (!data.exists() || data.child('ownerUid').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['ownerUid','title','items']) && newData.child('ownerUid').val() === auth.uid"
+      }
     }
   }
 }
