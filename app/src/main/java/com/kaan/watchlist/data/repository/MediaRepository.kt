@@ -908,4 +908,169 @@ class MediaRepository(val context: Context) {
             }
         }
     }
+
+    private fun generateShareCode(): String {
+        val chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789" // Excluded 0, O, 1, I, L
+        return (1..8).map { chars.random() }.joinToString("")
+    }
+
+    fun shareList(title: String, filter: com.kaan.watchlist.domain.model.ShareFilter, onResult: (String?) -> Unit) {
+        val user = auth.currentUser
+        if (user == null || user.isAnonymous) {
+            onResult(null)
+            return
+        }
+
+        val filteredItems = _myList.value.filter { item ->
+            when (filter) {
+                com.kaan.watchlist.domain.model.ShareFilter.ALL -> true
+                com.kaan.watchlist.domain.model.ShareFilter.WATCHLIST -> !item.isWatched
+                com.kaan.watchlist.domain.model.ShareFilter.WATCHED -> item.isWatched
+                com.kaan.watchlist.domain.model.ShareFilter.MOVIES -> item.type == MediaType.MOVIE
+                com.kaan.watchlist.domain.model.ShareFilter.SHOWS -> item.type == MediaType.TV
+            }
+        }.map {
+            com.kaan.watchlist.domain.model.SharedMediaItem(
+                tmdbId = it.id,
+                type = it.type.name,
+                title = it.title,
+                posterPath = it.posterPath,
+                releaseDate = if (it.type == MediaType.TV) it.nextEpisodeAirDate else it.releaseDate,
+                userRating = it.userRating,
+                isWatched = it.isWatched
+            )
+        }
+
+        val code = generateShareCode()
+        val now = System.currentTimeMillis()
+        val sharedList = com.kaan.watchlist.domain.model.SharedList(
+            ownerUid = user.uid,
+            ownerName = user.displayName ?: "Bir Watch List kullanıcısı",
+            title = title,
+            createdAt = now,
+            updatedAt = now,
+            items = filteredItems
+        )
+
+        db.getReference("shared/$code").setValue(sharedList).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                db.getReference("users/${user.uid}/sharedCodes/$code").setValue(true)
+                onResult(code)
+            } else {
+                onResult(null)
+            }
+        }
+    }
+
+    fun fetchSharedList(code: String, onResult: (com.kaan.watchlist.domain.model.SharedList?) -> Unit) {
+        db.getReference("shared/$code").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    val ownerUid = snapshot.child("ownerUid").getValue(String::class.java) ?: ""
+                    val ownerName = snapshot.child("ownerName").getValue(String::class.java) ?: ""
+                    val title = snapshot.child("title").getValue(String::class.java) ?: ""
+                    val createdAt = snapshot.child("createdAt").getValue(Long::class.java) ?: 0L
+                    val updatedAt = snapshot.child("updatedAt").getValue(Long::class.java) ?: 0L
+                    
+                    val items = mutableListOf<com.kaan.watchlist.domain.model.SharedMediaItem>()
+                    for (itemSnapshot in snapshot.child("items").children) {
+                        val tmdbId = itemSnapshot.child("tmdbId").getValue(Int::class.java) ?: 0
+                        val type = itemSnapshot.child("type").getValue(String::class.java) ?: ""
+                        val itemTitle = itemSnapshot.child("title").getValue(String::class.java) ?: ""
+                        val posterPath = itemSnapshot.child("posterPath").getValue(String::class.java)
+                        val releaseDate = itemSnapshot.child("releaseDate").getValue(String::class.java)
+                        val userRating = itemSnapshot.child("userRating").getValue(Int::class.java)
+                        val isWatched = itemSnapshot.child("isWatched").getValue(Boolean::class.java) ?: false
+                        
+                        items.add(
+                            com.kaan.watchlist.domain.model.SharedMediaItem(
+                                tmdbId = tmdbId, type = type, title = itemTitle, posterPath = posterPath,
+                                releaseDate = releaseDate, userRating = userRating, isWatched = isWatched
+                            )
+                        )
+                    }
+                    
+                    if (ownerUid.isBlank() && items.isEmpty()) {
+                        onResult(null)
+                    } else {
+                        onResult(com.kaan.watchlist.domain.model.SharedList(ownerUid, ownerName, title, createdAt, updatedAt, items))
+                    }
+                } catch (e: Exception) {
+                    onResult(null)
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                onResult(null)
+            }
+        })
+    }
+
+    fun getMySharedLists(onResult: (List<com.kaan.watchlist.domain.model.SharedListInfo>) -> Unit) {
+        val user = auth.currentUser
+        if (user == null || user.isAnonymous) {
+            onResult(emptyList())
+            return
+        }
+        
+        db.getReference("users/${user.uid}/sharedCodes").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val codes = snapshot.children.mapNotNull { it.key }
+                if (codes.isEmpty()) {
+                    onResult(emptyList())
+                    return
+                }
+                
+                val results = mutableListOf<com.kaan.watchlist.domain.model.SharedListInfo>()
+                var pending = codes.size
+                
+                codes.forEach { code ->
+                    db.getReference("shared/$code").addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(shareSnapshot: DataSnapshot) {
+                            val title = shareSnapshot.child("title").getValue(String::class.java)
+                            val createdAt = shareSnapshot.child("createdAt").getValue(Long::class.java)
+                            val updatedAt = shareSnapshot.child("updatedAt").getValue(Long::class.java)
+                            
+                            if (title != null && createdAt != null && updatedAt != null) {
+                                results.add(com.kaan.watchlist.domain.model.SharedListInfo(code, title, createdAt, updatedAt))
+                            } else {
+                                // If shared list doesn't exist anymore, remove from user's codes
+                                db.getReference("users/${user.uid}/sharedCodes/$code").removeValue()
+                            }
+                            
+                            pending--
+                            if (pending == 0) {
+                                onResult(results.sortedByDescending { it.createdAt })
+                            }
+                        }
+                        override fun onCancelled(error: DatabaseError) {
+                            pending--
+                            if (pending == 0) {
+                                onResult(results.sortedByDescending { it.createdAt })
+                            }
+                        }
+                    })
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                onResult(emptyList())
+            }
+        })
+    }
+
+    fun removeSharedList(code: String, onResult: (Boolean) -> Unit) {
+        val user = auth.currentUser
+        if (user == null || user.isAnonymous) {
+            onResult(false)
+            return
+        }
+        
+        db.getReference("shared/$code").removeValue().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                db.getReference("users/${user.uid}/sharedCodes/$code").removeValue()
+                onResult(true)
+            } else {
+                onResult(false)
+            }
+        }
+    }
 }

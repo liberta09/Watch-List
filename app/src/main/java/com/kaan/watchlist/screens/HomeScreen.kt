@@ -294,6 +294,9 @@ fun HomeScreen(rootNavController: NavController, viewModel: MediaViewModel) {
                     },
                     onOpenTelegramWeb = {
                         rootNavController.navigate(Screen.TelegramWeb.route)
+                    },
+                    onNavigateToSharedList = { code ->
+                        rootNavController.navigate(Screen.SharedList.createRoute(code))
                     }
                 )
             }

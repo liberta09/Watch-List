@@ -457,6 +457,23 @@ class MediaViewModel(
             }
         }
     }
+
+    // --- Sharing ---
+    fun shareList(title: String, filter: com.kaan.watchlist.domain.model.ShareFilter, onResult: (String?) -> Unit) {
+        repository.shareList(title, filter, onResult)
+    }
+
+    fun fetchSharedList(code: String, onResult: (com.kaan.watchlist.domain.model.SharedList?) -> Unit) {
+        repository.fetchSharedList(code, onResult)
+    }
+
+    fun getMySharedLists(onResult: (List<com.kaan.watchlist.domain.model.SharedListInfo>) -> Unit) {
+        repository.getMySharedLists(onResult)
+    }
+
+    fun removeSharedList(code: String, onResult: (Boolean) -> Unit) {
+        repository.removeSharedList(code, onResult)
+    }
 }
 
 sealed class ImportState {

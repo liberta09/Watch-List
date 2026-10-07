@@ -12,6 +12,9 @@ sealed class Screen(val route: String) {
     object Trailer : Screen("trailer_screen/{videoId}") {
         fun createRoute(videoId: String) = "trailer_screen/$videoId"
     }
+    object SharedList : Screen("shared_list_screen/{code}") {
+        fun createRoute(code: String) = "shared_list_screen/$code"
+    }
 }
 
 sealed class BottomNavScreen(val route: String, val title: String) {
